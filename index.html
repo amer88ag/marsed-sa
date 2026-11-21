@@ -156,7 +156,7 @@ async function loadWeather(){
   setText("loading","تم تحميل بيانات النموذج بنجاح.");
   setText("updated","آخر جلب: "+new Date().toLocaleString("ar-SA",{timeZone:"Asia/Riyadh"}));
   setText("connection","● متصل");
-  $("quality").textContent="تنبيه منهجي: البيانات الحالية والتاريخية والتوقعات مستمدة من نماذج الطقس لدى Open-Meteo. لا تمثل هذه القيم رصداً مباشراً أو تنبيهاً رسمياً من المركز الوطني للأرصاد.";
+  $("quality").innerHTML='تنبيه منهجي: البيانات الحالية والتاريخية والتوقعات مستمدة من نماذج الطقس لدى Open-Meteo. لا تمثل هذه القيم رصداً مباشراً أو تنبيهاً رسمياً من المركز الوطني للأرصاد.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · البيانات مرخصة وفق CC BY 4.0 مع الإسناد.';
  }catch(error){
   setText("loading","تعذر جلب البيانات. تحقق من الاتصال ثم أعد المحاولة.");
   $("loading").classList.add("error");setText("connection","● تعذر الاتصال");
