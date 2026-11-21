@@ -187,3 +187,20 @@ test('CHIRPS adapter rejects unsupported products and invalid values', () => {
   invalid.series.sat.jazan[0].precipitation_mm = -1;
   assert.throws(() => adapter.normalizeCitySeries(invalid, 'jazan', 'sat'), /Invalid CHIRPS precipitation/);
 });
+
+test('service management center loads the central registries and is explicit about read-only mode', () => {
+  const admin = fs.readFileSync('admin/index.html', 'utf8');
+  assert.match(admin, /\.\.\/config\/services\.json/);
+  assert.match(admin, /\.\.\/config\/providers\.json/);
+  assert.match(admin, /وضع المركز الحالي: قراءة ومراقبة السجل فقط/);
+  assert.match(admin, /تفعيل وتعطيل الخدمات أو تغيير المصدر/);
+  const scripts = [...admin.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)]
+    .map(match => match[1].trim()).filter(Boolean);
+  assert.ok(scripts.length > 0);
+  for (const script of scripts) new vm.Script(script, { filename: 'admin-inline.js' });
+});
+
+test('dashboard links to the service management center', () => {
+  assert.match(html, /href="admin\/"/);
+  assert.match(html, /مركز إدارة الخدمات والمصادر/);
+});
