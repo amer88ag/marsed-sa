@@ -254,3 +254,10 @@ test('dashboard uses the provider adapters and service orchestration modules', (
   assert.match(html, /WeatherService\.fetchWeather/);
   assert.match(html, /PrecipitationService\.fetchDataset/);
 });
+
+test('admin validates central registries before rendering', () => {
+  const admin = fs.readFileSync('admin/index.html', 'utf8');
+  assert.match(admin, /src="\.\.\/src\/platform\/registry\/registry\.js"/);
+  assert.match(admin, /MarsedRegistry\.validateRegistries/);
+  assert.match(admin, /السجلات غير صالحة/);
+});
