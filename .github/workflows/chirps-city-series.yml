@@ -44,8 +44,8 @@ jobs:
         run: python -m unittest discover -s tests -p "test_*.py" -v
       - name: Extract CHIRPS v3 daily grid values
         env:
-          START_DATE: ${{ inputs.start_date || env.CHIRPS_START_DATE }}
-          END_DATE: ${{ inputs.end_date || env.CHIRPS_END_DATE }}
+          START_DATE: ${{ github.event.inputs.start_date || env.CHIRPS_START_DATE }}
+          END_DATE: ${{ github.event.inputs.end_date || env.CHIRPS_END_DATE }}
         run: python scripts/chirps_extract.py --start "$START_DATE" --end "$END_DATE" --max-days 14
       - name: Commit generated research data to this branch only
         run: |
