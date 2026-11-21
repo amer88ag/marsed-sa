@@ -70,7 +70,7 @@ def download(url: str, destination: Path, max_attempts: int = 6):
     )
     for attempt in range(max_attempts):
         try:
-            with urllib.request.urlopen(request, timeout=120) as response, destination.open("wb") as target:
+            with urllib.request.urlopen(request, timeout=180) as response, destination.open("wb") as target:
                 while True:
                     chunk = response.read(1024 * 1024)
                     if not chunk:
@@ -80,15 +80,23 @@ def download(url: str, destination: Path, max_attempts: int = 6):
             time.sleep(2)
             return
         except urllib.error.HTTPError as exc:
+            destination.unlink(missing_ok=True)
             retryable = exc.code in {429, 500, 502, 503, 504}
             if not retryable or attempt == max_attempts - 1:
                 raise
             retry_after = exc.headers.get("Retry-After")
             try:
                 delay = min(120, max(2, int(retry_after))) if retry_after else min(120, 2 ** (attempt + 1))
-            except ValueError:
+            except (TypeError, ValueError):
                 delay = min(120, 2 ** (attempt + 1))
             time.sleep(delay)
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            destination.unlink(missing_ok=True)
+            if attempt == max_attempts - 1:
+                raise
+            # Network timeouts and transient connection resets are retried
+            # separately from HTTP status errors, with capped exponential backoff.
+            time.sleep(min(120, 2 ** (attempt + 1)))
 
 
 def clean_precipitation(value):
