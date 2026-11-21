@@ -56,7 +56,7 @@ test('no credential-like API key is embedded in the browser page', () => {
   assert.doesNotMatch(html, /(?:api[_-]?key|access[_-]?token)\s*[:=]\s*["'][^"']{12,}["']/i);
 });
 
-test('CHIRPS city time-series panel is wired to the branch data artifact', () => {
+test('CHIRPS city time-series panel is wired to the committed dataset artifact', () => {
   assert.match(html, /CHIRPS v3 DAILY SAT وDAILY RNL FINAL/);
   assert.match(html, /chirps_daily\.json/);
   assert.match(html, /chirpsState/);
