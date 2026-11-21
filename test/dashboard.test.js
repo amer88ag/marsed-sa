@@ -278,3 +278,95 @@ test('weather refresh clears stale values and rejects out-of-order city response
   assert.ok(html.includes('["temp","rain","humidity","wind"].forEach'));
   assert.ok(html.includes('if(requestId===weatherRequestId)$("refresh").disabled=false;'));
 });
+
+
+function createDashboardHarness() {
+  const elements = new Map();
+  const requests = [];
+  const listeners = {};
+  const getElementById = id => {
+    if (!elements.has(id)) elements.set(id, {
+      id, textContent: '', innerHTML: '', disabled: false, value: 'riyadh',
+      classList: { add() {}, remove() {} },
+      addEventListener(type, callback) { listeners[id + ':' + type] = callback; }
+    });
+    return elements.get(id);
+  };
+  const deferred = () => {
+    let resolve, reject;
+    const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
+    return { promise, resolve, reject };
+  };
+  const marker = { setLatLng() { return this; }, setPopupContent() { return this; }, bindPopup() { return this; } };
+  const map = { setView() { return this; } };
+  const leaflet = {
+    map() { return map; },
+    tileLayer() { return { addTo() {} }; },
+    marker() { return marker; }
+  };
+  const document = { getElementById };
+  const window = { L: leaflet };
+  const context = {
+    document, window, L: leaflet, console, Date, Math, Number, isFinite,
+    URL,
+    WeatherService: {
+      fetchWeather() {
+        const item = deferred();
+        requests.push(item);
+        return item.promise;
+      }
+    },
+    PrecipitationService: {
+      fetchDataset: async () => { throw new Error('offline test fixture'); }
+    }
+  };
+  const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
+    .map(match => match[1].trim()).filter(Boolean);
+  assert.equal(scripts.length, 1, 'one inline dashboard application script is expected');
+  vm.runInNewContext(scripts[0], context, { filename: 'dashboard-race-test.js' });
+  return { elements, requests, listeners };
+}
+
+test('weather UI keeps the newest city response when requests resolve out of order', async () => {
+  const harness = createDashboardHarness();
+  assert.equal(harness.requests.length, 1, 'initial Riyadh request starts');
+  const changeCity = harness.listeners['place:change'];
+  assert.equal(typeof changeCity, 'function');
+
+  changeCity({ target: { value: 'abha' } });
+  assert.equal(harness.requests.length, 2, 'Abha request starts after city selection');
+
+  harness.requests[1].resolve({
+    measurements: [
+      { name: 'temperature', value: 19 },
+      { name: 'precipitation', value: 1.2 },
+      { name: 'relative_humidity', value: 55 },
+      { name: 'wind_speed', value: 7 }
+    ],
+    daily: [{ valid_date: '2026-11-22', precipitation: 1.2 }]
+  });
+  await harness.requests[1].promise;
+  await new Promise(resolve => setImmediate(resolve));
+
+  assert.equal(harness.elements.get('placeName').textContent, 'أبها');
+  assert.equal(harness.elements.get('temp').textContent, '19.0');
+
+  harness.requests[0].resolve({
+    measurements: [
+      { name: 'temperature', value: 35 },
+      { name: 'precipitation', value: 0 },
+      { name: 'relative_humidity', value: 20 },
+      { name: 'wind_speed', value: 15 }
+    ],
+    daily: [{ valid_date: '2026-11-22', precipitation: 0 }]
+  });
+  await harness.requests[0].promise;
+  await new Promise(resolve => setImmediate(resolve));
+
+  assert.equal(harness.elements.get('placeName').textContent, 'أبها');
+  assert.equal(harness.elements.get('temp').textContent, '19.0',
+    'late Riyadh response must not overwrite Abha values');
+  assert.equal(harness.elements.get('humidity').textContent, '55');
+  assert.equal(harness.elements.get('refresh').disabled, false,
+    'only the current request controls refresh button state');
+});
