@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b46">
+<title>مركز إدارة الخدمات والمصادر | مرصد السعودية</title>
+<style>
+:root{color-scheme:light;--navy:#102b46;--blue:#1769aa;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa;--green:#16794b;--amber:#9a5a00;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}
+header{background:linear-gradient(120deg,#102b46,#174d76);color:white;padding:24px max(18px,calc((100% - 1180px)/2))}
+h1{margin:0;font-size:clamp(21px,3vw,29px)}header p{color:#c6d8e7;margin:8px 0 0;font-size:13px}
+main{max-width:1180px;margin:auto;padding:22px 16px 48px}.topline{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+a{color:var(--blue);text-decoration:none}.status{font-size:12px;padding:7px 11px;border-radius:30px;background:#e8f4ed;color:var(--green)}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.card,.panel{background:white;border:1px solid var(--line);border-radius:14px;box-shadow:0 3px 14px #183b5708}
+.card{padding:16px}.card small{color:var(--muted)}.card strong{display:block;font-size:27px;margin-top:7px}
+.panel{margin-top:16px;overflow:hidden}.panel-head{padding:15px 17px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:center}.panel-head h2{margin:0;font-size:16px}
+table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:right;padding:12px 14px;border-bottom:1px solid #edf1f5;vertical-align:top}th{background:#f8fafc;color:var(--muted);font-weight:600}tr:last-child td{border-bottom:0}
+.pill{display:inline-block;padding:4px 8px;border-radius:20px;font-size:11px;white-space:nowrap;background:#eef2f6;color:#425466}.active,.approved,.healthy{background:#e8f4ed;color:#16794b}.research,.review,.conditional{background:#fff4df;color:#8a5700}.planned,.notconnected,.unknown{background:#eef2f6;color:#526273}.danger{background:#fdecea;color:#b42318}
+.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.filters input,.filters select{font:inherit;border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:white}
+.note{padding:14px 16px;background:#fff7e8;color:#79500b;border-radius:11px;font-size:12px;line-height:1.8;margin-top:16px}
+.empty{padding:24px;text-align:center;color:var(--muted)}.foot{margin-top:18px;color:var(--muted);font-size:11px;line-height:1.8}
+@media(max-width:760px){.cards{grid-template-columns:repeat(2,1fr)}table{min-width:760px}.table-scroll{overflow:auto}}
+</style>
+</head>
+<body>
+<header><h1>مركز إدارة الخدمات والمصادر</h1><p>مرصد السعودية · سجل الخدمات ومزودي البيانات وحالة اعتمادهم</p></header>
+<main>
+<div class="topline"><a href="../index.html">← العودة إلى المرصد</a><span class="status" id="loadStatus">جارٍ تحميل السجلات…</span></div>
+<section class="cards" aria-label="ملخص السجلات">
+<div class="card"><small>إجمالي الخدمات</small><strong id="serviceCount">—</strong></div>
+<div class="card"><small>الخدمات الفعالة</small><strong id="activeCount">—</strong></div>
+<div class="card"><small>مصادر البيانات</small><strong id="providerCount">—</strong></div>
+<div class="card"><small>مصادر غير موصولة</small><strong id="disconnectedCount">—</strong></div>
+</section>
+<section class="panel">
+<div class="panel-head"><h2>الخدمات</h2><div class="filters"><input id="serviceSearch" type="search" placeholder="ابحث عن خدمة…" aria-label="ابحث عن خدمة"><select id="serviceFilter" aria-label="تصفية حالة الخدمة"><option value="">كل الحالات</option><option value="active">فعالة</option><option value="research">بحثية</option><option value="planned">مخططة</option><option value="disabled">معطلة</option></select></div></div>
+<div class="table-scroll"><table><thead><tr><th>الخدمة</th><th>المجال</th><th>الحالة</th><th>المصادر المرتبطة</th><th>الوصف والقيود</th></tr></thead><tbody id="servicesBody"><tr><td colspan="5" class="empty">جارٍ التحميل…</td></tr></tbody></table></div>
+</section>
+<section class="panel">
+<div class="panel-head"><h2>مزودو البيانات</h2><input id="providerSearch" type="search" placeholder="ابحث عن مصدر…" aria-label="ابحث عن مصدر"></div>
+<div class="table-scroll"><table><thead><tr><th>المصدر</th><th>المجال</th><th>حالة الترخيص</th><th>الاتصال</th><th>المنتجات</th><th>القيود والتفاصيل</th></tr></thead><tbody id="providersBody"><tr><td colspan="6" class="empty">جارٍ التحميل…</td></tr></tbody></table></div>
+</section>
+<div class="note"><strong>وضع المركز الحالي: قراءة ومراقبة السجل فقط.</strong><br>تفعيل وتعطيل الخدمات أو تغيير المصدر الأساسي والاحتياطي يحتاج صلاحيات إدارية وتخزيناً موثوقاً وسجلاً للتغييرات. لن نجعل أزراراً شكلية تغيّر العرض في جهاز واحد وتوهم بأنها غيّرت إعدادات المنصة للجميع. تُنفّذ أوامر الإدارة بعد بناء واجهة خلفية آمنة والتحقق من الهوية والصلاحيات.</div>
+<p class="foot">حالة الاتصال المعروضة مأخوذة من سجل التعريف وليست فحصاً حياً ما لم يذكر ذلك صراحة. لا يعني تسجيل المصدر في الكتالوج اعتماده للإنتاج أو امتلاك حق إعادة نشر بياناته.</p>
+</main>
+<script>
+(function(){
+"use strict";
+var services=[],providers=[];
+var $=function(id){return document.getElementById(id)};
+function esc(value){return String(value==null?"":value).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+var serviceNames={active:"فعالة",research:"بحثية",planned:"مخططة",disabled:"معطلة"};
+var licenseNames={approved:"معتمد",approved_with_conditions:"معتمد بشروط",research_reviewed:"مراجَع للبحث",review_required:"يتطلب مراجعة",approval_required:"يتطلب موافقة",rejected:"مرفوض"};
+var healthNames={healthy:"يعمل",degraded:"متدهور",not_monitored:"غير مراقب",ci_smoke_tested:"اجتاز اختبار CI",not_connected:"غير موصول",unavailable:"غير متاح"};
+function renderServices(){
+ var q=$("serviceSearch").value.trim().toLowerCase(),filter=$("serviceFilter").value;
+ var rows=services.filter(function(s){return (!filter||s.status===filter)&&(!q||(s.title+" "+s.id+" "+s.description).toLowerCase().includes(q))});
+ $("servicesBody").innerHTML=rows.length?rows.map(function(s){
+  var names=(s.provider_ids||[]).map(function(id){var p=providers.find(function(x){return x.id===id});return p?p.name:id}).join("، ")||"لا يوجد مصدر مرتبط";
+  return "<tr><td><strong>"+esc(s.title)+"</strong><br><small>"+esc(s.id)+"</small></td><td>"+esc(s.category)+"</td><td><span class='pill "+esc(s.status)+"'>"+esc(serviceNames[s.status]||s.status)+"</span></td><td>"+esc(names)+"</td><td>"+esc(s.description||"")+(s.safety_notice?"<br><small>"+esc(s.safety_notice)+"</small>":"")+"</td></tr>"
+ }).join(""):"<tr><td colspan='5' class='empty'>لا توجد خدمات مطابقة.</td></tr>";
+}
+function renderProviders(){
+ var q=$("providerSearch").value.trim().toLowerCase();
+ var rows=providers.filter(function(p){return (p.name+" "+p.id+" "+p.domain).toLowerCase().includes(q)});
+ $("providersBody").innerHTML=rows.length?rows.map(function(p){
+  var licClass=p.license_status==="approved"?"approved":p.license_status==="approved_with_conditions"?"conditional":p.license_status==="rejected"?"danger":"review";
+  var healthClass=p.health_status==="healthy"||p.health_status==="ci_smoke_tested"?"healthy":p.health_status==="unavailable"?"danger":"unknown";
+  return "<tr><td><strong>"+esc(p.name)+"</strong><br><small><a href='"+esc(p.official_url)+"' target='_blank' rel='noopener'>الموقع الرسمي ↗</a></small></td><td>"+esc(p.domain)+"</td><td><span class='pill "+licClass+"'>"+esc(licenseNames[p.license_status]||p.license_status)+"</span><br><small>"+esc(p.license||"")+"</small></td><td><span class='pill "+healthClass+"'>"+esc(healthNames[p.health_status]||p.health_status)+"</span></td><td>"+esc((p.products||[]).join("، "))+"</td><td>"+esc(p.notes||"")+"<br><small>"+esc(p.rate_limit||"")+"</small></td></tr>"
+ }).join(""):"<tr><td colspan='6' class='empty'>لا توجد مصادر مطابقة.</td></tr>";
+}
+async function load(){
+ try{
+  var responses=await Promise.all([fetch("../config/services.json"),fetch("../config/providers.json")]);
+  if(responses.some(function(r){return !r.ok}))throw new Error("تعذر تحميل ملفات السجل");
+  var payloads=await Promise.all(responses.map(function(r){return r.json()}));
+  services=payloads[0].services||[];providers=payloads[1].providers||[];
+  $("serviceCount").textContent=services.length;
+  $("activeCount").textContent=services.filter(function(s){return s.status==="active"}).length;
+  $("providerCount").textContent=providers.length;
+  $("disconnectedCount").textContent=providers.filter(function(p){return p.health_status==="not_connected"||p.health_status==="unavailable"}).length;
+  renderServices();renderProviders();$("loadStatus").textContent="تم تحميل السجلات";
+ }catch(error){$("loadStatus").textContent="تعذر تحميل السجلات";$("servicesBody").innerHTML="<tr><td colspan='5' class='empty'>"+esc(error.message)+"</td></tr>";$("providersBody").innerHTML="<tr><td colspan='6' class='empty'>"+esc(error.message)+"</td></tr>"}
+}
+$("serviceSearch").addEventListener("input",renderServices);$("serviceFilter").addEventListener("change",renderServices);$("providerSearch").addEventListener("input",renderProviders);load();
+})();
+</script>
+</body>
+</html>
