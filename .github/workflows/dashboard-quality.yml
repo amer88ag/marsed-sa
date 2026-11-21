@@ -21,3 +21,9 @@ jobs:
           node-version: 22
       - name: Run dashboard tests
         run: node --test
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run CHIRPS extractor unit tests
+        run: python -m unittest discover -s tests -p "test_*.py" -v
