@@ -69,6 +69,10 @@
 <div class="foot">مرصد السعودية مشروع مستقل غير تابع للمركز الوطني للأرصاد أو NASA أو UCSB. لا تستخدم هذه اللوحة لاتخاذ قرارات السلامة أو الإخلاء أو الملاحة. في الحالات الطارئة اتبع تنبيهات الجهات الرسمية. © مرصد السعودية.</div>
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="src/providers/weather/open-meteo/adapter.js"></script>
+<script src="src/providers/precipitation/chirps/adapter.js"></script>
+<script src="src/services/weather/service.js"></script>
+<script src="src/services/precipitation/service.js"></script>
 <script>
 (function(){
 "use strict";
@@ -116,8 +120,10 @@ function drawChirpsChart(satRecords,rnlRecords){
 }
 function renderChirps(){
  if(!chirpsDataset||!chirpsDataset.series){setText("chirpsState","لم تُنشأ بيانات CHIRPS بعد. شغّل مهمة Build CHIRPS city time series من تبويب Actions في فرع التطوير.");return}
- var satRecords=(chirpsDataset.series.sat&&chirpsDataset.series.sat[activeKey])||chirpsDataset.series[activeKey]||[];
- var rnlRecords=(chirpsDataset.series.rnl&&chirpsDataset.series.rnl[activeKey])||[];
+ var satNormalized=PrecipitationService.getCitySeries(chirpsDataset,activeKey,"sat");
+ var rnlNormalized=PrecipitationService.getCitySeries(chirpsDataset,activeKey,"rnl");
+ var satRecords=satNormalized.observations.map(function(row){return {date:row.valid_date,precipitation_mm:row.value}});
+ var rnlRecords=rnlNormalized.observations.map(function(row){return {date:row.valid_date,precipitation_mm:row.value}});
  if(!satRecords.length&&!rnlRecords.length){$("chirpsChart").innerHTML="";setText("chirpsState","لا توجد سجلات لهذه المدينة في ملف البيانات الحالي.");return}
  drawChirpsChart(satRecords,rnlRecords);
  var satCount=satRecords.filter(function(row){return row.precipitation_mm!==null}).length;
@@ -127,10 +133,7 @@ function renderChirps(){
 }
 async function loadChirps(){
  try{
-  var response=await fetch("https://raw.githubusercontent.com/amer88ag/marsed-sa/feature/dashboard-quality-gates/data/chirps_daily.json",{cache:"no-store"});
-  if(!response.ok)throw new Error("HTTP "+response.status);
-  var payload=await response.json();
-  if(payload.schema_version!==1)throw new Error("schema version not supported");
+  var payload=await PrecipitationService.fetchDataset("https://raw.githubusercontent.com/amer88ag/marsed-sa/feature/dashboard-quality-gates/data/chirps_daily.json");
   chirpsDataset=payload;
   renderChirps();
  }catch(error){
@@ -141,18 +144,15 @@ async function loadWeather(){
  var p=places[activeKey];setText("placeName",p.name);setText("placeCoords",p.lat.toFixed(4)+"° شمالاً، "+p.lon.toFixed(4)+"° شرقاً");
  setText("loading","جارٍ جلب البيانات…");$("refresh").disabled=true;$("connection").textContent="● جارٍ الاتصال";
  if(marker&&map){marker.setLatLng([p.lat,p.lon]).setPopupContent(p.name);map.setView([p.lat,p.lon],7)}
- var url="https://api.open-meteo.com/v1/forecast?latitude="+p.lat+"&longitude="+p.lon+"&current=temperature_2m,relative_humidity_2m,precipitation,rain,showers,wind_speed_10m&hourly=precipitation&daily=precipitation_sum,temperature_2m_max,temperature_2m_min&past_days=7&forecast_days=7&timezone=Asia%2FRiyadh";
  try{
-  var response=await fetch(url,{headers:{Accept:"application/json"}});
-  if(!response.ok)throw new Error("HTTP "+response.status);
-  var data=await response.json();
-  if(!data.current||!data.daily)throw new Error("استجابة غير مكتملة");
-  setText("temp",number(data.current.temperature_2m,1));
-  setText("rain",number(data.current.precipitation,1));
-  setText("humidity",number(data.current.relative_humidity_2m,0));
-  setText("wind",number(data.current.wind_speed_10m,0));
-  drawChart(data.daily.time||[],data.daily.precipitation_sum||[]);
-  setText("chartCaption","المصدر: Open-Meteo ("+(data.daily.time||[]).length+" يوماً). القيم التاريخية/المستقبلية نموذجية وليست قياسات محطة.");
+  var data=await WeatherService.fetchWeather({id:activeKey,name:p.name,lat:p.lat,lon:p.lon});
+  var measurement=function(name){var item=data.measurements.find(function(entry){return entry.name===name});return item?item.value:null};
+  setText("temp",number(measurement("temperature"),1));
+  setText("rain",number(measurement("precipitation"),1));
+  setText("humidity",number(measurement("relative_humidity"),0));
+  setText("wind",number(measurement("wind_speed"),0));
+  drawChart(data.daily.map(function(row){return row.valid_date}),data.daily.map(function(row){return row.precipitation}));
+  setText("chartCaption","المصدر: Open-Meteo ("+data.daily.length+" يوماً). القيم التاريخية/المستقبلية نموذجية وليست قياسات محطة.");
   setText("loading","تم تحميل بيانات النموذج بنجاح.");
   setText("updated","آخر جلب: "+new Date().toLocaleString("ar-SA",{timeZone:"Asia/Riyadh"}));
   setText("connection","● متصل");
