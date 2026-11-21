@@ -138,3 +138,52 @@ test('registry rejects unknown provider references', () => {
   assert.equal(result.valid, false);
   assert.match(result.errors.join(' '), /Unknown provider missing/);
 });
+
+test('Open-Meteo adapter builds a Riyadh-time request and normalizes model output', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  const url = new URL(adapter.buildCurrentUrl({ id: 'abha', name: 'أبها', lat: 18.2164, lon: 42.5053 }));
+  assert.equal(url.hostname, 'api.open-meteo.com');
+  assert.equal(url.searchParams.get('timezone'), 'Asia/Riyadh');
+  assert.equal(url.searchParams.get('latitude'), '18.2164');
+  const normalized = adapter.normalizeCurrent({
+    current: { time: '2026-11-21T12:00', temperature_2m: 21, relative_humidity_2m: 40, precipitation: 0, wind_speed_10m: 8 },
+    daily: { time: ['2026-11-21'], precipitation_sum: [0.2] }
+  }, { id: 'abha', name: 'أبها', lat: 18.2164, lon: 42.5053 }, '2026-11-21T12:05:00Z');
+  assert.equal(normalized.provider_id, 'open-meteo');
+  assert.equal(normalized.location.id, 'abha');
+  assert.equal(normalized.measurements.find(item => item.name === 'temperature').value, 21);
+  assert.equal(normalized.daily[0].precipitation, 0.2);
+  assert.match(normalized.provenance.methodology, /Numerical weather model/);
+});
+
+test('Open-Meteo adapter rejects malformed coordinates and mismatched daily arrays', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  assert.throws(() => adapter.buildCurrentUrl({ lat: NaN, lon: 42 }), /finite lat\/lon/);
+  assert.throws(() => adapter.normalizeCurrent({
+    current: {}, daily: { time: ['2026-01-01'], precipitation_sum: [] }
+  }, null), /equal length/);
+});
+
+test('CHIRPS adapter preserves SAT and RNL product identity and null values', () => {
+  const adapter = require('../src/providers/precipitation/chirps/adapter.js');
+  const dataset = JSON.parse(fs.readFileSync('data/chirps_daily.json', 'utf8'));
+  const sat = adapter.normalizeCitySeries(dataset, 'jazan', 'sat');
+  const rnl = adapter.normalizeCitySeries(dataset, 'jazan', 'rnl');
+  assert.equal(sat.provider_id, 'chirps-v3');
+  assert.equal(sat.product_id, 'DAILY-SAT-FINAL');
+  assert.equal(rnl.product_id, 'DAILY-RNL');
+  assert.equal(sat.location.id, 'jazan');
+  assert.equal(sat.observations.length, 3);
+  assert.equal(sat.observations[0].unit, 'mm/day');
+  assert.match(sat.provenance.methodology, /IMERG Late V07/);
+  assert.match(rnl.provenance.methodology, /ERA5/);
+});
+
+test('CHIRPS adapter rejects unsupported products and invalid values', () => {
+  const adapter = require('../src/providers/precipitation/chirps/adapter.js');
+  const dataset = JSON.parse(fs.readFileSync('data/chirps_daily.json', 'utf8'));
+  assert.throws(() => adapter.normalizeCitySeries(dataset, 'jazan', 'forecast'), /Unsupported CHIRPS product/);
+  const invalid = JSON.parse(JSON.stringify(dataset));
+  invalid.series.sat.jazan[0].precipitation_mm = -1;
+  assert.throws(() => adapter.normalizeCitySeries(invalid, 'jazan', 'sat'), /Invalid CHIRPS precipitation/);
+});
