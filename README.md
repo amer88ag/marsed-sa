@@ -35,9 +35,9 @@
 - docs/PROJECT_STRUCTURE.md — الهيكل متعدد الخدمات ومزودي البيانات وخطة الانتقال المرحلي.
 - docs/SERVICE_INTEGRATION_GUIDE.md — معيار إضافة موقع أو خدمة أو موصل بيانات جديد.
 - docs/ARCHITECTURE.md — ملخص المعمارية والقرارات التقنية.
+- admin/index.html — مركز إدارة الخدمات والمصادر (عرض ومراقبة أولية).
 - docs/DATA_SOURCES.md — سجل مصادر البيانات وحالة التحقق من التراخيص.
 - docs/ROADMAP.md — مراحل التنفيذ ومعايير القبول.
-- docs/ARCHITECTURE.md — التصور الفني المبدئي.
 
 ## المساهمة
 
