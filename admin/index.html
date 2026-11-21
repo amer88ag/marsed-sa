@@ -62,13 +62,15 @@ function renderServices(){
   return "<tr><td><strong>"+esc(s.title)+"</strong><br><small>"+esc(s.id)+"</small></td><td>"+esc(s.category)+"</td><td><span class='pill "+esc(s.status)+"'>"+esc(serviceNames[s.status]||s.status)+"</span></td><td>"+esc(names)+"</td><td>"+esc(s.description||"")+(s.safety_notice?"<br><small>"+esc(s.safety_notice)+"</small>":"")+"</td></tr>"
  }).join(""):"<tr><td colspan='5' class='empty'>لا توجد خدمات مطابقة.</td></tr>";
 }
+function safeHttpsUrl(value){try{var url=new URL(value);return url.protocol==="https:"?url.href:""}catch(_){return ""}}
 function renderProviders(){
  var q=$("providerSearch").value.trim().toLowerCase();
  var rows=providers.filter(function(p){return (p.name+" "+p.id+" "+p.domain).toLowerCase().includes(q)});
  $("providersBody").innerHTML=rows.length?rows.map(function(p){
   var licClass=p.license_status==="approved"?"approved":p.license_status==="approved_with_conditions"?"conditional":p.license_status==="rejected"?"danger":"review";
   var healthClass=p.health_status==="healthy"||p.health_status==="ci_smoke_tested"?"healthy":p.health_status==="unavailable"?"danger":"unknown";
-  return "<tr><td><strong>"+esc(p.name)+"</strong><br><small><a href='"+esc(p.official_url)+"' target='_blank' rel='noopener'>الموقع الرسمي ↗</a></small></td><td>"+esc(p.domain)+"</td><td><span class='pill "+licClass+"'>"+esc(licenseNames[p.license_status]||p.license_status)+"</span><br><small>"+esc(p.license||"")+"</small></td><td><span class='pill "+healthClass+"'>"+esc(healthNames[p.health_status]||p.health_status)+"</span></td><td>"+esc((p.products||[]).join("، "))+"</td><td>"+esc(p.notes||"")+"<br><small>"+esc(p.rate_limit||"")+"</small></td></tr>"
+  var officialUrl=safeHttpsUrl(p.official_url);
+  return "<tr><td><strong>"+esc(p.name)+"</strong><br><small>"+(officialUrl?"<a href='"+esc(officialUrl)+"' target='_blank' rel='noopener noreferrer'>الموقع الرسمي ↗</a>":"رابط رسمي غير صالح")+"</small></td><td>"+esc(p.domain)+"</td><td><span class='pill "+licClass+"'>"+esc(licenseNames[p.license_status]||p.license_status)+"</span><br><small>"+esc(p.license||"")+"</small></td><td><span class='pill "+healthClass+"'>"+esc(healthNames[p.health_status]||p.health_status)+"</span></td><td>"+esc((p.products||[]).join("، "))+"</td><td>"+esc(p.notes||"")+"<br><small>"+esc(p.rate_limit||"")+"</small></td></tr>"
  }).join(""):"<tr><td colspan='6' class='empty'>لا توجد مصادر مطابقة.</td></tr>";
 }
 async function load(){
