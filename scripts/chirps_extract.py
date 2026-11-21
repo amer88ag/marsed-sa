@@ -11,6 +11,7 @@ import datetime as dt
 import json
 import math
 import tempfile
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -59,14 +60,35 @@ def file_url(day: dt.date, product: str = "sat") -> str:
     return f"https://data.chc.ucsb.edu/products/CHIRPS/v3.0/daily/final/{product}/{day.year}/chirps-v3.0.{product}.{day:%Y.%m.%d}.tif"
 
 
-def download(url: str, destination: Path):
-    request = urllib.request.Request(url, headers={"User-Agent": "marsed-sa/0.1 data-research"})
-    with urllib.request.urlopen(request, timeout=90) as response, destination.open("wb") as target:
-        while True:
-            chunk = response.read(1024 * 1024)
-            if not chunk:
-                break
-            target.write(chunk)
+def download(url: str, destination: Path, max_attempts: int = 6):
+    request = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": "marsed-sa/0.1 (research; contact: project repository)",
+            "Accept": "image/tiff,application/octet-stream,*/*",
+        },
+    )
+    for attempt in range(max_attempts):
+        try:
+            with urllib.request.urlopen(request, timeout=120) as response, destination.open("wb") as target:
+                while True:
+                    chunk = response.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    target.write(chunk)
+            # Be polite to the shared CHC public data server.
+            time.sleep(2)
+            return
+        except urllib.error.HTTPError as exc:
+            retryable = exc.code in {429, 500, 502, 503, 504}
+            if not retryable or attempt == max_attempts - 1:
+                raise
+            retry_after = exc.headers.get("Retry-After")
+            try:
+                delay = min(120, max(2, int(retry_after))) if retry_after else min(120, 2 ** (attempt + 1))
+            except ValueError:
+                delay = min(120, 2 ** (attempt + 1))
+            time.sleep(delay)
 
 
 def clean_precipitation(value):
