@@ -194,7 +194,7 @@ test('service management center loads the central registries and is explicit abo
   assert.match(admin, /\.\.\/config\/providers\.json/);
   assert.match(admin, /وضع المركز الحالي: قراءة ومراقبة السجل فقط/);
   assert.match(admin, /تفعيل وتعطيل الخدمات أو تغيير المصدر/);
-  const scripts = [...admin.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)]
+  const scripts = [...admin.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
     .map(match => match[1].trim()).filter(Boolean);
   assert.ok(scripts.length > 0);
   for (const script of scripts) new vm.Script(script, { filename: 'admin-inline.js' });
