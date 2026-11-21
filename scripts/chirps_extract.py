@@ -10,7 +10,6 @@ import argparse
 import datetime as dt
 import json
 import math
-import os
 import tempfile
 import urllib.error
 import urllib.request
@@ -31,9 +30,6 @@ CITIES = {
     "arar": {"name": "عرعر", "lat": 30.9753, "lon": 41.0381},
     "sakaka": {"name": "سكاكا", "lat": 29.9697, "lon": 40.2064},
 }
-
-BASE = "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/daily/final/sat"
-
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -73,6 +69,23 @@ def download(url: str, destination: Path):
             target.write(chunk)
 
 
+def clean_precipitation(value):
+    """Return a valid non-negative precipitation depth, or None for missing/invalid cells."""
+    try:
+        import numpy as np
+        if np.ma.is_masked(value):
+            return None
+        number = float(value)
+    except (ImportError, TypeError, ValueError):
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            return None
+    if not math.isfinite(number) or number < 0:
+        return None
+    return round(number, 2)
+
+
 def extract_values(tif_path: Path):
     try:
         import rasterio
@@ -81,13 +94,11 @@ def extract_values(tif_path: Path):
 
     result = {}
     with rasterio.open(tif_path) as dataset:
+        if dataset.count < 1:
+            raise ValueError(f"No raster bands found in {tif_path}")
         for key, city in CITIES.items():
             sample = next(dataset.sample([(city["lon"], city["lat"])], masked=True))
-            value = sample[0]
-            if getattr(value, "mask", False) or not math.isfinite(float(value)):
-                result[key] = None
-            else:
-                result[key] = round(float(value), 2)
+            result[key] = clean_precipitation(sample[0])
     return result
 
 
@@ -110,9 +121,20 @@ def build_dataset(days, downloader=download, extractor=extract_values):
                     series[product][key].append({"date": day.isoformat(), "precipitation_mm": values.get(key)})
                 raster.unlink(missing_ok=True)
 
+    for product in ("sat", "rnl"):
+        if not any(
+            row["precipitation_mm"] is not None
+            for city_rows in series[product].values()
+            for row in city_rows
+        ):
+            raise RuntimeError(
+                f"No valid {product.upper()} pixels were extracted; refusing to publish an all-missing dataset"
+            )
+
     return {
         "schema_version": 1,
         "source": "CHIRPS v3.0 DAILY SAT FINAL and DAILY RNL FINAL",
+        "date_range": {"start": days[0].isoformat(), "end": days[-1].isoformat(), "days": len(days)},
         "source_url": "https://www.chc.ucsb.edu/data/chirps3",
         "units": "mm/day",
         "products": {
