@@ -102,3 +102,39 @@ test('committed CHIRPS sample has complete SAT and RNL coverage with valid metad
     }
   }
 });
+
+test('service and provider registries have unique ids and valid cross references', () => {
+  const services = JSON.parse(fs.readFileSync('config/services.json', 'utf8'));
+  const providers = JSON.parse(fs.readFileSync('config/providers.json', 'utf8'));
+  const registry = require('../src/platform/registry/registry.js');
+  const result = registry.validateRegistries(services, providers);
+  assert.equal(result.valid, true, result.errors.join('; '));
+  assert.equal(new Set(services.services.map(item => item.id)).size, services.services.length);
+  assert.equal(new Set(providers.providers.map(item => item.id)).size, providers.providers.length);
+});
+
+test('registry separates active, research and planned services', () => {
+  const services = JSON.parse(fs.readFileSync('config/services.json', 'utf8'));
+  const registry = require('../src/platform/registry/registry.js');
+  assert.ok(registry.getServices(services, { statuses: ['active'] }).some(item => item.id === 'weather'));
+  assert.ok(registry.getServices(services, { statuses: ['research'] }).some(item => item.id === 'precipitation'));
+  assert.ok(registry.getServices(services, { statuses: ['planned'] }).some(item => item.id === 'air-quality'));
+});
+
+test('provider registry does not treat unapproved sources as ready for public display', () => {
+  const providers = JSON.parse(fs.readFileSync('config/providers.json', 'utf8'));
+  const registry = require('../src/platform/registry/registry.js');
+  const ncm = providers.providers.find(item => item.id === 'ncm');
+  const openMeteo = providers.providers.find(item => item.id === 'open-meteo');
+  assert.equal(registry.isProviderEligibleForPublicDisplay(ncm), false);
+  assert.equal(registry.isProviderEligibleForPublicDisplay(openMeteo), true);
+});
+
+test('registry rejects unknown provider references', () => {
+  const services = { registry_type: 'services', services: [{ id: 'bad', status: 'active', provider_ids: ['missing'] }] };
+  const providers = { registry_type: 'providers', providers: [] };
+  const registry = require('../src/platform/registry/registry.js');
+  const result = registry.validateRegistries(services, providers);
+  assert.equal(result.valid, false);
+  assert.match(result.errors.join(' '), /Unknown provider missing/);
+});
