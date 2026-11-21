@@ -1,8 +1,7 @@
 import datetime as dt
 import unittest
-from unittest.mock import patch
 
-from scripts.chirps_extract import CITIES, date_range, file_url, build_dataset
+from scripts.chirps_extract import CITIES, date_range, file_url, build_dataset, clean_precipitation
 
 
 class ChirpsExtractTests(unittest.TestCase):
@@ -52,6 +51,23 @@ class ChirpsExtractTests(unittest.TestCase):
         self.assertEqual(result["series"]["sat"]["abha"][0]["precipitation_mm"], 2.5)
         self.assertEqual(result["series"]["rnl"]["abha"][0]["precipitation_mm"], 2.5)
         self.assertEqual(result["series"]["sat"]["abha"][0]["date"], "2026-01-01")
+
+    def test_invalid_precipitation_values_become_missing(self):
+        self.assertIsNone(clean_precipitation(-9999))
+        self.assertIsNone(clean_precipitation(float("nan")))
+        self.assertIsNone(clean_precipitation(float("inf")))
+        self.assertIsNone(clean_precipitation(None))
+        self.assertEqual(clean_precipitation(0), 0.0)
+        self.assertEqual(clean_precipitation(1.236), 1.24)
+
+    def test_all_missing_product_is_rejected(self):
+        days = [dt.date(2026, 1, 1)]
+        def fake_download(url, path):
+            path.write_bytes(b"fake raster")
+        def missing_values(path):
+            return {key: None for key in CITIES}
+        with self.assertRaisesRegex(RuntimeError, "No valid SAT pixels"):
+            build_dataset(days, fake_download, missing_values)
 
 
 if __name__ == "__main__":
