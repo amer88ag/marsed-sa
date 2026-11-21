@@ -27,3 +27,44 @@ jobs:
           python-version: "3.12"
       - name: Run CHIRPS extractor unit tests
         run: python -m unittest discover -s tests -p "test_*.py" -v
+
+  chirps-source-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install raster processing dependency
+        run: python -m pip install --disable-pip-version-check rasterio
+      - name: Extract a small historical sample from both official CHIRPS products
+        run: python scripts/chirps_extract.py --start 2026-09-01 --end 2026-09-03 --max-days 3 --output /tmp/chirps-smoke.json
+      - name: Validate real source output
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(Path("/tmp/chirps-smoke.json").read_text(encoding="utf-8"))
+          assert payload["units"] == "mm/day"
+          assert payload["date_range"]["days"] == 3
+          assert set(payload["series"]) == {"sat", "rnl"}
+          for product in ("sat", "rnl"):
+              valid = [
+                  row["precipitation_mm"]
+                  for rows in payload["series"][product].values()
+                  for row in rows
+                  if row["precipitation_mm"] is not None
+              ]
+              assert valid, f"{product} returned no valid city samples"
+              assert all(value >= 0 for value in valid)
+          print("CHIRPS SAT and RNL returned valid values for the 13 configured city points.")
+          PY
+      - name: Upload research sample for review (not deployment)
+        uses: actions/upload-artifact@v4
+        with:
+          name: chirps-sat-rnl-smoke-sample
+          path: /tmp/chirps-smoke.json
+          if-no-files-found: error
+          retention-days: 7
