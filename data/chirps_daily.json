@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "source": "CHIRPS v3.0 DAILY SAT FINAL",
+  "source_url": "https://www.chc.ucsb.edu/data/chirps3",
+  "units": "mm/day",
+  "spatial_sampling": "nearest grid cell at city coordinates; not city-area mean",
+  "date_semantics": "daily labels assigned during pentad disaggregation; not a uniform station observation window",
+  "generated_at_utc": null,
+  "cities": {},
+  "series": {},
+  "status": "not_generated"
+}
