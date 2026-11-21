@@ -53,3 +53,26 @@ test('inline application JavaScript parses without syntax errors', () => {
 test('no credential-like API key is embedded in the browser page', () => {
   assert.doesNotMatch(html, /(?:api[_-]?key|access[_-]?token)\s*[:=]\s*["'][^"']{12,}["']/i);
 });
+
+test('CHIRPS city time-series panel is wired to the branch data artifact', () => {
+  assert.match(html, /CHIRPS v3 DAILY SAT FINAL/);
+  assert.match(html, /chirps_daily\\.json/);
+  assert.match(html, /chirpsState/);
+  assert.match(html, /nearest grid cell at city coordinates/);
+});
+
+test('CHIRPS panel does not silently replace missing rainfall with zero', () => {
+  assert.match(html, /row\\.precipitation_mm===null/);
+  assert.match(html, /لا توجد سجلات لهذه المدينة/);
+});
+
+test('CHIRPS extractor and manual workflow preserve the research-only branch', () => {
+  const script = fs.readFileSync('scripts/chirps_extract.py', 'utf8');
+  const workflow = fs.readFileSync('.github/workflows/chirps-city-series.yml', 'utf8');
+  assert.match(script, /daily\\/final\\/sat/);
+  assert.match(script, /not city-area mean/);
+  assert.match(script, /not a uniform station observation window/);
+  assert.match(workflow, /workflow_dispatch/);
+  assert.match(workflow, /feature\\/dashboard-quality-gates/);
+  assert.doesNotMatch(workflow, /branches:\\s*\\[main\\]/);
+});
