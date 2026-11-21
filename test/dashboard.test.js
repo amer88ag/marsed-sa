@@ -297,7 +297,7 @@ function createDashboardHarness() {
     const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
     return { promise, resolve, reject };
   };
-  const marker = { setLatLng() { return this; }, setPopupContent() { return this; }, bindPopup() { return this; } };
+  const marker = { addTo() { return this; }, setLatLng() { return this; }, setPopupContent() { return this; }, bindPopup() { return this; } };
   const map = { setView() { return this; } };
   const leaflet = {
     map() { return map; },
