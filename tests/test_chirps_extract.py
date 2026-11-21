@@ -92,5 +92,38 @@ class ChirpsExtractTests(unittest.TestCase):
             sleep.assert_any_call(2)
 
 
+    def test_download_retries_network_timeout_and_cleans_partial_file(self):
+        from pathlib import Path
+        import tempfile
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.__exit__.return_value = False
+        response.read.side_effect = [b"raster", b""]
+        with patch("scripts.chirps_extract.urllib.request.urlopen", side_effect=[TimeoutError("socket timed out"), response]) as open_url, \
+             patch("scripts.chirps_extract.time.sleep") as sleep:
+            with tempfile.TemporaryDirectory() as folder:
+                target = Path(folder) / "sample.tif"
+                target.write_bytes(b"partial previous attempt")
+                download("https://example.test/data.tif", target, max_attempts=2)
+                self.assertEqual(target.read_bytes(), b"raster")
+            self.assertEqual(open_url.call_count, 2)
+            sleep.assert_any_call(2)
+
+    def test_download_retries_url_error(self):
+        from pathlib import Path
+        import tempfile
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.__exit__.return_value = False
+        response.read.side_effect = [b"raster", b""]
+        failure = urllib.error.URLError("temporary DNS failure")
+        with patch("scripts.chirps_extract.urllib.request.urlopen", side_effect=[failure, response]) as open_url, \
+             patch("scripts.chirps_extract.time.sleep"):
+            with tempfile.TemporaryDirectory() as folder:
+                target = Path(folder) / "sample.tif"
+                download("https://example.test/data.tif", target, max_attempts=2)
+                self.assertEqual(target.read_bytes(), b"raster")
+            self.assertEqual(open_url.call_count, 2)
+
 if __name__ == "__main__":
     unittest.main()
