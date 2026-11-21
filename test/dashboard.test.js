@@ -30,10 +30,12 @@ test('live data labels clearly distinguish model output from station observation
   assert.match(html, /لا تمثل هذه القيم رصداً مباشراً/);
 });
 
-test('weather API request has explicit units/timezone and handles failed responses', () => {
-  assert.match(html, /api\.open-meteo\.com\/v1\/forecast/);
-  assert.match(html, /timezone=Asia%2FRiyadh/);
-  assert.match(html, /if\(!response\.ok\)throw new Error/);
+test('weather provider adapter builds explicit Riyadh-time requests and service handles failures', () => {
+  const adapter = fs.readFileSync('src/providers/weather/open-meteo/adapter.js', 'utf8');
+  const service = fs.readFileSync('src/services/weather/service.js', 'utf8');
+  assert.match(adapter, /api\.open-meteo\.com\/v1\/forecast/);
+  assert.match(adapter, /timezone: "Asia\/Riyadh"/);
+  assert.match(service, /if \(!response\.ok\) throw new Error/);
   assert.match(html, /تعذر جلب البيانات/);
 });
 
