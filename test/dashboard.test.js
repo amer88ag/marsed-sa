@@ -204,3 +204,51 @@ test('dashboard links to the service management center', () => {
   assert.match(html, /href="admin\/"/);
   assert.match(html, /مركز إدارة الخدمات والمصادر/);
 });
+
+test('weather service fetches through the provider adapter and returns normalized data', async () => {
+  const service = require('../src/services/weather/service.js');
+  const fakeAdapter = {
+    buildCurrentUrl: location => 'https://provider.test/weather?city=' + location.id,
+    normalizeCurrent: (payload, location, retrievedAt) => ({ provider: 'test', city: location.id, value: payload.value, retrievedAt })
+  };
+  const result = await service.fetchWeather({ id: 'abha', lat: 18, lon: 42 }, {
+    adapter: fakeAdapter,
+    retrievedAt: '2026-11-21T00:00:00Z',
+    fetch: async url => ({ ok: url.includes('city=abha'), json: async () => ({ value: 23 }) })
+  });
+  assert.deepEqual(result, { provider: 'test', city: 'abha', value: 23, retrievedAt: '2026-11-21T00:00:00Z' });
+});
+
+test('weather service surfaces provider HTTP failures', async () => {
+  const service = require('../src/services/weather/service.js');
+  await assert.rejects(
+    service.fetchWeather({ id: 'abha', lat: 18, lon: 42 }, {
+      adapter: { buildCurrentUrl: () => 'https://provider.test', normalizeCurrent: () => ({}) },
+      fetch: async () => ({ ok: false, status: 503 })
+    }),
+    /HTTP 503/
+  );
+});
+
+test('precipitation service validates and loads the dataset through injected fetch', async () => {
+  const service = require('../src/services/precipitation/service.js');
+  const dataset = JSON.parse(fs.readFileSync('data/chirps_daily.json', 'utf8'));
+  const loaded = await service.fetchDataset('https://data.test/chirps.json', {
+    fetch: async () => ({ ok: true, json: async () => dataset })
+  });
+  assert.equal(loaded.schema_version, 1);
+  const normalized = service.getCitySeries(loaded, 'abha', 'sat', require('../src/providers/precipitation/chirps/adapter.js'));
+  assert.equal(normalized.product_id, 'DAILY-SAT-FINAL');
+  await assert.rejects(service.fetchDataset('https://data.test/bad.json', {
+    fetch: async () => ({ ok: true, json: async () => ({ schema_version: 99 }) })
+  }), /Unsupported CHIRPS dataset schema/);
+});
+
+test('dashboard uses the provider adapters and service orchestration modules', () => {
+  assert.match(html, /src\/providers\/weather\/open-meteo\/adapter\.js/);
+  assert.match(html, /src\/providers\/precipitation\/chirps\/adapter\.js/);
+  assert.match(html, /src\/services\/weather\/service\.js/);
+  assert.match(html, /src\/services\/precipitation\/service\.js/);
+  assert.match(html, /WeatherService\.fetchWeather/);
+  assert.match(html, /PrecipitationService\.fetchDataset/);
+});
