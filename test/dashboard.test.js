@@ -69,7 +69,8 @@ test('CHIRPS panel does not silently replace missing rainfall with zero', () => 
 test('CHIRPS extractor and manual workflow preserve the research-only branch', () => {
   const script = fs.readFileSync('scripts/chirps_extract.py', 'utf8');
   const workflow = fs.readFileSync('.github/workflows/chirps-city-series.yml', 'utf8');
-  assert.match(script, /daily\\/final\\/\\{product\\}/);\n  assert.match(script, /"sat", "rnl"/);
+  assert.match(script, /daily\\/final\\/\\{product\\}/);
+  assert.match(script, /"sat", "rnl"/);
   assert.match(script, /not city-area mean/);
   assert.match(script, /not a uniform station observation window/);
   assert.match(workflow, /workflow_dispatch/);
