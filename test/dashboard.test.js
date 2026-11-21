@@ -77,3 +77,28 @@ test('CHIRPS extractor and manual workflow preserve the research-only branch', (
   assert.match(workflow, /feature\/dashboard-quality-gates/);
   assert.doesNotMatch(workflow, /branches:\s*\[main\]/);
 });
+
+test('committed CHIRPS sample has complete SAT and RNL coverage with valid metadata', () => {
+  const dataset = JSON.parse(fs.readFileSync('data/chirps_daily.json', 'utf8'));
+  assert.equal(dataset.schema_version, 1);
+  assert.equal(dataset.units, 'mm/day');
+  assert.deepEqual(Object.keys(dataset.series).sort(), ['rnl', 'sat']);
+  assert.equal(dataset.date_range.days, 3);
+  assert.equal(dataset.date_range.start, '2026-09-01');
+  assert.equal(dataset.date_range.end, '2026-09-03');
+  assert.match(dataset.spatial_sampling, /nearest grid cell/);
+  assert.match(dataset.date_semantics, /not a uniform station observation window/);
+  assert.equal(Object.keys(dataset.cities).length, 13);
+  for (const product of ['sat', 'rnl']) {
+    assert.deepEqual(Object.keys(dataset.series[product]).sort(), Object.keys(dataset.cities).sort());
+    for (const [city, rows] of Object.entries(dataset.series[product])) {
+      assert.equal(rows.length, 3, city + ' has three daily samples');
+      for (const row of rows) {
+        assert.match(row.date, /^2026-09-0[1-3]$/);
+        assert.ok(row.precipitation_mm === null ||
+          (Number.isFinite(row.precipitation_mm) && row.precipitation_mm >= 0),
+          city + ' contains only valid non-negative values or null');
+      }
+    }
+  }
+});
