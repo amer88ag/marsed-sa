@@ -44,6 +44,7 @@ table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:right;
 <div class="note"><strong>وضع المركز الحالي: قراءة ومراقبة السجل فقط.</strong><br>تفعيل وتعطيل الخدمات أو تغيير المصدر الأساسي والاحتياطي يحتاج صلاحيات إدارية وتخزيناً موثوقاً وسجلاً للتغييرات. لن نجعل أزراراً شكلية تغيّر العرض في جهاز واحد وتوهم بأنها غيّرت إعدادات المنصة للجميع. تُنفّذ أوامر الإدارة بعد بناء واجهة خلفية آمنة والتحقق من الهوية والصلاحيات.</div>
 <p class="foot">حالة الاتصال المعروضة مأخوذة من سجل التعريف وليست فحصاً حياً ما لم يذكر ذلك صراحة. لا يعني تسجيل المصدر في الكتالوج اعتماده للإنتاج أو امتلاك حق إعادة نشر بياناته.</p>
 </main>
+<script src="../src/platform/registry/registry.js"></script>
 <script>
 (function(){
 "use strict";
@@ -75,6 +76,8 @@ async function load(){
   var responses=await Promise.all([fetch("../config/services.json"),fetch("../config/providers.json")]);
   if(responses.some(function(r){return !r.ok}))throw new Error("تعذر تحميل ملفات السجل");
   var payloads=await Promise.all(responses.map(function(r){return r.json()}));
+  var validation=window.MarsedRegistry&&window.MarsedRegistry.validateRegistries(payloads[0],payloads[1]);
+  if(!validation||!validation.valid)throw new Error("السجلات غير صالحة: "+(validation?validation.errors.join("؛ "):"تعذر تحميل مدقق السجلات"));
   services=payloads[0].services||[];providers=payloads[1].providers||[];
   $("serviceCount").textContent=services.length;
   $("activeCount").textContent=services.filter(function(s){return s.status==="active"}).length;
