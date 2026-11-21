@@ -261,3 +261,11 @@ test('admin validates central registries before rendering', () => {
   assert.match(admin, /MarsedRegistry\.validateRegistries/);
   assert.match(admin, /السجلات غير صالحة/);
 });
+
+test('admin only renders provider links with HTTPS protocol', () => {
+  const admin = fs.readFileSync('admin/index.html', 'utf8');
+  assert.match(admin, /function safeHttpsUrl/);
+  assert.match(admin, /url\\.protocol==="https:"/);
+  assert.match(admin, /noopener noreferrer/);
+  assert.match(admin, /رابط رسمي غير صالح/);
+});
