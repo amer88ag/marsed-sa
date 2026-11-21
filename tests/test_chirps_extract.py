@@ -1,7 +1,9 @@
 import datetime as dt
 import unittest
+from unittest.mock import MagicMock, patch
+import urllib.error
 
-from scripts.chirps_extract import CITIES, date_range, file_url, build_dataset, clean_precipitation
+from scripts.chirps_extract import CITIES, date_range, file_url, build_dataset, clean_precipitation, download
 
 
 class ChirpsExtractTests(unittest.TestCase):
@@ -68,6 +70,26 @@ class ChirpsExtractTests(unittest.TestCase):
             return {key: None for key in CITIES}
         with self.assertRaisesRegex(RuntimeError, "No valid SAT pixels"):
             build_dataset(days, fake_download, missing_values)
+
+    def test_download_retries_rate_limit_with_backoff(self):
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.__exit__.return_value = False
+        response.read.side_effect = [b"raster", b""]
+        rate_limit = urllib.error.HTTPError(
+            "https://example.test/data.tif", 429, "Too Many Requests",
+            {"Retry-After": "2"}, None
+        )
+        with patch("scripts.chirps_extract.urllib.request.urlopen", side_effect=[rate_limit, response]) as open_url, \
+             patch("scripts.chirps_extract.time.sleep") as sleep:
+            from pathlib import Path
+            import tempfile
+            with tempfile.TemporaryDirectory() as folder:
+                target = Path(folder) / "sample.tif"
+                download("https://example.test/data.tif", target, max_attempts=2)
+                self.assertEqual(target.read_bytes(), b"raster")
+            self.assertEqual(open_url.call_count, 2)
+            sleep.assert_any_call(2)
 
 
 if __name__ == "__main__":
