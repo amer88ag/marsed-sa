@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://marsed-sa.example/schemas/service-registry.schema.json",
+  "title": "Marsed Saudi service registry",
+  "type": "object",
+  "required": ["schema_version", "registry_type", "services"],
+  "properties": {
+    "schema_version": {"type": "string"},
+    "registry_type": {"const": "services"},
+    "updated_at": {"type": "string", "format": "date"},
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "category", "status", "provider_ids", "capabilities"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+          "title": {"type": "string", "minLength": 1},
+          "category": {"type": "string"},
+          "description": {"type": "string"},
+          "status": {"enum": ["active", "research", "planned", "disabled"]},
+          "provider_ids": {"type": "array", "items": {"type": "string"}},
+          "capabilities": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}
