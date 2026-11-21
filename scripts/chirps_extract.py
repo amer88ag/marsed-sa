@@ -57,8 +57,10 @@ def date_range(start: str, end: str, max_days: int = 14):
     return [first + dt.timedelta(days=i) for i in range(count)]
 
 
-def file_url(day: dt.date) -> str:
-    return f"{BASE}/{day.year}/chirps-v3.0.sat.{day:%Y.%m.%d}.tif"
+def file_url(day: dt.date, product: str = "sat") -> str:
+    if product not in {"sat", "rnl"}:
+        raise ValueError("product must be 'sat' or 'rnl'")
+    return f"https://data.chc.ucsb.edu/products/CHIRPS/v3.0/daily/final/{product}/{day.year}/chirps-v3.0.{product}.{day:%Y.%m.%d}.tif"
 
 
 def download(url: str, destination: Path):
@@ -90,28 +92,33 @@ def extract_values(tif_path: Path):
 
 
 def build_dataset(days, downloader=download, extractor=extract_values):
-    series = {key: [] for key in CITIES}
+    series = {product: {key: [] for key in CITIES} for product in ("sat", "rnl")}
     with tempfile.TemporaryDirectory(prefix="chirps-sa-") as temp_dir:
         raster = Path(temp_dir) / "daily.tif"
-        for day in days:
-            url = file_url(day)
-            try:
-                downloader(url, raster)
-                values = extractor(raster)
-            except urllib.error.HTTPError as exc:
-                if exc.code == 404:
-                    values = {key: None for key in CITIES}
-                else:
-                    raise
-            for key in CITIES:
-                series[key].append({"date": day.isoformat(), "precipitation_mm": values.get(key)})
-            raster.unlink(missing_ok=True)
+        for product in ("sat", "rnl"):
+            for day in days:
+                url = file_url(day, product)
+                try:
+                    downloader(url, raster)
+                    values = extractor(raster)
+                except urllib.error.HTTPError as exc:
+                    if exc.code == 404:
+                        values = {key: None for key in CITIES}
+                    else:
+                        raise
+                for key in CITIES:
+                    series[product][key].append({"date": day.isoformat(), "precipitation_mm": values.get(key)})
+                raster.unlink(missing_ok=True)
 
     return {
         "schema_version": 1,
-        "source": "CHIRPS v3.0 DAILY SAT FINAL",
+        "source": "CHIRPS v3.0 DAILY SAT FINAL and DAILY RNL FINAL",
         "source_url": "https://www.chc.ucsb.edu/data/chirps3",
         "units": "mm/day",
+        "products": {
+            "sat": "daily final; pentad totals disaggregated using NASA IMERG Late V07",
+            "rnl": "daily final; pentad totals disaggregated using ECMWF ERA5",
+        },
         "spatial_sampling": "nearest grid cell at city coordinates; not city-area mean",
         "date_semantics": "daily labels assigned during pentad disaggregation; not a uniform station observation window",
         "generated_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
