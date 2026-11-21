@@ -140,12 +140,24 @@ async function loadChirps(){
   setText("chirpsState","تعذر تحميل ملف CHIRPS التجريبي: "+error.message);
  }
 }
+var weatherRequestId=0;
+function clearWeatherDisplay(){
+ ["temp","rain","humidity","wind"].forEach(function(id){setText(id,"—")});
+ $("rainChart").innerHTML="";
+ setText("chartCaption","بانتظار بيانات المدينة المختارة.");
+ setText("updated","لم يتم تأكيد تحديث البيانات بعد");
+}
 async function loadWeather(){
- var p=places[activeKey];setText("placeName",p.name);setText("placeCoords",p.lat.toFixed(4)+"° شمالاً، "+p.lon.toFixed(4)+"° شرقاً");
- setText("loading","جارٍ جلب البيانات…");$("refresh").disabled=true;$("connection").textContent="● جارٍ الاتصال";
+ var requestId=++weatherRequestId;
+ var p=places[activeKey],requestedKey=activeKey;
+ setText("placeName",p.name);setText("placeCoords",p.lat.toFixed(4)+"° شمالاً، "+p.lon.toFixed(4)+"° شرقاً");
+ clearWeatherDisplay();
+ setText("loading","جارٍ جلب البيانات…");$("loading").classList.remove("error");
+ $("refresh").disabled=true;$("connection").textContent="● جارٍ الاتصال";
  if(marker&&map){marker.setLatLng([p.lat,p.lon]).setPopupContent(p.name);map.setView([p.lat,p.lon],7)}
  try{
-  var data=await WeatherService.fetchWeather({id:activeKey,name:p.name,lat:p.lat,lon:p.lon});
+  var data=await WeatherService.fetchWeather({id:requestedKey,name:p.name,lat:p.lat,lon:p.lon});
+  if(requestId!==weatherRequestId||requestedKey!==activeKey)return;
   var measurement=function(name){var item=data.measurements.find(function(entry){return entry.name===name});return item?item.value:null};
   setText("temp",number(measurement("temperature"),1));
   setText("rain",number(measurement("precipitation"),1));
@@ -158,10 +170,14 @@ async function loadWeather(){
   setText("connection","● متصل");
   $("quality").innerHTML='تنبيه منهجي: البيانات الحالية والتاريخية والتوقعات مستمدة من نماذج الطقس لدى Open-Meteo. لا تمثل هذه القيم رصداً مباشراً أو تنبيهاً رسمياً من المركز الوطني للأرصاد.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · البيانات مرخصة وفق CC BY 4.0 مع الإسناد.';
  }catch(error){
+  if(requestId!==weatherRequestId||requestedKey!==activeKey)return;
+  clearWeatherDisplay();
   setText("loading","تعذر جلب البيانات. تحقق من الاتصال ثم أعد المحاولة.");
   $("loading").classList.add("error");setText("connection","● تعذر الاتصال");
   setText("chartCaption","لم تُعرض بيانات بديلة أو تقديرات مصطنعة. "+error.message);
- }finally{$("refresh").disabled=false}
+ }finally{
+  if(requestId===weatherRequestId)$("refresh").disabled=false;
+ }
 }
 $("place").addEventListener("change",function(e){activeKey=e.target.value;loadWeather();renderChirps()});
 $("refresh").addEventListener("click",loadWeather);

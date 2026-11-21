@@ -269,3 +269,12 @@ test('admin only renders provider links with HTTPS protocol', () => {
   assert.match(admin, /noopener noreferrer/);
   assert.match(admin, /رابط رسمي غير صالح/);
 });
+
+test('weather refresh clears stale values and rejects out-of-order city responses', () => {
+  assert.ok(html.includes('var weatherRequestId=0;'));
+  assert.ok(html.includes('var requestId=++weatherRequestId;'));
+  assert.ok(html.includes('if(requestId!==weatherRequestId||requestedKey!==activeKey)return;'));
+  assert.ok(html.includes('function clearWeatherDisplay()'));
+  assert.ok(html.includes('["temp","rain","humidity","wind"].forEach'));
+  assert.ok(html.includes('if(requestId===weatherRequestId)$("refresh").disabled=false;'));
+});
