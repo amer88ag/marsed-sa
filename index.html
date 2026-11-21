@@ -51,7 +51,7 @@
 </section>
 <section class="panel">
 <div class="panel-head"><h2>الأمطار التاريخية — CHIRPS v3</h2><span>ملم/يوم</span></div>
-<div class="chart-wrap"><svg id="chirpsChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="سلسلة أمطار CHIRPS اليومية عند إحداثيات المدينة"></svg></div>
+<div class="chart-wrap"><svg id="chirpsChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مقارنة أمطار CHIRPS SAT وRNL اليومية عند إحداثيات المدينة"></svg><div class="chart-labels"><span>■ SAT — أزرق</span><span>■ RNL — أخضر</span></div></div>
 <div id="chirpsState" class="data-state">لم تُنشأ بيانات CHIRPS بعد. شغّل مهمة استخراج البيانات من تبويب Actions في فرع التطوير.</div>
 <div id="chirpsMeta" class="data-meta">العينة: أقرب خلية شبكية إلى إحداثيات المدينة، وليست متوسط أمطار كامل النطاق البلدي.</div>
 </section>
@@ -92,28 +92,36 @@ function drawChart(labels,values){
  values.forEach(function(v,i){var n=Number(v)||0;var bh=Math.max(0,Math.min(plotH,n/max*plotH));var x=left+i*step+(step-barW)/2;var y=top+plotH-bh;parts.push('<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="3" fill="'+(i===6?'#1769aa':'#6fa9d2')+'"><title>'+labels[i]+': '+number(n,1)+' ملم</title></rect>')});
  svg.innerHTML=parts.join("");
 } 
-function drawChirpsChart(records){
+function drawChirpsChart(satRecords,rnlRecords){
  var svg=$("chirpsChart");
- if(!records||!records.length){svg.innerHTML="";return}
- var values=records.map(function(row){return row.precipitation_mm===null?null:Number(row.precipitation_mm)});
- var valid=values.filter(function(v){return Number.isFinite(v)});
+ if(!satRecords||!satRecords.length){svg.innerHTML="";return}
+ var sat=satRecords.map(function(row){return row.precipitation_mm===null?null:Number(row.precipitation_mm)});
+ var rnl=(rnlRecords||[]).map(function(row){return row.precipitation_mm===null?null:Number(row.precipitation_mm)});
+ var valid=sat.concat(rnl).filter(function(v){return Number.isFinite(v)});
  if(!valid.length){svg.innerHTML="";return}
  var w=600,h=180,left=38,right=12,top=12,bottom=24,plotH=h-top-bottom,plotW=w-left-right;
  var max=Math.max(1,...valid);max=Math.ceil(max/5)*5;if(max===0)max=1;
  var parts=['<line x1="'+left+'" y1="'+(top+plotH)+'" x2="'+(w-right)+'" y2="'+(top+plotH)+'" stroke="#d9e2ea"/>'];
  [0,.5,1].forEach(function(f){var y=top+plotH*(1-f);parts.push('<line x1="'+left+'" y1="'+y+'" x2="'+(w-right)+'" y2="'+y+'" stroke="#edf1f5"/><text x="'+(left-7)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="#7b8794">'+(max*f).toFixed(0)+'</text>')});
- var step=plotW/records.length,barW=Math.max(3,step*.58);
- records.forEach(function(row,i){var n=values[i];if(n===null||!Number.isFinite(n))return;var bh=Math.max(0,Math.min(plotH,n/max*plotH));var x=left+i*step+(step-barW)/2;var y=top+plotH-bh;parts.push('<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="2" fill="#23865b"><title>'+row.date+': '+number(n,2)+' ملم/يوم</title></rect>')});
+ var step=plotW/satRecords.length,barW=Math.max(2,Math.min(10,step*.28)),gap=2;
+ satRecords.forEach(function(row,i){
+  var center=left+i*step+step/2;
+  var a=sat[i],b=rnl[i];
+  if(a!==null&&Number.isFinite(a)){var bh=Math.max(0,Math.min(plotH,a/max*plotH));var x=center-gap/2-barW;var y=top+plotH-bh;parts.push('<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="2" fill="#1769aa"><title>SAT · '+row.date+': '+number(a,2)+' ملم/يوم</title></rect>')}
+  if(b!==null&&Number.isFinite(b)){var bh2=Math.max(0,Math.min(plotH,b/max*plotH));var x2=center+gap/2;var y2=top+plotH-bh2;parts.push('<rect x="'+x2.toFixed(1)+'" y="'+y2.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+bh2.toFixed(1)+'" rx="2" fill="#23865b"><title>RNL · '+row.date+': '+number(b,2)+' ملم/يوم</title></rect>')}
+ });
  svg.innerHTML=parts.join("");
 }
 function renderChirps(){
  if(!chirpsDataset||!chirpsDataset.series){setText("chirpsState","لم تُنشأ بيانات CHIRPS بعد. شغّل مهمة Build CHIRPS city time series من تبويب Actions في فرع التطوير.");return}
- var records=chirpsDataset.series[activeKey]||[];
- if(!records.length){setText("chirpsState","لا توجد سجلات لهذه المدينة في ملف البيانات الحالي.");return}
- drawChirpsChart(records);
- var available=records.filter(function(row){return row.precipitation_mm!==null}).length;
- setText("chirpsState","تم تحميل "+available+" من "+records.length+" يوماً متاحاً عند نقطة المدينة. البيانات النهائية قد تتأخر عن التاريخ الحالي.");
- setText("chirpsMeta","المصدر: CHIRPS v3 DAILY SAT FINAL · الوحدة: ملم/يوم · تاريخ إنشاء الملف: "+(chirpsDataset.generated_at_utc||"غير متوفر")+" · أقرب خلية شبكية، وليست متوسط مساحة المدينة.");
+ var satRecords=(chirpsDataset.series.sat&&chirpsDataset.series.sat[activeKey])||[];
+ var rnlRecords=(chirpsDataset.series.rnl&&chirpsDataset.series.rnl[activeKey])||[];
+ if(!satRecords.length&&!rnlRecords.length){setText("chirpsState","لا توجد سجلات لهذه المدينة في ملف البيانات الحالي.");return}
+ drawChirpsChart(satRecords,rnlRecords);
+ var satCount=satRecords.filter(function(row){return row.precipitation_mm!==null}).length;
+ var rnlCount=rnlRecords.filter(function(row){return row.precipitation_mm!==null}).length;
+ setText("chirpsState","SAT: "+satCount+"/"+satRecords.length+" يوماً · RNL: "+rnlCount+"/"+rnlRecords.length+" يوماً متاحاً عند نقطة المدينة. المنتج النهائي قد يتأخر عن التاريخ الحالي.");
+ setText("chirpsMeta","SAT يستخدم IMERG Late V07 · RNL يستخدم ERA5 · الوحدة: ملم/يوم · إنشاء الملف: "+(chirpsDataset.generated_at_utc||"غير متوفر")+" · أقرب خلية شبكية، وليست متوسط المدينة.");
 }
 async function loadChirps(){
  try{
