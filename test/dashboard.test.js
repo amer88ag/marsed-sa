@@ -58,7 +58,7 @@ test('CHIRPS city time-series panel is wired to the branch data artifact', () =>
   assert.match(html, /CHIRPS v3 DAILY SAT FINAL/);
   assert.match(html, /chirps_daily\.json/);
   assert.match(html, /chirpsState/);
-  assert.match(html, /nearest grid cell at city coordinates/);
+  assert.match(html, /أقرب خلية شبكية/);
 });
 
 test('CHIRPS panel does not silently replace missing rainfall with zero', () => {
