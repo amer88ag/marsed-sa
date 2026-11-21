@@ -114,13 +114,13 @@ function drawChirpsChart(satRecords,rnlRecords){
 }
 function renderChirps(){
  if(!chirpsDataset||!chirpsDataset.series){setText("chirpsState","لم تُنشأ بيانات CHIRPS بعد. شغّل مهمة Build CHIRPS city time series من تبويب Actions في فرع التطوير.");return}
- var satRecords=(chirpsDataset.series.sat&&chirpsDataset.series.sat[activeKey])||[];
+ var satRecords=(chirpsDataset.series.sat&&chirpsDataset.series.sat[activeKey])||chirpsDataset.series[activeKey]||[];
  var rnlRecords=(chirpsDataset.series.rnl&&chirpsDataset.series.rnl[activeKey])||[];
  if(!satRecords.length&&!rnlRecords.length){setText("chirpsState","لا توجد سجلات لهذه المدينة في ملف البيانات الحالي.");return}
  drawChirpsChart(satRecords,rnlRecords);
  var satCount=satRecords.filter(function(row){return row.precipitation_mm!==null}).length;
  var rnlCount=rnlRecords.filter(function(row){return row.precipitation_mm!==null}).length;
- setText("chirpsState","SAT: "+satCount+"/"+satRecords.length+" يوماً · RNL: "+rnlCount+"/"+rnlRecords.length+" يوماً متاحاً عند نقطة المدينة. المنتج النهائي قد يتأخر عن التاريخ الحالي.");
+ setText("chirpsState","SAT: "+satCount+"/"+satRecords.length+" يوماً · RNL: "+rnlCount+"/"+rnlRecords.length+" يوماً متاحاً عند نقطة المدينة. إذا كانت RNL فارغة فملف المقارنة لم يُحدّث بعد.");
  setText("chirpsMeta","SAT يستخدم IMERG Late V07 · RNL يستخدم ERA5 · الوحدة: ملم/يوم · إنشاء الملف: "+(chirpsDataset.generated_at_utc||"غير متوفر")+" · أقرب خلية شبكية، وليست متوسط المدينة.");
 }
 async function loadChirps(){
