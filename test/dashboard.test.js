@@ -55,7 +55,7 @@ test('no credential-like API key is embedded in the browser page', () => {
 });
 
 test('CHIRPS city time-series panel is wired to the branch data artifact', () => {
-  assert.match(html, /CHIRPS v3 DAILY SAT FINAL/);
+  assert.match(html, /CHIRPS v3 DAILY SAT وDAILY RNL FINAL/);
   assert.match(html, /chirps_daily\.json/);
   assert.match(html, /chirpsState/);
   assert.match(html, /أقرب خلية شبكية/);
