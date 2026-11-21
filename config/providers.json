@@ -8,7 +8,9 @@
       "name": "Open-Meteo",
       "official_url": "https://open-meteo.com/",
       "domain": "weather",
-      "products": ["forecast-api"],
+      "products": [
+        "forecast-api"
+      ],
       "auth_mode": "none",
       "license_status": "approved_with_conditions",
       "license": "CC BY 4.0 for data; free API tier is for non-commercial use subject to published limits",
@@ -23,22 +25,27 @@
       "name": "Climate Hazards Center — CHIRPS v3",
       "official_url": "https://www.chc.ucsb.edu/data/chirps3",
       "domain": "precipitation",
-      "products": ["DAILY-SAT-FINAL", "DAILY-RNL"],
+      "products": [
+        "DAILY-SAT-FINAL",
+        "DAILY-RNL"
+      ],
       "auth_mode": "none",
       "license_status": "research_reviewed",
       "license": "Product catalogs describe public-domain availability; retain source attribution and verify product-specific terms",
       "attribution": "CHIRPS v3, Climate Hazards Center, UCSB",
       "coverage": "Global gridded precipitation",
       "rate_limit": "Respect source hosting limits; use paced downloads and bounded date ranges",
-      "health_status": "ci_smoke_tested",
-      "notes": "Research sample only: 13 city grid points and 3 days; SAT and RNL have different disaggregation inputs."
+      "health_status": "not_monitored",
+      "notes": "Research sample only: 13 city grid points and 3 days; latest live source checks timed out during HTTPS connection. Historical successful smoke test does not indicate current availability."
     },
     {
       "id": "ncm",
       "name": "المركز الوطني للأرصاد",
       "official_url": "https://api-doc.ncm.gov.sa/",
       "domain": "weather",
-      "products": ["api-products-subject-to-account-and-contract"],
+      "products": [
+        "api-products-subject-to-account-and-contract"
+      ],
       "auth_mode": "credentials",
       "license_status": "approval_required",
       "license": "Commercial/direct integration conditions and fees require written confirmation",
@@ -53,7 +60,11 @@
       "name": "NASA GPM IMERG",
       "official_url": "https://gpm.nasa.gov/data/imerg",
       "domain": "precipitation",
-      "products": ["Early", "Late", "Final"],
+      "products": [
+        "Early",
+        "Late",
+        "Final"
+      ],
       "auth_mode": "product_dependent",
       "license_status": "review_required",
       "license": "Review exact product terms, attribution and redistribution conditions before public integration",
@@ -68,7 +79,9 @@
       "name": "OpenStreetMap",
       "official_url": "https://www.openstreetmap.org/",
       "domain": "geography",
-      "products": ["standard-map-tiles"],
+      "products": [
+        "standard-map-tiles"
+      ],
       "auth_mode": "none",
       "license_status": "approved_with_conditions",
       "license": "Open Database License (ODbL); tile usage policy and attribution requirements apply",
