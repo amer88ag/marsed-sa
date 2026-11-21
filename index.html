@@ -133,7 +133,7 @@ function renderChirps(){
 }
 async function loadChirps(){
  try{
-  var payload=await PrecipitationService.fetchDataset("https://raw.githubusercontent.com/amer88ag/marsed-sa/feature/dashboard-quality-gates/data/chirps_daily.json");
+  var payload=await PrecipitationService.fetchDataset("./data/chirps_daily.json");
   chirpsDataset=payload;
   renderChirps();
  }catch(error){
