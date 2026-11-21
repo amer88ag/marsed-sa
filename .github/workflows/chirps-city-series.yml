@@ -1,0 +1,100 @@
+name: Build CHIRPS city time series
+
+on:
+  push:
+    branches: [feature/dashboard-quality-gates]
+    paths:
+      - ".github/workflows/chirps-city-series.yml"
+      - "scripts/chirps_extract.py"
+      - "tests/test_chirps_extract.py"
+  workflow_dispatch:
+    inputs:
+      start_date:
+        description: "First date (YYYY-MM-DD); choose a date for which CHIRPS final data exists"
+        required: true
+        type: string
+      end_date:
+        description: "Last date (YYYY-MM-DD); maximum 14 days per run"
+        required: true
+        type: string
+
+# Prevent overlapping runs from racing while pushing refreshed research data.
+concurrency:
+  group: chirps-city-series-feature-branch
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Small historical research sample; expand the window only after validating longer periods.
+      CHIRPS_START_DATE: "2026-09-01"
+      CHIRPS_END_DATE: "2026-09-03"
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/dashboard-quality-gates
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install raster processing dependency
+        run: python -m pip install --disable-pip-version-check rasterio
+      - name: Validate extractor tests
+        run: python -m unittest discover -s tests -p "test_*.py" -v
+      - name: Extract CHIRPS v3 daily grid values
+        env:
+          START_DATE: ${{ github.event.inputs.start_date || env.CHIRPS_START_DATE }}
+          END_DATE: ${{ github.event.inputs.end_date || env.CHIRPS_END_DATE }}
+        run: python scripts/chirps_extract.py --start "$START_DATE" --end "$END_DATE" --max-days 14
+      - name: Validate extracted research dataset
+        run: |
+          python - <<'PY'
+          import datetime as dt
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path("data/chirps_daily.json").read_text(encoding="utf-8"))
+          assert payload["schema_version"] == 1
+          assert payload["units"] == "mm/day"
+          assert set(payload["series"]) == {"sat", "rnl"}
+          cities = payload["cities"]
+          assert len(cities) == 13, f"Expected 13 cities, got {len(cities)}"
+          start = dt.date.fromisoformat(payload["date_range"]["start"])
+          end = dt.date.fromisoformat(payload["date_range"]["end"])
+          count = payload["date_range"]["days"]
+          assert 1 <= count <= 14
+          dates = [(start + dt.timedelta(days=i)).isoformat() for i in range(count)]
+          assert dates[-1] == end.isoformat()
+          for product in ("sat", "rnl"):
+              rows_by_city = payload["series"][product]
+              assert set(rows_by_city) == set(cities)
+              valid_values = []
+              for city, rows in rows_by_city.items():
+                  assert len(rows) == count, f"{product}/{city}: incomplete series"
+                  assert [row["date"] for row in rows] == dates, f"{product}/{city}: date gap/order error"
+                  for row in rows:
+                      value = row["precipitation_mm"]
+                      if value is not None:
+                          assert isinstance(value, (int, float)) and value >= 0
+                          valid_values.append(value)
+              assert valid_values, f"{product}: all city values are missing"
+          print("Validated CHIRPS SAT/RNL: 13 cities, continuous dates, valid values.")
+          PY
+      - name: Commit generated research data to this branch only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/chirps_daily.json
+          if git diff --cached --quiet; then
+            echo "No data changes to commit"
+          else
+            git commit -m "data: refresh CHIRPS daily city series"
+            git push origin HEAD:feature/dashboard-quality-gates
+          fi

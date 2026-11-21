@@ -1,0 +1,82 @@
+name: CHIRPS live source verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "Start date (YYYY-MM-DD)"
+        required: true
+        default: "2026-09-01"
+        type: string
+      end:
+        description: "End date (YYYY-MM-DD)"
+        required: true
+        default: "2026-09-03"
+        type: string
+  schedule:
+    - cron: "23 2 * * 2"
+
+permissions:
+  contents: read
+
+jobs:
+  chirps-source-smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install raster processing dependency
+        run: python -m pip install --disable-pip-version-check rasterio
+      - name: Extract a small historical sample from both official CHIRPS products
+        env:
+          START_DATE: ${{ inputs.start || '2026-09-01' }}
+          END_DATE: ${{ inputs.end || '2026-09-03' }}
+        run: python scripts/chirps_extract.py --start "$START_DATE" --end "$END_DATE" --max-days 14 --output /tmp/chirps-smoke.json
+      - name: Validate real source output and complete city/date structure
+        run: |
+          python - <<'PY'
+          import datetime as dt
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path("/tmp/chirps-smoke.json").read_text(encoding="utf-8"))
+          assert payload["units"] == "mm/day"
+          assert set(payload["series"]) == {"sat", "rnl"}
+
+          cities = payload["cities"]
+          assert len(cities) == 13, f"Expected 13 configured cities, got {len(cities)}"
+          expected_days = payload["date_range"]["days"]
+          start = dt.date.fromisoformat(payload["date_range"]["start"])
+          end = dt.date.fromisoformat(payload["date_range"]["end"])
+          dates = [(start + dt.timedelta(days=i)).isoformat() for i in range(expected_days)]
+          assert dates[-1] == end.isoformat(), "Date range metadata is inconsistent"
+          assert 1 <= expected_days <= 14
+
+          for product in ("sat", "rnl"):
+              product_series = payload["series"][product]
+              assert set(product_series) == set(cities), f"{product} city coverage differs from city registry"
+              valid = []
+              for city, rows in product_series.items():
+                  assert len(rows) == expected_days, f"{product}/{city} has an incomplete date series"
+                  assert [row["date"] for row in rows] == dates, f"{product}/{city} dates are missing or out of order"
+                  for row in rows:
+                      value = row["precipitation_mm"]
+                      if value is not None:
+                          assert isinstance(value, (int, float)) and value >= 0, f"Invalid value for {product}/{city}"
+                          valid.append(value)
+              assert valid, f"{product} returned no valid city samples"
+
+          print("CHIRPS SAT and RNL passed source, 13-city, date-continuity, and value checks.")
+          PY
+      - name: Upload research sample for review (not deployment)
+        uses: actions/upload-artifact@v4
+        with:
+          name: chirps-sat-rnl-live-verification
+          path: /tmp/chirps-smoke.json
+          if-no-files-found: error
+          retention-days: 7

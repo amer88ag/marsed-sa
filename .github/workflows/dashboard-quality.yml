@@ -1,0 +1,29 @@
+name: Dashboard quality checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, feature/dashboard-quality-gates]
+
+permissions:
+  contents: read
+
+jobs:
+  static-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run dashboard tests
+        run: node --test
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run CHIRPS extractor unit tests
+        run: python -m unittest discover -s tests -p "test_*.py" -v

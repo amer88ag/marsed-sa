@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0.0",
+  "registry_type": "providers",
+  "updated_at": "2026-11-21",
+  "providers": [
+    {
+      "id": "open-meteo",
+      "name": "Open-Meteo",
+      "official_url": "https://open-meteo.com/",
+      "domain": "weather",
+      "products": [
+        "forecast-api"
+      ],
+      "auth_mode": "none",
+      "license_status": "approved_with_conditions",
+      "license": "CC BY 4.0 for data; free API tier is for non-commercial use subject to published limits",
+      "attribution": "Weather data by Open-Meteo.com",
+      "coverage": "Global model data",
+      "rate_limit": "Free tier published limit applies; verify current terms before production use",
+      "health_status": "not_monitored",
+      "notes": "Current prototype source. Model output, not station observation."
+    },
+    {
+      "id": "chirps-v3",
+      "name": "Climate Hazards Center — CHIRPS v3",
+      "official_url": "https://www.chc.ucsb.edu/data/chirps3",
+      "domain": "precipitation",
+      "products": [
+        "DAILY-SAT-FINAL",
+        "DAILY-RNL"
+      ],
+      "auth_mode": "none",
+      "license_status": "research_reviewed",
+      "license": "Product catalogs describe public-domain availability; retain source attribution and verify product-specific terms",
+      "attribution": "CHIRPS v3, Climate Hazards Center, UCSB",
+      "coverage": "Global gridded precipitation",
+      "rate_limit": "Respect source hosting limits; use paced downloads and bounded date ranges",
+      "health_status": "not_monitored",
+      "notes": "Research sample only: 13 city grid points and 3 days; latest live source checks timed out during HTTPS connection. Historical successful smoke test does not indicate current availability."
+    },
+    {
+      "id": "ncm",
+      "name": "المركز الوطني للأرصاد",
+      "official_url": "https://api-doc.ncm.gov.sa/",
+      "domain": "weather",
+      "products": [
+        "api-products-subject-to-account-and-contract"
+      ],
+      "auth_mode": "credentials",
+      "license_status": "approval_required",
+      "license": "Commercial/direct integration conditions and fees require written confirmation",
+      "attribution": "المركز الوطني للأرصاد",
+      "coverage": "Saudi Arabia; exact product coverage must be confirmed",
+      "rate_limit": "Subject to NCM account and contract",
+      "health_status": "not_connected",
+      "notes": "No credentials or production integration are configured."
+    },
+    {
+      "id": "nasa-imerg",
+      "name": "NASA GPM IMERG",
+      "official_url": "https://gpm.nasa.gov/data/imerg",
+      "domain": "precipitation",
+      "products": [
+        "Early",
+        "Late",
+        "Final"
+      ],
+      "auth_mode": "product_dependent",
+      "license_status": "review_required",
+      "license": "Review exact product terms, attribution and redistribution conditions before public integration",
+      "attribution": "NASA GPM IMERG",
+      "coverage": "Global precipitation; 0.1 degree and 30-minute nominal resolution",
+      "rate_limit": "Follow NASA data access guidance",
+      "health_status": "not_connected",
+      "notes": "Candidate independent service/provider; CHIRPS SAT uses IMERG Late V07 as an input, but that does not mean raw IMERG is integrated."
+    },
+    {
+      "id": "openstreetmap",
+      "name": "OpenStreetMap",
+      "official_url": "https://www.openstreetmap.org/",
+      "domain": "geography",
+      "products": [
+        "standard-map-tiles"
+      ],
+      "auth_mode": "none",
+      "license_status": "approved_with_conditions",
+      "license": "Open Database License (ODbL); tile usage policy and attribution requirements apply",
+      "attribution": "© OpenStreetMap contributors",
+      "coverage": "Global basemap",
+      "rate_limit": "Public tile usage policy applies; do not bulk download or treat public tiles as a free unlimited CDN",
+      "health_status": "not_monitored",
+      "notes": "Basemap only; administrative boundary redistribution requires separate source/license review."
+    }
+  ]
+}

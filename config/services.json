@@ -1,0 +1,85 @@
+{
+  "schema_version": "1.0.0",
+  "registry_type": "services",
+  "updated_at": "2026-11-21",
+  "services": [
+    {
+      "id": "weather",
+      "title": "الطقس والتوقعات",
+      "category": "weather",
+      "description": "عرض مؤشرات الطقس النموذجية للمدن السعودية.",
+      "status": "active",
+      "ui_entry": "index.html#weather",
+      "provider_ids": ["open-meteo", "ncm"],
+      "capabilities": ["current_conditions", "daily_forecast", "precipitation"],
+      "data_class": "model_output",
+      "safety_notice": "ليست قياسات محطات رسمية ولا بديلاً عن تنبيهات الجهات المختصة."
+    },
+    {
+      "id": "precipitation",
+      "title": "الأمطار التاريخية",
+      "category": "climate",
+      "description": "عرض بيانات CHIRPS النقطية التجريبية ومقارنة المنتجات.",
+      "status": "research",
+      "ui_entry": "index.html#chirps",
+      "provider_ids": ["chirps-v3"],
+      "capabilities": ["historical_daily_precipitation", "sat_rnl_comparison"],
+      "data_class": "satellite_estimate",
+      "safety_notice": "العينة الحالية ثلاثة أيام و13 نقطة مدينة؛ ليست قياسات محطات أو متوسطات مناطق."
+    },
+    {
+      "id": "air-quality",
+      "title": "جودة الهواء",
+      "category": "environment",
+      "description": "خدمة مستقبلية تنتظر اعتماد مصدر البيانات وشروط العرض.",
+      "status": "planned",
+      "provider_ids": [],
+      "capabilities": ["air_quality_index", "pollutants"]
+    },
+    {
+      "id": "earthquakes",
+      "title": "الزلازل",
+      "category": "geophysics",
+      "description": "خدمة مستقبلية لعرض الأحداث الزلزالية من مصدر معتمد.",
+      "status": "planned",
+      "provider_ids": [],
+      "capabilities": ["earthquake_events"]
+    },
+    {
+      "id": "water",
+      "title": "المياه والسدود",
+      "category": "water",
+      "description": "خدمة مستقبلية لمؤشرات المياه والسدود بعد اعتماد المصادر.",
+      "status": "planned",
+      "provider_ids": [],
+      "capabilities": ["reservoirs", "water_resources"]
+    },
+    {
+      "id": "vegetation",
+      "title": "الغطاء النباتي",
+      "category": "environment",
+      "description": "خدمة مستقبلية لمؤشرات الغطاء النباتي مثل NDVI.",
+      "status": "planned",
+      "provider_ids": [],
+      "capabilities": ["vegetation_indices"]
+    },
+    {
+      "id": "maps",
+      "title": "الخرائط الجغرافية",
+      "category": "geography",
+      "description": "طبقات جغرافية مرخصة مع إسناد ومعلومات مصدر.",
+      "status": "research",
+      "provider_ids": ["openstreetmap"],
+      "capabilities": ["base_map", "geographic_layers"]
+    },
+    {
+      "id": "reports",
+      "title": "التقارير والإحصاءات",
+      "category": "analytics",
+      "description": "تقارير مشتقة من الخدمات بعد اجتياز بوابات جودة البيانات.",
+      "status": "planned",
+      "provider_ids": [],
+      "capabilities": ["summaries", "exports"]
+    }
+  ]
+}

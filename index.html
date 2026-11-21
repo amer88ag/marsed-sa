@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <style>
 :root{color-scheme:light;--navy:#102b46;--blue:#1769aa;--sky:#eaf4fb;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa;--green:#16794b;--amber:#9a5a00;--red:#b42318}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}button,select{font:inherit}button{cursor:pointer}.top{background:linear-gradient(120deg,#102b46,#174d76);color:#fff;padding:22px max(20px,calc((100% - 1280px)/2));}.brand{display:flex;justify-content:space-between;align-items:center;gap:16px}.brand h1{font-size:clamp(21px,3vw,30px);margin:0}.brand p{margin:7px 0 0;color:#c6d8e7;font-size:14px}.status{font-size:12px;border:1px solid #7092ac;border-radius:30px;padding:8px 12px;white-space:nowrap}.wrap{max-width:1280px;margin:auto;padding:22px 18px 48px}.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.toolbar label{font-size:13px;color:var(--muted)}select,.btn{border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:white;color:var(--ink)}.btn.primary{background:var(--blue);border-color:var(--blue);color:white}.btn:disabled{opacity:.5;cursor:not-allowed}.updated{margin-inline-start:auto;color:var(--muted);font-size:12px}.grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 3px 14px #183b5710}.panel-head{display:flex;justify-content:space-between;align-items:center;padding:15px 17px;border-bottom:1px solid var(--line)}.panel-head h2{font-size:16px;margin:0}.panel-head span{font-size:12px;color:var(--muted)}#map{height:450px;width:100%;background:#e8eff4}.map-note{padding:9px 14px;color:var(--muted);font-size:11px;border-top:1px solid var(--line)}.side{display:grid;gap:16px;align-content:start}.place-title{padding:16px 17px 0}.place-title h2{margin:0;font-size:22px}.place-title p{margin:5px 0;color:var(--muted);font-size:12px}.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}.metric{background:#f6f9fc;border:1px solid #e8eef3;border-radius:12px;padding:13px}.metric small{color:var(--muted);font-size:12px}.metric strong{display:block;font-size:25px;margin-top:8px;font-weight:700}.metric em{font-style:normal;color:var(--muted);font-size:11px}.notice{margin:0 14px 14px;padding:11px 12px;border-radius:10px;background:#fff7e8;color:#79500b;font-size:12px;line-height:1.7}.chart-wrap{padding:12px 14px 16px}.chart{width:100%;height:180px;display:block}.chart-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:10px}.sources{display:grid;gap:0}.source{padding:14px 16px;border-bottom:1px solid var(--line)}.source:last-child{border:0}.source b{display:block;font-size:14px}.source p{margin:5px 0;color:var(--muted);font-size:12px;line-height:1.6}.source a{color:var(--blue);text-decoration:none;font-size:12px}.source .tag{display:inline-block;margin-top:7px;border-radius:30px;padding:4px 8px;background:#edf5fb;color:#275b80;font-size:10px}.section-title{font-size:18px;margin:24px 0 12px}.foot{margin-top:18px;color:var(--muted);font-size:11px;line-height:1.8}.error{color:var(--red)}.loading{color:var(--muted);font-size:13px;padding:10px 14px}.leaflet-container{font-family:Tahoma,Arial,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}button,select{font:inherit}button{cursor:pointer}.top{background:linear-gradient(120deg,#102b46,#174d76);color:#fff;padding:22px max(20px,calc((100% - 1280px)/2));}.brand{display:flex;justify-content:space-between;align-items:center;gap:16px}.brand h1{font-size:clamp(21px,3vw,30px);margin:0}.brand p{margin:7px 0 0;color:#c6d8e7;font-size:14px}.status{font-size:12px;border:1px solid #7092ac;border-radius:30px;padding:8px 12px;white-space:nowrap}.wrap{max-width:1280px;margin:auto;padding:22px 18px 48px}.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.toolbar label{font-size:13px;color:var(--muted)}select,.btn{border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:white;color:var(--ink)}.btn.primary{background:var(--blue);border-color:var(--blue);color:white}.btn:disabled{opacity:.5;cursor:not-allowed}.updated{margin-inline-start:auto;color:var(--muted);font-size:12px}.grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 3px 14px #183b5710}.panel-head{display:flex;justify-content:space-between;align-items:center;padding:15px 17px;border-bottom:1px solid var(--line)}.panel-head h2{font-size:16px;margin:0}.panel-head span{font-size:12px;color:var(--muted)}#map{height:450px;width:100%;background:#e8eff4}.map-note{padding:9px 14px;color:var(--muted);font-size:11px;border-top:1px solid var(--line)}.side{display:grid;gap:16px;align-content:start}.place-title{padding:16px 17px 0}.place-title h2{margin:0;font-size:22px}.place-title p{margin:5px 0;color:var(--muted);font-size:12px}.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}.metric{background:#f6f9fc;border:1px solid #e8eef3;border-radius:12px;padding:13px}.metric small{color:var(--muted);font-size:12px}.metric strong{display:block;font-size:25px;margin-top:8px;font-weight:700}.metric em{font-style:normal;color:var(--muted);font-size:11px}.notice{margin:0 14px 14px;padding:11px 12px;border-radius:10px;background:#fff7e8;color:#79500b;font-size:12px;line-height:1.7}.chart-wrap{padding:12px 14px 16px}.chart{width:100%;height:180px;display:block}.data-state{padding:10px 14px;color:var(--muted);font-size:12px;line-height:1.7}.data-state.error{color:var(--red)}.data-meta{font-size:11px;color:var(--muted);padding:0 14px 14px}.chart-labels{display:flex;gap:14px;flex-wrap:wrap;padding:0 14px 8px;font-size:11px;color:var(--muted)}.chart-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:10px}.sources{display:grid;gap:0}.source{padding:14px 16px;border-bottom:1px solid var(--line)}.source:last-child{border:0}.source b{display:block;font-size:14px}.source p{margin:5px 0;color:var(--muted);font-size:12px;line-height:1.6}.source a{color:var(--blue);text-decoration:none;font-size:12px}.source .tag{display:inline-block;margin-top:7px;border-radius:30px;padding:4px 8px;background:#edf5fb;color:#275b80;font-size:10px}.section-title{font-size:18px;margin:24px 0 12px}.foot{margin-top:18px;color:var(--muted);font-size:11px;line-height:1.8}.error{color:var(--red)}.loading{color:var(--muted);font-size:13px;padding:10px 14px}.leaflet-container{font-family:Tahoma,Arial,sans-serif}
 @media(max-width:850px){.grid{grid-template-columns:1fr}.side{grid-template-columns:1fr}.updated{width:100%;margin:0}#map{height:360px}.wrap{padding:14px 12px 32px}.top{padding:18px 16px}.status{font-size:10px}}
 </style>
 </head>
@@ -19,6 +19,7 @@
 <header class="top"><div class="brand"><div><h1>مرصد السعودية للمناخ والمياه</h1><p>لوحة متابعة الطقس والأمطار والبيانات المناخية للمملكة</p></div><div class="status" id="connection">● جاهز للاتصال</div></div></header>
 <main class="wrap">
 <div class="toolbar">
+<a class="btn" href="admin/">مركز إدارة الخدمات والمصادر</a>
 <label for="place">الموقع</label>
 <select id="place" aria-label="اختر مدينة أو منطقة">
 <option value="riyadh">الرياض</option><option value="abha">أبها</option><option value="jeddah">جدة</option><option value="dammam">الدمام</option><option value="tabuk">تبوك</option><option value="hail">حائل</option><option value="buraidah">بريدة</option><option value="madinah">المدينة المنورة</option><option value="makkah">مكة المكرمة</option><option value="jazan">جازان</option><option value="najran">نجران</option><option value="arar">عرعر</option><option value="sakaka">سكاكا</option>
@@ -42,32 +43,43 @@
 <div class="metric"><small>الرطوبة النسبية</small><strong id="humidity">—</strong><em>%</em></div>
 <div class="metric"><small>سرعة الرياح</small><strong id="wind">—</strong><em>كم/ساعة</em></div>
 </div>
-<div class="notice" id="quality">هذه القيم مستمدة من نموذج طقس، وليست قياسات مباشرة من محطة أرصاد. قد تختلف عن الرصد الأرضي.</div>
+<div class="notice" id="quality">هذه القيم مستمدة من نموذج طقس، وليست قياسات مباشرة من محطة أرصاد. قد تختلف عن الرصد الأرضي.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · البيانات مرخصة وفق CC BY 4.0 مع الإسناد.</div>
 </section>
 <section class="panel">
 <div class="panel-head"><h2>الأمطار — 7 أيام سابقة و7 أيام قادمة</h2><span>ملم/يوم</span></div>
 <div class="chart-wrap"><svg id="rainChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مخطط كميات الأمطار اليومية"></svg><div class="chart-labels"><span>الأقدم</span><span>اليوم</span><span>الأحدث</span></div></div>
 <div id="chartCaption" class="loading">يظهر المخطط بعد تحميل البيانات.</div>
 </section>
+<section class="panel">
+<div class="panel-head"><h2>الأمطار التاريخية — CHIRPS v3</h2><span>ملم/يوم</span></div>
+<div class="chart-wrap"><svg id="chirpsChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مقارنة أمطار CHIRPS SAT وRNL اليومية عند إحداثيات المدينة"></svg><div class="chart-labels"><span>■ SAT — أزرق</span><span>■ RNL — أخضر</span></div></div>
+<div id="chirpsState" class="data-state">لم تُنشأ بيانات CHIRPS بعد. شغّل مهمة استخراج البيانات من تبويب Actions في فرع التطوير.</div>
+<div id="chirpsMeta" class="data-meta">العينة: أقرب خلية شبكية إلى إحداثيات المدينة، وليست متوسط أمطار كامل النطاق البلدي.</div>
+</section>
 </div>
 </div>
 <h2 class="section-title">كتالوج مصادر البيانات</h2>
 <section class="panel sources">
-<div class="source"><b>CHIRPS — الأمطار التاريخية</b><p>منتج شبكي يجمع تقديرات الأقمار الصناعية مع بيانات محطات أرضية، بدقة مكانية تقارب 0.05 درجة. مناسب للتحليل المناخي طويل المدى، وليس بديلاً عن قياسات المحطات.</p><a href="https://developers.google.com/earth-engine/datasets/catalog/UCSB-CHC_CHIRPS_V3_DAILY" target="_blank" rel="noopener">بطاقة مجموعة البيانات وشروط الاستخدام ↗</a><div><span class="tag">مرشح معتمد من حيث الإتاحة العامة — يلزم تثبيت آلية جلب الإنتاج</span></div></div>
+<div class="source"><b>CHIRPS v3 DAILY SAT وDAILY RNL FINAL — الأمطار التاريخية</b><p>منتجان يوميان بدقة تقارب 0.05 درجة. SAT يوزع إجمالي الخماسية باستخدام IMERG Late V07، وRNL يستخدم ERA5. التواريخ تسميات يومية ناتجة عن التفكيك وليست نافذة رصد موحدة للمحطات. القيم المعروضة أقرب خلية شبكية إلى إحداثيات المدينة، وليست متوسط المدينة أو المحافظة ولا قياس محطة أرضية.</p><a href="https://www.chc.ucsb.edu/data/chirps3" target="_blank" rel="noopener">مستودع CHC الرسمي ووصف المنتجات ↗</a><div><span class="tag">عينة مصدر حقيقية — 3 أيام و13 نقطة مدينة لكل منتج؛ ليست تحققاً وطنياً شاملاً</span></div></div>
 <div class="source"><b>NASA GPM IMERG — الأمطار بالأقمار الصناعية</b><p>منتجات متعددة بزمن تأخر ودقة مختلفين. بيانات NASA مجانية مع وجوب الإسناد، ويجب توضيح نوع المنتج (Early أو Late أو Final) وتاريخ المعالجة.</p><a href="https://gpm.nasa.gov/data/imerg" target="_blank" rel="noopener">صفحة IMERG الرسمية ↗</a> · <a href="https://gpm.nasa.gov/data/policy" target="_blank" rel="noopener">سياسة الاستخدام والإسناد ↗</a><div><span class="tag">مصدر مفتوح — التكامل الآلي لم يُفعّل بعد</span></div></div>
 <div class="source"><b>المركز الوطني للأرصاد — NCM</b><p>واجهة API تدعم بيانات تاريخية وحالية وتوقعات وصيغاً جغرافية. تتطلب بيانات دخول؛ لم يتم ربطها لعدم توفر اعتماد API للمشروع، كما أن شروط الخدمة والتكلفة تحتاج مراجعة.</p><a href="https://api-doc.ncm.gov.sa/en/api/getting-started" target="_blank" rel="noopener">توثيق API الرسمي ↗</a><div><span class="tag">تكامل مؤجل لحين توفر اعتماد وشروط استخدام واضحة</span></div></div>
-<div class="source"><b>Open-Meteo — بيانات الطقس المعروضة حالياً</b><p>خدمة مجانية للاستخدام غير التجاري دون مفتاح API. القيم في هذه اللوحة من نموذج الطقس وليست رصداً رسمياً. راجع شروط الاستخدام قبل أي استخدام تجاري أو تحميل كثيف.</p><a href="https://open-meteo.com/en/docs" target="_blank" rel="noopener">التوثيق الرسمي ↗</a><div><span class="tag">متصل في هذه النسخة التجريبية</span></div></div>
+<div class="source"><b>الهيئة العامة للمساحة والمعلومات الجيومكانية — الحدود الإدارية الرسمية</b><p>الخريطة الوطنية الرسمية هي المرجع المعتمد لحدود المملكة ومناطقها الإدارية. لم تُحمّل حدود المناطق إلى هذه النسخة بعد؛ يلزم الحصول على الطبقة من المنصة الجيومكانية الوطنية والتحقق من شروط الاستخدام وصيغة التنزيل.</p><a href="https://geosa.gov.sa/en/About/Pages/OfficialSaudiMap.aspx" target="_blank" rel="noopener">الخريطة الوطنية الرسمية ↗</a> · <a href="https://geoportal.sa/" target="_blank" rel="noopener">المنصة الجيومكانية الوطنية ↗</a><div><span class="tag">مرجع رسمي — التكامل المكاني لم يُنفّذ بعد</span></div></div>
+<div class="source"><b>Open-Meteo — بيانات الطقس المعروضة حالياً</b><p>الخطة المجانية مخصصة للاستخدام غير التجاري حتى 10,000 طلب يومياً مع الإسناد وفق CC BY 4.0. القيم في هذه اللوحة من نموذج الطقس وليست رصداً رسمياً. يجب مراجعة الشروط قبل أي استخدام تجاري أو تحميل كثيف.</p><a href="https://open-meteo.com/en/docs" target="_blank" rel="noopener">التوثيق الرسمي ↗</a> · <a href="https://open-meteo.com/en/license" target="_blank" rel="noopener">الترخيص والإسناد ↗</a><div><span class="tag">مصدر مساعد للنموذج الأولي</span></div></div>
 </section>
 <div class="foot">مرصد السعودية مشروع مستقل غير تابع للمركز الوطني للأرصاد أو NASA أو UCSB. لا تستخدم هذه اللوحة لاتخاذ قرارات السلامة أو الإخلاء أو الملاحة. في الحالات الطارئة اتبع تنبيهات الجهات الرسمية. © مرصد السعودية.</div>
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="src/providers/weather/open-meteo/adapter.js"></script>
+<script src="src/providers/precipitation/chirps/adapter.js"></script>
+<script src="src/services/weather/service.js"></script>
+<script src="src/services/precipitation/service.js"></script>
 <script>
 (function(){
 "use strict";
 var places={
 riyadh:{name:"الرياض",lat:24.7136,lon:46.6753},abha:{name:"أبها",lat:18.2164,lon:42.5053},jeddah:{name:"جدة",lat:21.4858,lon:39.1925},dammam:{name:"الدمام",lat:26.4207,lon:50.0888},tabuk:{name:"تبوك",lat:28.3838,lon:36.5550},hail:{name:"حائل",lat:27.5114,lon:41.7208},buraidah:{name:"بريدة",lat:26.3260,lon:43.9750},madinah:{name:"المدينة المنورة",lat:24.5247,lon:39.5692},makkah:{name:"مكة المكرمة",lat:21.3891,lon:39.8579},jazan:{name:"جازان",lat:16.8892,lon:42.5511},najran:{name:"نجران",lat:17.5650,lon:44.2289},arar:{name:"عرعر",lat:30.9753,lon:41.0381},sakaka:{name:"سكاكا",lat:29.9697,lon:40.2064}
 };
-var map=null,marker=null,activeKey="riyadh";
+var map=null,marker=null,activeKey="riyadh",chirpsDataset=null;
 var $=function(id){return document.getElementById(id)};
 function setText(id,value){$(id).textContent=value}
 function number(v,d){return v===null||v===undefined||!isFinite(Number(v))?"—":Number(v).toFixed(d||0)}
@@ -85,23 +97,62 @@ function drawChart(labels,values){
  var step=plotW/values.length,barW=Math.max(4,step*.55);
  values.forEach(function(v,i){var n=Number(v)||0;var bh=Math.max(0,Math.min(plotH,n/max*plotH));var x=left+i*step+(step-barW)/2;var y=top+plotH-bh;parts.push('<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="3" fill="'+(i===6?'#1769aa':'#6fa9d2')+'"><title>'+labels[i]+': '+number(n,1)+' ملم</title></rect>')});
  svg.innerHTML=parts.join("");
+} 
+function drawChirpsChart(satRecords,rnlRecords){
+ var svg=$("chirpsChart");
+ if(!satRecords||!satRecords.length){svg.innerHTML="";return}
+ var sat=satRecords.map(function(row){return row.precipitation_mm===null?null:Number(row.precipitation_mm)});
+ var rnl=(rnlRecords||[]).map(function(row){return row.precipitation_mm===null?null:Number(row.precipitation_mm)});
+ var valid=sat.concat(rnl).filter(function(v){return Number.isFinite(v)});
+ if(!valid.length){svg.innerHTML="";return}
+ var w=600,h=180,left=38,right=12,top=12,bottom=24,plotH=h-top-bottom,plotW=w-left-right;
+ var max=Math.max(1,...valid);max=Math.ceil(max/5)*5;if(max===0)max=1;
+ var parts=['<line x1="'+left+'" y1="'+(top+plotH)+'" x2="'+(w-right)+'" y2="'+(top+plotH)+'" stroke="#d9e2ea"/>'];
+ [0,.5,1].forEach(function(f){var y=top+plotH*(1-f);parts.push('<line x1="'+left+'" y1="'+y+'" x2="'+(w-right)+'" y2="'+y+'" stroke="#edf1f5"/><text x="'+(left-7)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="#7b8794">'+(max*f).toFixed(0)+'</text>')});
+ var step=plotW/satRecords.length,barW=Math.max(2,Math.min(10,step*.28)),gap=2;
+ satRecords.forEach(function(row,i){
+  var center=left+i*step+step/2;
+  var a=sat[i],b=rnl[i];
+  if(a!==null&&Number.isFinite(a)){var bh=Math.max(0,Math.min(plotH,a/max*plotH));var x=center-gap/2-barW;var y=top+plotH-bh;parts.push('<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="2" fill="#1769aa"><title>SAT · '+row.date+': '+number(a,2)+' ملم/يوم</title></rect>')}
+  if(b!==null&&Number.isFinite(b)){var bh2=Math.max(0,Math.min(plotH,b/max*plotH));var x2=center+gap/2;var y2=top+plotH-bh2;parts.push('<rect x="'+x2.toFixed(1)+'" y="'+y2.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+bh2.toFixed(1)+'" rx="2" fill="#23865b"><title>RNL · '+row.date+': '+number(b,2)+' ملم/يوم</title></rect>')}
+ });
+ svg.innerHTML=parts.join("");
+}
+function renderChirps(){
+ if(!chirpsDataset||!chirpsDataset.series){setText("chirpsState","لم تُنشأ بيانات CHIRPS بعد. شغّل مهمة Build CHIRPS city time series من تبويب Actions في فرع التطوير.");return}
+ var satNormalized=PrecipitationService.getCitySeries(chirpsDataset,activeKey,"sat");
+ var rnlNormalized=PrecipitationService.getCitySeries(chirpsDataset,activeKey,"rnl");
+ var satRecords=satNormalized.observations.map(function(row){return {date:row.valid_date,precipitation_mm:row.value}});
+ var rnlRecords=rnlNormalized.observations.map(function(row){return {date:row.valid_date,precipitation_mm:row.value}});
+ if(!satRecords.length&&!rnlRecords.length){$("chirpsChart").innerHTML="";setText("chirpsState","لا توجد سجلات لهذه المدينة في ملف البيانات الحالي.");return}
+ drawChirpsChart(satRecords,rnlRecords);
+ var satCount=satRecords.filter(function(row){return row.precipitation_mm!==null}).length;
+ var rnlCount=rnlRecords.filter(function(row){return row.precipitation_mm!==null}).length;
+ setText("chirpsState","SAT: "+satCount+"/"+satRecords.length+" يوماً · RNL: "+rnlCount+"/"+rnlRecords.length+" يوماً متاحاً عند نقطة المدينة · الفترة: "+(chirpsDataset.date_range?chirpsDataset.date_range.start+" إلى "+chirpsDataset.date_range.end:"غير محددة")+".");
+ setText("chirpsMeta","SAT يستخدم IMERG Late V07 · RNL يستخدم ERA5 · الوحدة: ملم/يوم · تاريخ إنشاء العينة: "+(chirpsDataset.generated_at_utc||"غير متوفر")+" · التواريخ تسميات تفكيك يومي، وليست نافذة رصد موحدة.");
+}
+async function loadChirps(){
+ try{
+  var payload=await PrecipitationService.fetchDataset("https://raw.githubusercontent.com/amer88ag/marsed-sa/feature/dashboard-quality-gates/data/chirps_daily.json");
+  chirpsDataset=payload;
+  renderChirps();
+ }catch(error){
+  setText("chirpsState","تعذر تحميل ملف CHIRPS التجريبي: "+error.message);
+ }
 }
 async function loadWeather(){
  var p=places[activeKey];setText("placeName",p.name);setText("placeCoords",p.lat.toFixed(4)+"° شمالاً، "+p.lon.toFixed(4)+"° شرقاً");
  setText("loading","جارٍ جلب البيانات…");$("refresh").disabled=true;$("connection").textContent="● جارٍ الاتصال";
  if(marker&&map){marker.setLatLng([p.lat,p.lon]).setPopupContent(p.name);map.setView([p.lat,p.lon],7)}
- var url="https://api.open-meteo.com/v1/forecast?latitude="+p.lat+"&longitude="+p.lon+"&current=temperature_2m,relative_humidity_2m,precipitation,rain,showers,wind_speed_10m&hourly=precipitation&daily=precipitation_sum,temperature_2m_max,temperature_2m_min&past_days=7&forecast_days=7&timezone=Asia%2FRiyadh";
  try{
-  var response=await fetch(url,{headers:{Accept:"application/json"}});
-  if(!response.ok)throw new Error("HTTP "+response.status);
-  var data=await response.json();
-  if(!data.current||!data.daily)throw new Error("استجابة غير مكتملة");
-  setText("temp",number(data.current.temperature_2m,1));
-  setText("rain",number(data.current.precipitation,1));
-  setText("humidity",number(data.current.relative_humidity_2m,0));
-  setText("wind",number(data.current.wind_speed_10m,0));
-  drawChart(data.daily.time||[],data.daily.precipitation_sum||[]);
-  setText("chartCaption","المصدر: Open-Meteo ("+(data.daily.time||[]).length+" يوماً). القيم التاريخية/المستقبلية نموذجية وليست قياسات محطة.");
+  var data=await WeatherService.fetchWeather({id:activeKey,name:p.name,lat:p.lat,lon:p.lon});
+  var measurement=function(name){var item=data.measurements.find(function(entry){return entry.name===name});return item?item.value:null};
+  setText("temp",number(measurement("temperature"),1));
+  setText("rain",number(measurement("precipitation"),1));
+  setText("humidity",number(measurement("relative_humidity"),0));
+  setText("wind",number(measurement("wind_speed"),0));
+  drawChart(data.daily.map(function(row){return row.valid_date}),data.daily.map(function(row){return row.precipitation}));
+  setText("chartCaption","المصدر: Open-Meteo ("+data.daily.length+" يوماً). القيم التاريخية/المستقبلية نموذجية وليست قياسات محطة.");
   setText("loading","تم تحميل بيانات النموذج بنجاح.");
   setText("updated","آخر جلب: "+new Date().toLocaleString("ar-SA",{timeZone:"Asia/Riyadh"}));
   setText("connection","● متصل");
@@ -112,9 +163,9 @@ async function loadWeather(){
   setText("chartCaption","لم تُعرض بيانات بديلة أو تقديرات مصطنعة. "+error.message);
  }finally{$("refresh").disabled=false}
 }
-$("place").addEventListener("change",function(e){activeKey=e.target.value;loadWeather()});
+$("place").addEventListener("change",function(e){activeKey=e.target.value;loadWeather();renderChirps()});
 $("refresh").addEventListener("click",loadWeather);
-initMap();loadWeather();
+initMap();loadWeather();loadChirps();
 })();
 </script>
 </body></html>
