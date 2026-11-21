@@ -53,7 +53,7 @@
 <section class="panel">
 <div class="panel-head"><h2>الأمطار التاريخية — CHIRPS v3</h2><span>ملم/يوم</span></div>
 <div class="chart-wrap"><svg id="chirpsChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مقارنة أمطار CHIRPS SAT وRNL اليومية عند إحداثيات المدينة"></svg><div class="chart-labels"><span>■ SAT — أزرق</span><span>■ RNL — أخضر</span></div></div>
-<div id="chirpsState" class="data-state">لم تُنشأ بيانات CHIRPS بعد. شغّل مهمة استخراج البيانات من تبويب Actions في فرع التطوير.</div>
+<div id="chirpsState" class="data-state">تعرض اللوحة العينة البحثية المحفوظة في المستودع. لتحديثها، شغّل مهمة Build CHIRPS city time series من تبويب Actions على فرع التطوير؛ التحديث لا ينشر تلقائياً إلى main.</div>
 <div id="chirpsMeta" class="data-meta">العينة: أقرب خلية شبكية إلى إحداثيات المدينة، وليست متوسط أمطار كامل النطاق البلدي.</div>
 </section>
 </div>
@@ -119,7 +119,7 @@ function drawChirpsChart(satRecords,rnlRecords){
  svg.innerHTML=parts.join("");
 }
 function renderChirps(){
- if(!chirpsDataset||!chirpsDataset.series){setText("chirpsState","لم تُنشأ بيانات CHIRPS بعد. شغّل مهمة Build CHIRPS city time series من تبويب Actions في فرع التطوير.");return}
+ if(!chirpsDataset||!chirpsDataset.series){setText("chirpsState","تعذر تحميل ملف عينة CHIRPS المحفوظ في هذا الإصدار. تحقق من الاتصال، ثم أعد تحميل الصفحة. تحديث العينة يتم عبر مهمة البحث على فرع التطوير ولا ينشر تلقائياً إلى main.");return}
  var satNormalized=PrecipitationService.getCitySeries(chirpsDataset,activeKey,"sat");
  var rnlNormalized=PrecipitationService.getCitySeries(chirpsDataset,activeKey,"rnl");
  var satRecords=satNormalized.observations.map(function(row){return {date:row.valid_date,precipitation_mm:row.value}});
