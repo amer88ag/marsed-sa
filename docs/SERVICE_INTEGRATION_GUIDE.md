@@ -22,7 +22,7 @@
 - أسلوب المصادقة وحدود الطلب والتكلفة.
 - سياسة الإسناد المطلوبة.
 
-الحالة تكون واحدة من: `approved`, `approved_with_conditions`, `research_only`, `rejected`. لا تساوِ بين كون API متاحاً وبين امتلاك حق إعادة عرض بياناته.
+حالة الترخيص في سجل المزود تكون واحدة من: `approved`, `approved_with_conditions`, `research_reviewed`, `review_required`, `approval_required`, `rejected`. هذه حالة مراجعة الترخيص وليست حالة تشغيل المصدر. أما حالة الخدمة فتكون: `active`, `research`, `planned`, `disabled`. وحالة الاتصال في سجل المزود تكون: `healthy`, `degraded`, `not_monitored`, `ci_smoke_tested`, `not_connected`, `unavailable`. لا تساوِ بين كون API متاحاً وبين امتلاك حق إعادة عرض بياناته.
 
 ## 3. مكان الملفات
 
@@ -138,7 +138,7 @@
 | التأخر وتواتر التحديث | — |
 | المصادقة وحدود الطلب | — |
 | التكلفة | — |
-| حالة الاعتماد | research_only افتراضياً حتى المراجعة |
+| license_status | review_required افتراضياً حتى المراجعة |
 | تاريخ آخر تحقق | — |
 
 ## 9. قائمة قبول PR
