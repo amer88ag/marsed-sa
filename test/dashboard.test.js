@@ -163,7 +163,7 @@ test('Open-Meteo adapter rejects malformed coordinates and mismatched daily arra
   assert.throws(() => adapter.buildCurrentUrl({ lat: NaN, lon: 42 }), /finite lat\/lon/);
   assert.throws(() => adapter.normalizeCurrent({
     current: {}, daily: { time: ['2026-01-01'], precipitation_sum: [] }
-  }, null), /equal length/);
+  }, null), /Daily field length mismatch/);
 });
 
 test('CHIRPS adapter preserves SAT and RNL product identity and null values', () => {
@@ -275,7 +275,7 @@ test('weather refresh clears stale values and rejects out-of-order city response
   assert.ok(html.includes('var requestId=++weatherRequestId;'));
   assert.ok(html.includes('if(requestId!==weatherRequestId||requestedKey!==activeKey)return;'));
   assert.ok(html.includes('function clearWeatherDisplay()'));
-  assert.ok(html.includes('["temp","rain","humidity","wind"].forEach'));
+  assert.ok(html.includes('["temp","feels","rain","humidity","wind","condition","daylight","weatherInsight"].forEach'));
   assert.ok(html.includes('if(requestId===weatherRequestId)$("refresh").disabled=false;'));
 });
 
@@ -339,6 +339,7 @@ test('weather UI keeps the newest city response when requests resolve out of ord
   harness.requests[1].resolve({
     measurements: [
       { name: 'temperature', value: 19 },
+      { name: 'apparent_temperature', value: 18 },
       { name: 'precipitation', value: 1.2 },
       { name: 'relative_humidity', value: 55 },
       { name: 'wind_speed', value: 7 }
@@ -354,6 +355,7 @@ test('weather UI keeps the newest city response when requests resolve out of ord
   harness.requests[0].resolve({
     measurements: [
       { name: 'temperature', value: 35 },
+      { name: 'apparent_temperature', value: 34 },
       { name: 'precipitation', value: 0 },
       { name: 'relative_humidity', value: 20 },
       { name: 'wind_speed', value: 15 }
@@ -369,4 +371,68 @@ test('weather UI keeps the newest city response when requests resolve out of ord
   assert.equal(harness.elements.get('humidity').textContent, '55');
   assert.equal(harness.elements.get('refresh').disabled, false,
     'only the current request controls refresh button state');
+});
+
+test('Open-Meteo adapter normalizes practical hourly and seven-day weather context', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  const normalized = adapter.normalizeCurrent({
+    current: { time: '2026-11-22T10:00', temperature_2m: 27, apparent_temperature: 30, relative_humidity_2m: 35, precipitation: 0, wind_speed_10m: 12, weather_code: 1, is_day: 1 },
+    hourly: {
+      time: ['2026-11-22T10:00'],
+      temperature_2m: [27], apparent_temperature: [30], precipitation_probability: [20],
+      precipitation: [0], weather_code: [1], wind_speed_10m: [12]
+    },
+    daily: {
+      time: ['2026-11-22'], weather_code: [1], precipitation_sum: [0.5],
+      precipitation_probability_max: [35], temperature_2m_max: [31], temperature_2m_min: [19],
+      sunrise: ['2026-11-22T06:10'], sunset: ['2026-11-22T17:20'], uv_index_max: [7]
+    }
+  }, { id: 'riyadh', name: 'الرياض', lat: 24.7, lon: 46.6 });
+  assert.equal(normalized.measurements.find(x => x.name === 'apparent_temperature').value, 30);
+  assert.equal(normalized.current_weather_code, 1);
+  assert.equal(normalized.is_day, true);
+  assert.equal(normalized.hourly[0].precipitation_probability, 20);
+  assert.equal(normalized.daily[0].temperature_max, 31);
+  assert.equal(normalized.daily[0].temperature_min, 19);
+  assert.equal(normalized.daily[0].uv_index_max, 7);
+});
+
+test('Open-Meteo adapter rejects mismatched hourly forecast arrays', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  assert.throws(() => adapter.normalizeCurrent({
+    current: {}, hourly: { time: ['2026-11-22T10:00'], temperature_2m: [] },
+    daily: { time: [], precipitation_sum: [] }
+  }, null), /Hourly field length mismatch/);
+});
+
+test('daily weather experience includes practical context and hourly/daily forecast sections', () => {
+  assert.match(html, /ماذا يعني هذا لك؟/);
+  assert.match(html, /hourlyForecast/);
+  assert.match(html, /dailyForecast/);
+  assert.match(html, /apparent_temperature/);
+  assert.match(html, /precipitation_probability_max/);
+  assert.match(html, /ليس تنبيهاً رسمياً/);
+});
+
+test('Open-Meteo adapter requests seven forecast days without prepending yesterday', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  const url = new URL(adapter.buildCurrentUrl({ lat: 24.7, lon: 46.6 }));
+  assert.equal(url.searchParams.get('past_days'), '0');
+  assert.equal(url.searchParams.get('forecast_days'), '7');
+});
+
+test('Open-Meteo adapter preserves unavailable day/night state instead of assuming night', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  const normalized = adapter.normalizeCurrent({
+    current: { temperature_2m: 22 },
+    daily: { time: ['2026-11-22'], precipitation_sum: [null] }
+  }, null);
+  assert.equal(normalized.is_day, null);
+  assert.equal(normalized.daily[0].precipitation, null);
+});
+
+test('daily weather summary handles missing model values without inventing zeroes or clear skies', () => {
+  assert.match(html, /لا تتوفر بيانات كافية لتكوين ملخص عملي موثوق/);
+  assert.match(html, /if\(code===null\|\|code===undefined\|\|code===""\)return "غير متاح"/);
+  assert.match(html, /data\.is_day===true\?"نهار":data\.is_day===false\?"ليل"/);
 });
