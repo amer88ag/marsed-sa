@@ -103,6 +103,11 @@ function initMap(){
   var p=places[key],cityMarker=L.marker([p.lat,p.lon]).addTo(map).bindPopup(p.name);
   cityMarker.on("click",function(){selectCity(key)});
   cityMarkers[key]=cityMarker;
+  if(typeof L.circleMarker==="function"){
+   var circle=L.circleMarker([p.lat,p.lon],{radius:11,color:"#ffffff",weight:2,fillColor:"#7b8794",fillOpacity:0.88}).addTo(map);
+   circle.on("click",function(){selectCity(key)});
+   radarCircles[key]=circle;
+  }
  });
  if(cityMarkers[activeKey])cityMarkers[activeKey].openPopup();
 }
@@ -301,7 +306,9 @@ async function loadWeather(){
 }
 $("place").addEventListener("change",function(e){selectCity(e.target.value)});
 $("refresh").addEventListener("click",loadWeather);
-initMap();loadWeather();loadChirps();
+$("radarMode").addEventListener("change",function(e){radarMode=e.target.value;renderRadar()});
+$("refreshRadar").addEventListener("click",loadRadar);
+initMap();loadWeather();loadChirps();loadRadar();
 })();
 </script>
 </body></html>
