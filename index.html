@@ -141,7 +141,7 @@ function renderRadar(){
   var circle=radarCircles[key],item=radarData[key];
   if(!circle)return;
   circle.setStyle({fillColor:radarColor(item,radarMode)});
-  circle.setPopupContent(radarPopup(key,item));
+  circle.bindPopup(radarPopup(key,item));
   if(!item)circle.setStyle({fillColor:"#7b8794",fillOpacity:0.65});
  });
  var count=Object.keys(radarData).filter(function(key){return !!radarData[key]}).length;
