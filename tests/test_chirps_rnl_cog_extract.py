@@ -18,6 +18,14 @@ class FakeRaster:
         return iter([[0.25] for _ in coordinates])
 
 class ChirpsRnlCogExtractTests(unittest.TestCase):
+    def test_saudi_search_extent_covers_all_configured_city_points(self):
+        west, south, east, north = MODULE.SAUDI_BBOX
+        for city in MODULE.CITIES.values():
+            self.assertGreaterEqual(city["lon"], west)
+            self.assertLessEqual(city["lon"], east)
+            self.assertGreaterEqual(city["lat"], south)
+            self.assertLessEqual(city["lat"], north)
+
     def test_date_range_is_bounded_and_supported(self):
         self.assertEqual(len(MODULE.parse_date_range("2024-01-01","2024-12-31")),366)
         with self.assertRaises(ValueError): MODULE.parse_date_range("2024-01-01","2025-01-01")
