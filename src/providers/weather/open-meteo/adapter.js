@@ -20,6 +20,51 @@
     });
     return "https://api.open-meteo.com/v1/forecast?" + query.toString();
   }
+  function buildOverviewUrl(location) {
+    if (!location || !Number.isFinite(location.lat) || !Number.isFinite(location.lon)) {
+      throw new TypeError("A location with finite lat/lon is required");
+    }
+    const query = new URLSearchParams({
+      latitude: String(location.lat),
+      longitude: String(location.lon),
+      current: "temperature_2m,precipitation,rain,showers,wind_speed_10m,weather_code",
+      daily: "precipitation_sum,precipitation_probability_max",
+      forecast_days: "1",
+      timezone: "Asia/Riyadh"
+    });
+    return "https://api.open-meteo.com/v1/forecast?" + query.toString();
+  }
+  function normalizeOverview(payload, location, retrievedAt) {
+    if (!payload || !payload.current || !payload.daily || !Array.isArray(payload.daily.time) || !payload.daily.time.length) {
+      throw new TypeError("Open-Meteo overview response is incomplete");
+    }
+    const current = payload.current, daily = payload.daily;
+    return {
+      provider_id: "open-meteo",
+      retrieved_at: retrievedAt || new Date().toISOString(),
+      valid_time: current.time || null,
+      location: { id: location.id, name: location.name, latitude: location.lat, longitude: location.lon },
+      current: {
+        temperature: numericOrNull(current.temperature_2m, "temperature_2m"),
+        precipitation: numericOrNull(current.precipitation, "precipitation"),
+        rain: numericOrNull(current.rain, "rain"),
+        showers: numericOrNull(current.showers, "showers"),
+        wind_speed: numericOrNull(current.wind_speed_10m, "wind_speed_10m"),
+        weather_code: numericOrNull(current.weather_code, "weather_code")
+      },
+      today: {
+        date: daily.time[0],
+        precipitation: numericOrNull((daily.precipitation_sum || [])[0], "precipitation_sum"),
+        precipitation_probability_max: numericOrNull((daily.precipitation_probability_max || [])[0], "precipitation_probability_max")
+      },
+      provenance: {
+        source_url: "https://open-meteo.com/",
+        attribution: "Weather data by Open-Meteo.com",
+        methodology: "Numerical weather model output",
+        limitations: ["Model output, not direct station observation", "Not an official warning"]
+      }
+    };
+  }
   function numericOrNull(value, field) {
     if (value === null || value === undefined) return null;
     const number = Number(value);
@@ -96,5 +141,5 @@
       }
     };
   }
-  return { buildCurrentUrl, normalizeCurrent };
+  return { buildCurrentUrl, normalizeCurrent, buildOverviewUrl, normalizeOverview };
 });
