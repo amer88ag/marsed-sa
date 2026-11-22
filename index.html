@@ -158,7 +158,9 @@ async function loadChirps(){
  }
 }
 
+var nationalComparisonRequestId=0;
 async function loadNationalComparison(){
+ var requestId=++nationalComparisonRequestId;
  setText("nationalState","جارٍ تحديث بيانات 13 مدينة…");
  var entries=Object.keys(places).map(async function(key){
   var p=places[key];
@@ -167,6 +169,7 @@ async function loadNationalComparison(){
   return {key:key,name:p.name,temperature:get("temperature"),precipitation:get("precipitation"),humidity:get("relative_humidity"),wind:get("wind_speed")};
  });
  var settled=await Promise.allSettled(entries);
+ if(requestId!==nationalComparisonRequestId)return;
  var rows=settled.filter(function(item){return item.status==="fulfilled"}).map(function(item){return item.value});
  var body=$("cityComparison");body.innerHTML="";
  if(!rows.length){body.innerHTML='<tr><td colspan="5">تعذر جلب بيانات المدن. أعد المحاولة لاحقاً.</td></tr>';setText("nationalState","تعذر الاتصال بالمصدر");return}
