@@ -345,7 +345,7 @@ test('weather UI keeps the newest city response when requests resolve out of ord
   assert.equal(typeof changeCity, 'function');
 
   changeCity({ target: { value: 'abha' } });
-  assert.equal(harness.requests.length, 15, 'Abha request starts after city selection');
+  assert.equal(harness.requests.length, 28, 'Abha request and the refreshed 13-city comparison start');
 
   harness.requests[14].resolve({
     measurements: [
@@ -354,13 +354,16 @@ test('weather UI keeps the newest city response when requests resolve out of ord
       { name: 'relative_humidity', value: 55 },
       { name: 'wind_speed', value: 7 }
     ],
-    daily: [{ valid_date: '2026-11-22', precipitation: 1.2 }]
+    daily: [{ valid_date: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' }), precipitation: 1.2, temperature_max: 23, temperature_min: 12, precipitation_probability_max: 60 }]
   });
   await harness.requests[14].promise;
   await new Promise(resolve => setImmediate(resolve));
 
   assert.equal(harness.elements.get('placeName').textContent, 'أبها');
   assert.equal(harness.elements.get('temp').textContent, '19.0');
+  assert.equal(harness.elements.get('tempMax').textContent, '23.0');
+  assert.equal(harness.elements.get('tempMin').textContent, '12.0');
+  assert.equal(harness.elements.get('rainChance').textContent, '60');
 
   harness.requests[0].resolve({
     measurements: [
