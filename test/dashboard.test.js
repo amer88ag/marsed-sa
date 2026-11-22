@@ -370,3 +370,44 @@ test('weather UI keeps the newest city response when requests resolve out of ord
   assert.equal(harness.elements.get('refresh').disabled, false,
     'only the current request controls refresh button state');
 });
+
+test('Open-Meteo adapter normalizes practical hourly and seven-day weather context', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  const normalized = adapter.normalizeCurrent({
+    current: { time: '2026-11-22T10:00', temperature_2m: 27, apparent_temperature: 30, relative_humidity_2m: 35, precipitation: 0, wind_speed_10m: 12, weather_code: 1, is_day: 1 },
+    hourly: {
+      time: ['2026-11-22T10:00'],
+      temperature_2m: [27], apparent_temperature: [30], precipitation_probability: [20],
+      precipitation: [0], weather_code: [1], wind_speed_10m: [12]
+    },
+    daily: {
+      time: ['2026-11-22'], weather_code: [1], precipitation_sum: [0.5],
+      precipitation_probability_max: [35], temperature_2m_max: [31], temperature_2m_min: [19],
+      sunrise: ['2026-11-22T06:10'], sunset: ['2026-11-22T17:20'], uv_index_max: [7]
+    }
+  }, { id: 'riyadh', name: 'الرياض', lat: 24.7, lon: 46.6 });
+  assert.equal(normalized.measurements.find(x => x.name === 'apparent_temperature').value, 30);
+  assert.equal(normalized.current_weather_code, 1);
+  assert.equal(normalized.is_day, true);
+  assert.equal(normalized.hourly[0].precipitation_probability, 20);
+  assert.equal(normalized.daily[0].temperature_max, 31);
+  assert.equal(normalized.daily[0].temperature_min, 19);
+  assert.equal(normalized.daily[0].uv_index_max, 7);
+});
+
+test('Open-Meteo adapter rejects mismatched hourly forecast arrays', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  assert.throws(() => adapter.normalizeCurrent({
+    current: {}, hourly: { time: ['2026-11-22T10:00'], temperature_2m: [] },
+    daily: { time: [], precipitation_sum: [] }
+  }, null), /Hourly field length mismatch/);
+});
+
+test('daily weather experience includes practical context and hourly/daily forecast sections', () => {
+  assert.match(html, /ماذا يعني هذا لك؟/);
+  assert.match(html, /hourlyForecast/);
+  assert.match(html, /dailyForecast/);
+  assert.match(html, /apparent_temperature/);
+  assert.match(html, /precipitation_probability_max/);
+  assert.match(html, /ليس تنبيهاً رسمياً/);
+});
