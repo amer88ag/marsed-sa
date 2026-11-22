@@ -149,12 +149,15 @@ test('Open-Meteo adapter builds a Riyadh-time request and normalizes model outpu
   assert.equal(url.searchParams.get('latitude'), '18.2164');
   const normalized = adapter.normalizeCurrent({
     current: { time: '2026-11-21T12:00', temperature_2m: 21, relative_humidity_2m: 40, precipitation: 0, wind_speed_10m: 8 },
-    daily: { time: ['2026-11-21'], precipitation_sum: [0.2] }
+    daily: { time: ['2026-11-21'], precipitation_sum: [0.2], precipitation_probability_max: [30], temperature_2m_max: [25], temperature_2m_min: [14] }
   }, { id: 'abha', name: 'أبها', lat: 18.2164, lon: 42.5053 }, '2026-11-21T12:05:00Z');
   assert.equal(normalized.provider_id, 'open-meteo');
   assert.equal(normalized.location.id, 'abha');
   assert.equal(normalized.measurements.find(item => item.name === 'temperature').value, 21);
   assert.equal(normalized.daily[0].precipitation, 0.2);
+  assert.equal(normalized.daily[0].temperature_max, 25);
+  assert.equal(normalized.daily[0].temperature_min, 14);
+  assert.equal(normalized.daily[0].precipitation_probability_max, 30);
   assert.match(normalized.provenance.methodology, /Numerical weather model/);
 });
 
@@ -200,6 +203,14 @@ test('service management center loads the central registries and is explicit abo
     .map(match => match[1].trim()).filter(Boolean);
   assert.ok(scripts.length > 0);
   for (const script of scripts) new vm.Script(script, { filename: 'admin-inline.js' });
+});
+
+test('dashboard provides a national city comparison with honest partial coverage', () => {
+  assert.match(html, /مقارنة الطقس بين المدن السعودية/);
+  assert.match(html, /Object\.keys\(places\)\.map/);
+  assert.match(html, /Promise\.allSettled/);
+  assert.match(html, /تم جلب /);
+  assert.match(html, /ليست مقارنة شاملة/);
 });
 
 test('dashboard links to the service management center', () => {
@@ -329,14 +340,14 @@ function createDashboardHarness() {
 
 test('weather UI keeps the newest city response when requests resolve out of order', async () => {
   const harness = createDashboardHarness();
-  assert.equal(harness.requests.length, 1, 'initial Riyadh request starts');
+  assert.equal(harness.requests.length, 14, 'initial city request and 13-city comparison start');
   const changeCity = harness.listeners['place:change'];
   assert.equal(typeof changeCity, 'function');
 
   changeCity({ target: { value: 'abha' } });
-  assert.equal(harness.requests.length, 2, 'Abha request starts after city selection');
+  assert.equal(harness.requests.length, 15, 'Abha request starts after city selection');
 
-  harness.requests[1].resolve({
+  harness.requests[14].resolve({
     measurements: [
       { name: 'temperature', value: 19 },
       { name: 'precipitation', value: 1.2 },
@@ -345,7 +356,7 @@ test('weather UI keeps the newest city response when requests resolve out of ord
     ],
     daily: [{ valid_date: '2026-11-22', precipitation: 1.2 }]
   });
-  await harness.requests[1].promise;
+  await harness.requests[14].promise;
   await new Promise(resolve => setImmediate(resolve));
 
   assert.equal(harness.elements.get('placeName').textContent, 'أبها');
