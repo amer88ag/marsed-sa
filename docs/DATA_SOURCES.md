@@ -65,3 +65,12 @@
 - IMERG مرشح للمقارنة الزمنية وشبه الآنية، مع إظهار نوع التشغيل والتأخر.
 - NCM مصدر رسمي مهم، لكن التكامل التجاري أو المقيد لا يبدأ قبل الموافقة ومعرفة الرسوم وشروط إعادة العرض.
 - لا نطلق تنبيهات سيول أو إنذارات سلامة اعتماداً على هذه الطبقات وحدها.
+
+## CHIRPS v3 RNL historical COG access
+
+- The official CHC daily archive distributes global GeoTIFF files; the existing point extractor downloads each full raster for every date and is therefore unsuitable for broad multi-year runs.
+- A separate WFP Source Cooperative distribution exposes CHIRPS v3 RNL daily files as Cloud-Optimized GeoTIFFs (COGs), indexed by a public STAC GeoParquet file. The index supports bounding-box and datetime filtering, and COG access can read only the required raster windows.
+- The new historical extractor queries the Saudi bounding box and samples the 13 configured city points from each daily COG. It emits RNL only; it does not imply SAT is available from this distribution.
+- The archive is an RNL gridded estimate based on ERA5 daily disaggregation, not a rain-gauge observation. It uses nearest grid-cell sampling, not city-area averages. Missing dates or pixels remain null.
+- Each run is limited to 366 days and produces a review artifact only. No historical data is committed to the repository or published automatically.
+- Attribution and product-specific license metadata are retained in the output. Verify provider terms and source availability during each live extraction.
