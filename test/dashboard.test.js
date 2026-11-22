@@ -444,3 +444,58 @@ test('map renders a selectable marker for every configured Saudi city', () => {
   assert.match(html, /function selectCity\(key\)/);
   assert.match(html, /cityMarkers\[requestedKey\]\.openPopup\(\)/);
 });
+
+\ntest('national life radar requests lightweight model summaries for city points', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  const url = new URL(adapter.buildOverviewUrl({ id: 'abha', name: 'أبها', lat: 18.2164, lon: 42.5053 }));
+  assert.equal(url.hostname, 'api.open-meteo.com');
+  assert.equal(url.searchParams.get('forecast_days'), '1');
+  assert.equal(url.searchParams.get('timezone'), 'Asia/Riyadh');
+  assert.match(url.searchParams.get('current'), /precipitation/);
+  assert.match(url.searchParams.get('daily'), /precipitation_probability_max/);
+});
+
+test('national radar normalization preserves missing values and source provenance', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  const item = adapter.normalizeOverview({
+    current: { time: '2026-11-22T12:00', temperature_2m: 22, precipitation: null, weather_code: 3 },
+    daily: { time: ['2026-11-22'], precipitation_sum: [null], precipitation_probability_max: [45] }
+  }, { id: 'abha', name: 'أبها', lat: 18.2164, lon: 42.5053 }, '2026-11-22T09:00:00Z');
+  assert.equal(item.location.id, 'abha');
+  assert.equal(item.current.precipitation, null);
+  assert.equal(item.today.precipitation, null);
+  assert.equal(item.today.precipitation_probability_max, 45);
+  assert.match(item.provenance.methodology, /Numerical weather model/);
+});
+
+test('national radar rejects incomplete provider responses and invalid numeric values', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  assert.throws(() => adapter.normalizeOverview({}, { id: 'abha', name: 'أبها', lat: 18, lon: 42 }), /incomplete/);
+  assert.throws(() => adapter.normalizeOverview({
+    current: { temperature_2m: 'bad' }, daily: { time: ['2026-11-22'] }
+  }, { id: 'abha', name: 'أبها', lat: 18, lon: 42 }), /Invalid numeric field/);
+});
+
+test('weather service fetches and normalizes lightweight national radar data', async () => {
+  const service = require('../src/services/weather/service.js');
+  const fakeAdapter = {
+    buildOverviewUrl: location => 'https://provider.test/overview?city=' + location.id,
+    normalizeOverview: (payload, location) => ({ city: location.id, value: payload.value })
+  };
+  const result = await service.fetchOverview({ id: 'abha', lat: 18, lon: 42 }, {
+    adapter: fakeAdapter,
+    fetch: async url => ({ ok: url.includes('city=abha'), json: async () => ({ value: 5 }) })
+  });
+  assert.deepEqual(result, { city: 'abha', value: 5 });
+});
+
+test('dashboard provides selectable current-weather and daily-rain map layers', () => {
+  assert.match(html, /id="radarMode"/);
+  assert.match(html, /الطقس الحالي حسب النموذج/);
+  assert.match(html, /الأمطار المتوقعة اليوم/);
+  assert.match(html, /function loadRadar\(\)/);
+  assert.match(html, /WeatherService\.fetchOverview/);
+  assert.match(html, /L\.circleMarker/);
+  assert.match(html, /لم تُستبدل بياناتها بقيم صفرية/);
+  assert.match(html, /ليس رصداً أرضياً أو تنبيهاً رسمياً/);
+});
