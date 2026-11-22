@@ -30,6 +30,8 @@ class ChirpsRnlCogExtractTests(unittest.TestCase):
         item={"properties":{"datetime":"2024-01-01T00:00:00Z"},"assets":{"data":{"href":"https://data.example/rain.tif"}}}
         self.assertEqual(MODULE.item_date(item),"2024-01-01")
         self.assertEqual(MODULE.asset_href(item),"https://data.example/rain.tif")
+        signed = {"assets": {"data": {"href": "https://data.example/rain.tif?token=temporary"}}}
+        self.assertEqual(MODULE.asset_href(signed), "https://data.example/rain.tif?token=temporary")
         with self.assertRaises(ValueError): MODULE.asset_href({"assets":{"data":{"href":"http://example/rain.tif"}}})
     def test_extracts_city_points_and_keeps_missing_dates_null(self):
         item={"properties":{"datetime":"2024-01-01T00:00:00Z"},"assets":{"data":{"href":"https://data.example/one.tif"}}}
