@@ -384,3 +384,21 @@ test('weather UI keeps the newest city response when requests resolve out of ord
   assert.equal(harness.elements.get('refresh').disabled, false,
     'only the current request controls refresh button state');
 });
+
+test('dashboard does not label a past daily record as today forecast when today is missing', async () => {
+  const harness = createDashboardHarness();
+  harness.requests[0].resolve({
+    measurements: [
+      { name: 'temperature', value: 24 },
+      { name: 'precipitation', value: 0 },
+      { name: 'relative_humidity', value: 40 },
+      { name: 'wind_speed', value: 5 }
+    ],
+    daily: [{ valid_date: '1900-01-01', precipitation: 0, temperature_max: 30, temperature_min: 18, precipitation_probability_max: 80 }]
+  });
+  await harness.requests[0].promise;
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(harness.elements.get('tempMax').textContent, '—');
+  assert.equal(harness.elements.get('tempMin').textContent, '—');
+  assert.equal(harness.elements.get('rainChance').textContent, '—');
+});
