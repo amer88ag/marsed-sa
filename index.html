@@ -209,7 +209,8 @@ async function loadWeather(){
   setText("rain",number(measurement("precipitation"),1));
   setText("humidity",number(measurement("relative_humidity"),0));
   setText("wind",number(measurement("wind_speed"),0));
-  var todayDate=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Riyadh"});\n  var todayForecast=data.daily.find(function(row){return row.valid_date===todayDate})||null;
+  var todayDate=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Riyadh"});
+  var todayForecast=data.daily.find(function(row){return row.valid_date===todayDate})||null;
   setText("tempMax",number(todayForecast&&todayForecast.temperature_max,1));
   setText("tempMin",number(todayForecast&&todayForecast.temperature_min,1));
   setText("rainChance",number(todayForecast&&todayForecast.precipitation_probability_max,0));
