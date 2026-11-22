@@ -436,3 +436,11 @@ test('daily weather summary handles missing model values without inventing zeroe
   assert.match(html, /if\(code===null\|\|code===undefined\|\|code===""\)return "غير متاح"/);
   assert.match(html, /data\.is_day===true\?"نهار":data\.is_day===false\?"ليل"/);
 });
+
+test('map renders a selectable marker for every configured Saudi city', () => {
+  assert.match(html, /Object\.keys\(places\)\.forEach\(function\(key\)/);
+  assert.match(html, /L\.marker\(\[p\.lat,p\.lon\]\)/);
+  assert.match(html, /cityMarker\.on\("click",function\(\)\{selectCity\(key\)\}\)/);
+  assert.match(html, /function selectCity\(key\)/);
+  assert.match(html, /cityMarkers\[requestedKey\]\.openPopup\(\)/);
+});
