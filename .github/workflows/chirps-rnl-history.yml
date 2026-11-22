@@ -36,37 +36,65 @@ jobs:
         run: python -m pip install --disable-pip-version-check rasterio rustac
       - name: Run local unit tests
         run: python -m unittest discover -s tests -p "test_*.py" -v
-      - name: Extract a short live smoke-test window on branch pushes, or requested window manually
+      - name: Extract requested historical window
         env:
           START_DATE: ${{ inputs.start_date || '2024-01-01' }}
-          END_DATE: ${{ inputs.end_date || '2024-12-31' }}
+          END_DATE: ${{ github.event_name == 'push' && '2024-01-03' || inputs.end_date || '2024-12-31' }}
         run: |
-          python scripts/chirps_rnl_cog_extract.py \
-            --start "$START_DATE" \
-            --end "$END_DATE" \
+          python scripts/chirps_rnl_cog_extract.py \\
+            --start "$START_DATE" \\
+            --end "$END_DATE" \\
             --output /tmp/chirps_rnl_history.json
-      - name: Validate extracted archive
+      - name: Validate archive and print city coverage summary
         run: |
           python - <<'PY'
           import datetime as dt
           import json
+          import math
           from pathlib import Path
+
           payload = json.loads(Path("/tmp/chirps_rnl_history.json").read_text(encoding="utf-8"))
+          assert payload["schema_version"] == 1
           assert payload["units"] == "mm/day"
           assert set(payload["series"]) == {"rnl"}
-          assert len(payload["cities"]) == 13
+          cities = payload["cities"]
+          records = payload["series"]["rnl"]
+          assert len(cities) == 13
+          assert set(records) == set(cities)
+
           count = payload["date_range"]["days"]
           start = dt.date.fromisoformat(payload["date_range"]["start"])
           end = dt.date.fromisoformat(payload["date_range"]["end"])
-          dates = [(start + dt.timedelta(days=i)).isoformat() for i in range(count)]
-          assert dates[-1] == end.isoformat()
-          for city, rows in payload["series"]["rnl"].items():
+          expected_dates = [(start + dt.timedelta(days=i)).isoformat() for i in range(count)]
+          assert count == (end - start).days + 1
+          assert expected_dates[-1] == end.isoformat()
+
+          summary = []
+          for city, rows in records.items():
               assert len(rows) == count, city
-              assert [row["date"] for row in rows] == dates, city
-              for row in rows:
-                  value = row["precipitation_mm"]
-                  assert value is None or (isinstance(value, (int, float)) and value >= 0)
-          print(f"Validated {count} dates for {len(payload['cities'])} city grid points.")
+              assert [row["date"] for row in rows] == expected_dates, city
+              values = [row["precipitation_mm"] for row in rows]
+              for value in values:
+                  assert value is None or (
+                      isinstance(value, (int, float)) and math.isfinite(value) and value >= 0
+                  ), (city, value)
+              valid = [value for value in values if value is not None]
+              assert valid, f"No valid pixels for {city}"
+              summary.append({
+                  "city": city,
+                  "valid_days": len(valid),
+                  "missing_days": count - len(valid),
+                  "total_mm": round(sum(valid), 2),
+                  "max_daily_mm": max(valid),
+                  "wet_days": sum(value > 0 for value in valid),
+              })
+
+          print(json.dumps({
+              "period": payload["date_range"],
+              "city_count": len(cities),
+              "product": "CHIRPS v3 DAILY RNL FINAL",
+              "coverage": summary,
+          }, ensure_ascii=False, indent=2))
           PY
       - name: Upload archive for review (does not publish or commit)
         uses: actions/upload-artifact@v4
