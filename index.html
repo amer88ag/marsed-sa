@@ -84,15 +84,27 @@
 var places={
 riyadh:{name:"الرياض",lat:24.7136,lon:46.6753},abha:{name:"أبها",lat:18.2164,lon:42.5053},jeddah:{name:"جدة",lat:21.4858,lon:39.1925},dammam:{name:"الدمام",lat:26.4207,lon:50.0888},tabuk:{name:"تبوك",lat:28.3838,lon:36.5550},hail:{name:"حائل",lat:27.5114,lon:41.7208},buraidah:{name:"بريدة",lat:26.3260,lon:43.9750},madinah:{name:"المدينة المنورة",lat:24.5247,lon:39.5692},makkah:{name:"مكة المكرمة",lat:21.3891,lon:39.8579},jazan:{name:"جازان",lat:16.8892,lon:42.5511},najran:{name:"نجران",lat:17.5650,lon:44.2289},arar:{name:"عرعر",lat:30.9753,lon:41.0381},sakaka:{name:"سكاكا",lat:29.9697,lon:40.2064}
 };
-var map=null,marker=null,activeKey="riyadh",chirpsDataset=null;
+var map=null,cityMarkers={},activeKey="riyadh",chirpsDataset=null;
 var $=function(id){return document.getElementById(id)};
 function setText(id,value){$(id).textContent=value}
 function number(v,d){return v===null||v===undefined||!isFinite(Number(v))?"—":Number(v).toFixed(d||0)}
+function selectCity(key){
+ if(!places[key])return;
+ activeKey=key;
+ $("place").value=key;
+ loadWeather();
+ renderChirps();
+}
 function initMap(){
  if(!window.L){$("map").innerHTML='<div class="loading">تعذر تحميل مكتبة الخريطة. يمكنك استخدام بيانات الطقس أدناه.</div>';return}
  map=L.map("map",{scrollWheelZoom:false}).setView([23.8,45.2],5);
  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
- var p=places[activeKey];marker=L.marker([p.lat,p.lon]).addTo(map).bindPopup(p.name);
+ Object.keys(places).forEach(function(key){
+  var p=places[key],cityMarker=L.marker([p.lat,p.lon]).addTo(map).bindPopup(p.name);
+  cityMarker.on("click",function(){selectCity(key)});
+  cityMarkers[key]=cityMarker;
+ });
+ if(cityMarkers[activeKey])cityMarkers[activeKey].openPopup();
 }
 function weatherDescription(code){
  if(code===null||code===undefined||code==="")return "غير متاح";
@@ -202,7 +214,7 @@ async function loadWeather(){
  clearWeatherDisplay();
  setText("loading","جارٍ جلب البيانات…");$("loading").classList.remove("error");
  $("refresh").disabled=true;$("connection").textContent="● جارٍ الاتصال";
- if(marker&&map){marker.setLatLng([p.lat,p.lon]).setPopupContent(p.name);map.setView([p.lat,p.lon],7)}
+ if(map){map.setView([p.lat,p.lon],7);if(cityMarkers[requestedKey])cityMarkers[requestedKey].openPopup()}
  try{
   var data=await WeatherService.fetchWeather({id:requestedKey,name:p.name,lat:p.lat,lon:p.lon});
   if(requestId!==weatherRequestId||requestedKey!==activeKey)return;
@@ -232,7 +244,7 @@ async function loadWeather(){
   if(requestId===weatherRequestId)$("refresh").disabled=false;
  }
 }
-$("place").addEventListener("change",function(e){activeKey=e.target.value;loadWeather();renderChirps()});
+$("place").addEventListener("change",function(e){selectCity(e.target.value)});
 $("refresh").addEventListener("click",loadWeather);
 initMap();loadWeather();loadChirps();
 })();
