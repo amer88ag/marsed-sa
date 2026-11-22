@@ -297,7 +297,7 @@ function createDashboardHarness() {
     const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
     return { promise, resolve, reject };
   };
-  const marker = { addTo() { return this; }, setLatLng() { return this; }, setPopupContent() { return this; }, bindPopup() { return this; } };
+  const marker = { addTo() { return this; }, setLatLng() { return this; }, setPopupContent() { return this; }, bindPopup() { return this; }, on() { return this; }, openPopup() { return this; } };
   const map = { setView() { return this; } };
   const leaflet = {
     map() { return map; },
@@ -435,4 +435,12 @@ test('daily weather summary handles missing model values without inventing zeroe
   assert.match(html, /لا تتوفر بيانات كافية لتكوين ملخص عملي موثوق/);
   assert.match(html, /if\(code===null\|\|code===undefined\|\|code===""\)return "غير متاح"/);
   assert.match(html, /data\.is_day===true\?"نهار":data\.is_day===false\?"ليل"/);
+});
+
+test('map renders a selectable marker for every configured Saudi city', () => {
+  assert.match(html, /Object\.keys\(places\)\.forEach\(function\(key\)/);
+  assert.match(html, /L\.marker\(\[p\.lat,p\.lon\]\)/);
+  assert.match(html, /cityMarker\.on\("click",function\(\)\{selectCity\(key\)\}\)/);
+  assert.match(html, /function selectCity\(key\)/);
+  assert.match(html, /cityMarkers\[requestedKey\]\.openPopup\(\)/);
 });
