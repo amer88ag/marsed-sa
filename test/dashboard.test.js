@@ -161,9 +161,7 @@ test('Open-Meteo adapter builds a Riyadh-time request and normalizes model outpu
 test('Open-Meteo adapter rejects malformed coordinates and mismatched daily arrays', () => {
   const adapter = require('../src/providers/weather/open-meteo/adapter.js');
   assert.throws(() => adapter.buildCurrentUrl({ lat: NaN, lon: 42 }), /finite lat\/lon/);
-  assert.throws(() => adapter.normalizeCurrent({
-    current: {}, daily: { time: ['2026-01-01'], precipitation_sum: [] }
-  }, null), /equal length/);
+  assert.throws(() => adapter.normalizeCurrent({\n    current: {}, daily: { time: ['2026-01-01'], precipitation_sum: [] }\n  }, null), /Daily field length mismatch/);
 });
 
 test('CHIRPS adapter preserves SAT and RNL product identity and null values', () => {
@@ -275,7 +273,7 @@ test('weather refresh clears stale values and rejects out-of-order city response
   assert.ok(html.includes('var requestId=++weatherRequestId;'));
   assert.ok(html.includes('if(requestId!==weatherRequestId||requestedKey!==activeKey)return;'));
   assert.ok(html.includes('function clearWeatherDisplay()'));
-  assert.ok(html.includes('["temp","rain","humidity","wind"].forEach'));
+  assert.ok(html.includes('["temp","feels","rain","humidity","wind","condition","daylight","weatherInsight"].forEach'));
   assert.ok(html.includes('if(requestId===weatherRequestId)$("refresh").disabled=false;'));
 });
 
@@ -338,7 +336,7 @@ test('weather UI keeps the newest city response when requests resolve out of ord
 
   harness.requests[1].resolve({
     measurements: [
-      { name: 'temperature', value: 19 },
+      { name: 'temperature', value: 19 },\n      { name: 'apparent_temperature', value: 18 },
       { name: 'precipitation', value: 1.2 },
       { name: 'relative_humidity', value: 55 },
       { name: 'wind_speed', value: 7 }
@@ -353,7 +351,7 @@ test('weather UI keeps the newest city response when requests resolve out of ord
 
   harness.requests[0].resolve({
     measurements: [
-      { name: 'temperature', value: 35 },
+      { name: 'temperature', value: 35 },\n      { name: 'apparent_temperature', value: 34 },
       { name: 'precipitation', value: 0 },
       { name: 'relative_humidity', value: 20 },
       { name: 'wind_speed', value: 15 }
