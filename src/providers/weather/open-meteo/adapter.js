@@ -14,7 +14,7 @@
       current: "temperature_2m,relative_humidity_2m,precipitation,rain,showers,wind_speed_10m,apparent_temperature,weather_code,is_day",
       hourly: "temperature_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_speed_10m",
       daily: "weather_code,precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max",
-      past_days: "1",
+      past_days: "0",
       forecast_days: "7",
       timezone: "Asia/Riyadh"
     });
@@ -82,7 +82,7 @@
       retrieved_at: retrievedAt || new Date().toISOString(),
       valid_time: current.time || null,
       current_weather_code: numericOrNull(current.weather_code, "current.weather_code"),
-      is_day: current.is_day === 1 || current.is_day === true,
+      is_day: current.is_day === 1 || current.is_day === true ? true : current.is_day === 0 || current.is_day === false ? false : null,
       location: location ? { id: location.id || null, name: location.name || null, latitude: location.lat, longitude: location.lon } : null,
       measurements,
       daily: dailyForecast,
