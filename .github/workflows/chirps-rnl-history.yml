@@ -1,0 +1,68 @@
+name: Extract CHIRPS RNL Saudi historical city series
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_date:
+        description: "Start date YYYY-MM-DD (CHIRPS v3 begins 1981-01-01)"
+        required: true
+        type: string
+      end_date:
+        description: "End date YYYY-MM-DD (maximum 366 days per run)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install COG/STAC reader
+        run: python -m pip install --disable-pip-version-check rasterio rustac
+      - name: Run local unit tests
+        run: python -m unittest discover -s tests -p "test_*.py" -v
+      - name: Extract requested annual window from remote COGs
+        run: |
+          python scripts/chirps_rnl_cog_extract.py \
+            --start "${{ inputs.start_date }}" \
+            --end "${{ inputs.end_date }}" \
+            --output /tmp/chirps_rnl_history.json
+      - name: Validate extracted archive
+        run: |
+          python - <<'PY'
+          import datetime as dt
+          import json
+          from pathlib import Path
+          payload = json.loads(Path("/tmp/chirps_rnl_history.json").read_text(encoding="utf-8"))
+          assert payload["units"] == "mm/day"
+          assert set(payload["series"]) == {"rnl"}
+          assert len(payload["cities"]) == 13
+          count = payload["date_range"]["days"]
+          start = dt.date.fromisoformat(payload["date_range"]["start"])
+          end = dt.date.fromisoformat(payload["date_range"]["end"])
+          dates = [(start + dt.timedelta(days=i)).isoformat() for i in range(count)]
+          assert dates[-1] == end.isoformat()
+          for city, rows in payload["series"]["rnl"].items():
+              assert len(rows) == count, city
+              assert [row["date"] for row in rows] == dates, city
+              for row in rows:
+                  value = row["precipitation_mm"]
+                  assert value is None or (isinstance(value, (int, float)) and value >= 0)
+          print(f"Validated {count} dates for {len(payload['cities'])} city grid points.")
+          PY
+      - name: Upload archive for review (does not publish or commit)
+        uses: actions/upload-artifact@v4
+        with:
+          name: chirps-rnl-sa-${{ inputs.start_date }}-${{ inputs.end_date }}
+          path: /tmp/chirps_rnl_history.json
+          if-no-files-found: error
+          retention-days: 14
