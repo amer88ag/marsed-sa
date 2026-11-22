@@ -87,3 +87,10 @@
 ## قيود التشغيل الحالية
 
 ملف `data/chirps_daily.json` يحتوي عينة SAT وRNL للفترة 2026-09-01 إلى 2026-09-03 لثلاثة عشر موقعاً نقطياً. أضيفت حماية تمنع تمرير قيم nodata أو القيم السالبة أو نشر منتج فارغ بالكامل. نجح تنزيل ملفات GeoTIFF والتحقق من المنتجين في CI رقم 91 تاريخياً. أحدث بوابة ثابتة على SHA `4570352` نجحت؛ أما سير التحقق الحي الجديد فلم يُشغّل يدوياً بعد. هذه العينة لا تمثل متوسطات المدن ولا تحققاً ميدانياً. لم يتم تنفيذ دمج إلى main أو نشر.
+
+## CHIRPS RNL multi-year extraction path (research)
+
+- Added a separate historical extractor using the WFP Source Cooperative CHIRPS v3 RNL COG/STAC distribution. This avoids downloading the full global daily GeoTIFF for every city/date and samples only the configured Saudi city points from cloud-optimized rasters.
+- The new extractor is RNL-only. It must not be described as independent station observations, city-area averages, or as the SAT product.
+- Manual GitHub Actions workflow accepts a maximum one-year date window and uploads the resulting JSON as a review artifact only. It does not commit the archive, update main, or deploy.
+- The first live annual extraction is still required to verify STAC item metadata, remote COG range-read behavior, date completeness, and real Saudi pixel coverage. Until that succeeds, long-term history remains research-only.
