@@ -14,5 +14,16 @@
     const payload = await response.json();
     return adapter.normalizeCurrent(payload, location, config.retrievedAt);
   }
-  return { fetchWeather };
+  async function fetchOverview(location, options) {
+    const config = options || {};
+    const adapter = config.adapter || (typeof OpenMeteoAdapter !== "undefined" ? OpenMeteoAdapter : null);
+    const fetcher = config.fetch || (typeof fetch === "function" ? fetch : null);
+    if (!adapter || !fetcher || typeof adapter.buildOverviewUrl !== "function" || typeof adapter.normalizeOverview !== "function") {
+      throw new Error("Weather overview dependencies are unavailable");
+    }
+    const response = await fetcher(adapter.buildOverviewUrl(location), { headers: { Accept: "application/json" } });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    return adapter.normalizeOverview(await response.json(), location, config.retrievedAt);
+  }
+  return { fetchWeather, fetchOverview };
 });
