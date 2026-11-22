@@ -139,7 +139,7 @@ function drawChart(labels,values){
  var parts=['<line x1="'+left+'" y1="'+(top+plotH)+'" x2="'+(w-right)+'" y2="'+(top+plotH)+'" stroke="#d9e2ea"/>'];
  [0,.5,1].forEach(function(f){var y=top+plotH*(1-f);parts.push('<line x1="'+left+'" y1="'+y+'" x2="'+(w-right)+'" y2="'+y+'" stroke="#edf1f5"/><text x="'+(left-7)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="#7b8794">'+Math.round(max*f)+'</text>')});
  var step=plotW/values.length,barW=Math.max(4,step*.55);
- values.forEach(function(v,i){var n=Number(v)||0;var bh=Math.max(0,Math.min(plotH,n/max*plotH));var x=left+i*step+(step-barW)/2;var y=top+plotH-bh;parts.push('<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="3" fill="'+(i===6?'#1769aa':'#6fa9d2')+'"><title>'+labels[i]+': '+number(n,1)+' ملم</title></rect>')});
+ values.forEach(function(v,i){if(v===null||v===undefined||!Number.isFinite(Number(v)))return;var n=Number(v);var bh=Math.max(0,Math.min(plotH,n/max*plotH));var x=left+i*step+(step-barW)/2;var y=top+plotH-bh;parts.push('<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="3" fill="'+(i===6?'#1769aa':'#6fa9d2')+'"><title>'+labels[i]+': '+number(n,1)+' ملم</title></rect>')});
  svg.innerHTML=parts.join("");
 } 
 function drawChirpsChart(satRecords,rnlRecords){
