@@ -13,7 +13,7 @@
       longitude: String(location.lon),
       current: "temperature_2m,relative_humidity_2m,precipitation,rain,showers,wind_speed_10m",
       hourly: "precipitation",
-      daily: "precipitation_sum,temperature_2m_max,temperature_2m_min",
+      daily: "precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min",
       past_days: "7",
       forecast_days: "7",
       timezone: "Asia/Riyadh"
@@ -33,6 +33,9 @@
     }
     const times = Array.isArray(payload.daily.time) ? payload.daily.time : [];
     const rain = Array.isArray(payload.daily.precipitation_sum) ? payload.daily.precipitation_sum : [];
+    const rainProbability = Array.isArray(payload.daily.precipitation_probability_max) ? payload.daily.precipitation_probability_max : [];
+    const tempMax = Array.isArray(payload.daily.temperature_2m_max) ? payload.daily.temperature_2m_max : [];
+    const tempMin = Array.isArray(payload.daily.temperature_2m_min) ? payload.daily.temperature_2m_min : [];
     if (times.length !== rain.length) throw new TypeError("Daily dates and precipitation arrays must have equal length");
     return {
       schema_version: "1.0.0",
@@ -51,6 +54,9 @@
       daily: times.map((date, index) => ({
         valid_date: date,
         precipitation: rain[index] ?? null,
+        precipitation_probability_max: rainProbability[index] ?? null,
+        temperature_max: tempMax[index] ?? null,
+        temperature_min: tempMin[index] ?? null,
         unit: "mm/day"
       })),
       provenance: {
