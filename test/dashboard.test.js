@@ -315,7 +315,22 @@ function createDashboardHarness() {
     tileLayer() { return { addTo() {} }; },
     marker() { return marker; }
   };
-  const document = { getElementById };
+  const document = {
+    getElementById,
+    createElement() {
+      return {
+        textContent: '',
+        setAttribute() {},
+        appendChild(child) { this.textContent += child.textContent || ''; }
+      };
+    }
+  };
+  const originalGetElementById = document.getElementById;
+  document.getElementById = id => {
+    const element = originalGetElementById(id);
+    if (!element.appendChild) element.appendChild = child => { element.innerHTML += child.textContent || ''; };
+    return element;
+  };
   const window = { L: leaflet };
   const context = {
     document, window, L: leaflet, console, Date, Math, Number, isFinite,
