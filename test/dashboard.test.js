@@ -413,3 +413,26 @@ test('daily weather experience includes practical context and hourly/daily forec
   assert.match(html, /precipitation_probability_max/);
   assert.match(html, /ليس تنبيهاً رسمياً/);
 });
+
+test('Open-Meteo adapter requests seven forecast days without prepending yesterday', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  const url = new URL(adapter.buildCurrentUrl({ lat: 24.7, lon: 46.6 }));
+  assert.equal(url.searchParams.get('past_days'), '0');
+  assert.equal(url.searchParams.get('forecast_days'), '7');
+});
+
+test('Open-Meteo adapter preserves unavailable day/night state instead of assuming night', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  const normalized = adapter.normalizeCurrent({
+    current: { temperature_2m: 22 },
+    daily: { time: ['2026-11-22'], precipitation_sum: [null] }
+  }, null);
+  assert.equal(normalized.is_day, null);
+  assert.equal(normalized.daily[0].precipitation, null);
+});
+
+test('daily weather summary handles missing model values without inventing zeroes or clear skies', () => {
+  assert.match(html, /لا تتوفر بيانات كافية لتكوين ملخص عملي موثوق/);
+  assert.match(html, /if\(code===null\|\|code===undefined\|\|code===""\)return "غير متاح"/);
+  assert.match(html, /data\.is_day===true\?"نهار":data\.is_day===false\?"ليل"/);
+});
