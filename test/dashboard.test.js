@@ -286,7 +286,7 @@ test('weather refresh clears stale values and rejects out-of-order city response
   assert.ok(html.includes('var requestId=++weatherRequestId;'));
   assert.ok(html.includes('if(requestId!==weatherRequestId||requestedKey!==activeKey)return;'));
   assert.ok(html.includes('function clearWeatherDisplay()'));
-  assert.ok(html.includes('["temp","rain","humidity","wind"].forEach'));
+  assert.ok(html.includes('["temp","rain","humidity","wind","tempMax","tempMin","rainChance"].forEach'));
   assert.ok(html.includes('if(requestId===weatherRequestId)$("refresh").disabled=false;'));
 });
 
@@ -345,7 +345,7 @@ test('weather UI keeps the newest city response when requests resolve out of ord
   assert.equal(typeof changeCity, 'function');
 
   changeCity({ target: { value: 'abha' } });
-  assert.equal(harness.requests.length, 28, 'Abha request and the refreshed 13-city comparison start');
+  assert.equal(harness.requests.length, 15, 'Abha request starts after city selection');
 
   harness.requests[14].resolve({
     measurements: [
