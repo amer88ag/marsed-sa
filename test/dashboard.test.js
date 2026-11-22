@@ -445,7 +445,8 @@ test('map renders a selectable marker for every configured Saudi city', () => {
   assert.match(html, /cityMarkers\[requestedKey\]\.openPopup\(\)/);
 });
 
-\ntest('national life radar requests lightweight model summaries for city points', () => {
+
+test('national life radar requests lightweight model summaries for city points', () => {
   const adapter = require('../src/providers/weather/open-meteo/adapter.js');
   const url = new URL(adapter.buildOverviewUrl({ id: 'abha', name: 'أبها', lat: 18.2164, lon: 42.5053 }));
   assert.equal(url.hostname, 'api.open-meteo.com');
