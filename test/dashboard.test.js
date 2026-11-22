@@ -338,7 +338,8 @@ test('weather UI keeps the newest city response when requests resolve out of ord
 
   harness.requests[1].resolve({
     measurements: [
-      { name: 'temperature', value: 19 },\n      { name: 'apparent_temperature', value: 18 },
+      { name: 'temperature', value: 19 },
+      { name: 'apparent_temperature', value: 18 },
       { name: 'precipitation', value: 1.2 },
       { name: 'relative_humidity', value: 55 },
       { name: 'wind_speed', value: 7 }
@@ -353,7 +354,8 @@ test('weather UI keeps the newest city response when requests resolve out of ord
 
   harness.requests[0].resolve({
     measurements: [
-      { name: 'temperature', value: 35 },\n      { name: 'apparent_temperature', value: 34 },
+      { name: 'temperature', value: 35 },
+      { name: 'apparent_temperature', value: 34 },
       { name: 'precipitation', value: 0 },
       { name: 'relative_humidity', value: 20 },
       { name: 'wind_speed', value: 15 }
