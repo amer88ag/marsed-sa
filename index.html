@@ -95,6 +95,7 @@ function initMap(){
  var p=places[activeKey];marker=L.marker([p.lat,p.lon]).addTo(map).bindPopup(p.name);
 }
 function weatherDescription(code){
+ if(code===null||code===undefined||code==="")return "غير متاح";
  var c=Number(code);
  if(c===0)return "صافٍ"; if(c===1||c===2)return "غائم جزئياً"; if(c===3)return "غائم";
  if(c===45||c===48)return "ضباب"; if([51,53,55,56,57].includes(c))return "رذاذ";
@@ -104,15 +105,17 @@ function weatherDescription(code){
 }
 function escapeHtml(value){return String(value===null||value===undefined?"":value).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]})}
 function practicalInsight(data){
- var code=Number(data.current_weather_code),rain=Number(data.daily[0]&&data.daily[0].precipitation_probability_max);
- var wind=Number(data.measurements.find(function(x){return x.name==="wind_speed"}).value);
- var apparent=Number(data.measurements.find(function(x){return x.name==="apparent_temperature"}).value),parts=[];
- if([61,63,65,80,81,82,95,96,99].includes(code)||rain>=50)parts.push("توجد مؤشرات على فرصة هطول؛ راجع التوقعات قبل الأنشطة الخارجية وخذ احتياطك عند القيادة.");
- else if(rain>=20)parts.push("احتمال المطر موجود لكنه غير مؤكد؛ تابع التحديثات خلال اليوم.");
- else parts.push("لا تظهر في بيانات النموذج الحالية إشارة قوية إلى هطول قريب.");
- if(Number.isFinite(apparent)&&apparent>=38)parts.push("الحرارة المحسوسة مرتفعة؛ قلل التعرض للشمس وخذ فترات راحة واشرب الماء.");
- else if(Number.isFinite(apparent)&&apparent<=10)parts.push("الأجواء المحسوسة باردة؛ اختر ملابس مناسبة خصوصاً في الخارج.");
- if(Number.isFinite(wind)&&wind>=35)parts.push("الرياح نشطة بحسب النموذج؛ انتبه للأشياء الخفيفة أثناء الأنشطة الخارجية.");
+ var getValue=function(name){var item=(data.measurements||[]).find(function(x){return x.name===name});return item&&typeof item.value==="number"&&Number.isFinite(item.value)?item.value:null};
+ var code=data.current_weather_code,day=data.daily&&data.daily[0],rain=day&&typeof day.precipitation_probability_max==="number"?day.precipitation_probability_max:null;
+ var wind=getValue("wind_speed"),apparent=getValue("apparent_temperature"),parts=[];
+ if(code!==null&&code!==undefined&&[61,63,65,80,81,82,95,96,99].includes(Number(code)))parts.push("رمز حالة الطقس في النموذج يشير إلى هطول أو عواصف؛ راجع التحديثات قبل الأنشطة الخارجية.");
+ else if(rain!==null&&rain>=50)parts.push("احتمال المطر مرتفع في توقع اليوم؛ تابع التحديثات وخطط للأنشطة الخارجية وفق المستجدات.");
+ else if(rain!==null&&rain>=20)parts.push("هناك احتمال للمطر لكنه غير مؤكد؛ تابع التحديثات خلال اليوم.");
+ else if(rain!==null)parts.push("احتمال المطر منخفض في توقع اليوم وفق النموذج.");
+ if(apparent!==null&&apparent>=38)parts.push("الحرارة المحسوسة مرتفعة؛ قلل التعرض للشمس وخذ فترات راحة واشرب الماء.");
+ else if(apparent!==null&&apparent<=10)parts.push("الأجواء المحسوسة باردة؛ اختر ملابس مناسبة خصوصاً في الخارج.");
+ if(wind!==null&&wind>=35)parts.push("الرياح نشطة بحسب النموذج؛ انتبه للأشياء الخفيفة أثناء الأنشطة الخارجية.");
+ if(!parts.length)parts.push("لا تتوفر بيانات كافية لتكوين ملخص عملي موثوق الآن؛ راجع تفاصيل التوقعات ومصدرها.");
  return parts.join(" ")+" هذا تفسير مبسط لمخرجات نموذج جوي وليس تنبيهاً رسمياً أو بديلاً عن تعليمات الجهات المختصة.";
 }
 function renderHourly(rows){
@@ -210,7 +213,7 @@ async function loadWeather(){
   setText("humidity",number(measurement("relative_humidity"),0));
   setText("wind",number(measurement("wind_speed"),0));
   setText("condition",weatherDescription(data.current_weather_code));
-  setText("daylight",data.is_day?"نهار":"ليل");
+  setText("daylight",data.is_day===true?"نهار":data.is_day===false?"ليل":"فترة اليوم غير متاحة");
   setText("weatherInsight",practicalInsight(data));
   renderHourly(data.hourly); renderDaily(data.daily);
   drawChart(data.daily.map(function(row){return row.valid_date}),data.daily.map(function(row){return row.precipitation}));
