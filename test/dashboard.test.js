@@ -161,7 +161,9 @@ test('Open-Meteo adapter builds a Riyadh-time request and normalizes model outpu
 test('Open-Meteo adapter rejects malformed coordinates and mismatched daily arrays', () => {
   const adapter = require('../src/providers/weather/open-meteo/adapter.js');
   assert.throws(() => adapter.buildCurrentUrl({ lat: NaN, lon: 42 }), /finite lat\/lon/);
-  assert.throws(() => adapter.normalizeCurrent({\n    current: {}, daily: { time: ['2026-01-01'], precipitation_sum: [] }\n  }, null), /Daily field length mismatch/);
+  assert.throws(() => adapter.normalizeCurrent({
+    current: {}, daily: { time: ['2026-01-01'], precipitation_sum: [] }
+  }, null), /Daily field length mismatch/);
 });
 
 test('CHIRPS adapter preserves SAT and RNL product identity and null values', () => {
