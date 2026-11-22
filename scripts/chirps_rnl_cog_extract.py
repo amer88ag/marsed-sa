@@ -3,6 +3,7 @@
 from __future__ import annotations
 import argparse, datetime as dt, json, math
 from pathlib import Path
+from urllib.parse import urlsplit
 
 COLLECTION_URL = "https://data.source.coop/wfp/chirps-rnl-daily/collection.geoparquet"
 SOURCE_URL = "https://www.chc.ucsb.edu/data/chirps3"
@@ -40,7 +41,7 @@ def item_date(item):
 def asset_href(item):
     assets=item.get("assets") or {}
     candidates=[a.get("href","") for a in assets.values() if isinstance(a,dict)]
-    href=next((v for v in candidates if v.lower().endswith((".tif",".tiff"))),None)
+    href=next((v for v in candidates if urlsplit(v).path.lower().endswith((".tif",".tiff"))),None)
     if not href or not href.startswith("https://"): raise ValueError("STAC item has no public HTTPS GeoTIFF asset")
     return href
 
