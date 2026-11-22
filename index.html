@@ -167,7 +167,7 @@ async function loadNationalComparison(){
  var rows=settled.filter(function(item){return item.status==="fulfilled"}).map(function(item){return item.value});
  var body=$("cityComparison");body.innerHTML="";
  if(!rows.length){body.innerHTML='<tr><td colspan="5">تعذر جلب بيانات المدن. أعد المحاولة لاحقاً.</td></tr>';setText("nationalState","تعذر الاتصال بالمصدر");return}
- rows.sort(function(a,b){return (a.temperature===null?-Infinity:Number(b.temperature))-(b.temperature===null?-Infinity:Number(a.temperature))});
+ rows.sort(function(a,b){var av=a.temperature===null?-Infinity:Number(a.temperature);var bv=b.temperature===null?-Infinity:Number(b.temperature);return bv-av});
  function describe(row,field,unit,digits){return row&&row[field]!==null&&Number.isFinite(Number(row[field]))?row.name+" · "+Number(row[field]).toFixed(digits)+unit:"غير متاح"}
  var hottest=rows.filter(function(x){return x.temperature!==null&&Number.isFinite(Number(x.temperature))}).sort(function(a,b){return b.temperature-a.temperature})[0];
  var coolest=rows.filter(function(x){return x.temperature!==null&&Number.isFinite(Number(x.temperature))}).sort(function(a,b){return a.temperature-b.temperature})[0];
