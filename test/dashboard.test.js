@@ -402,3 +402,38 @@ test('dashboard does not label a past daily record as today forecast when today 
   assert.equal(harness.elements.get('tempMin').textContent, '—');
   assert.equal(harness.elements.get('rainChance').textContent, '—');
 });
+
+test('national comparison ignores an older refresh that resolves after a newer one', async () => {
+  const harness = createDashboardHarness();
+  const initialComparison = harness.requests.slice(1, 14);
+  assert.equal(initialComparison.length, 13);
+
+  harness.listeners['refresh:click']();
+  const newerComparison = harness.requests.slice(15, 28);
+  assert.equal(newerComparison.length, 13);
+
+  function resolveCityBatch(batch, temperatureBase) {
+    batch.forEach((request, index) => request.resolve({
+      measurements: [
+        { name: 'temperature', value: temperatureBase + index },
+        { name: 'precipitation', value: index / 10 },
+        { name: 'relative_humidity', value: 40 + index },
+        { name: 'wind_speed', value: 5 + index }
+      ],
+      daily: []
+    }));
+  }
+
+  resolveCityBatch(newerComparison, 10);
+  await Promise.all(newerComparison.map(request => request.promise));
+  await new Promise(resolve => setImmediate(resolve));
+  const newerTable = harness.elements.get('cityComparison').innerHTML;
+  assert.match(newerTable, /10\.0 °م/);
+
+  resolveCityBatch(initialComparison, 30);
+  await Promise.all(initialComparison.map(request => request.promise));
+  await new Promise(resolve => setImmediate(resolve));
+
+  assert.equal(harness.elements.get('cityComparison').innerHTML, newerTable,
+    'the late initial comparison must not overwrite the newer refresh');
+});
