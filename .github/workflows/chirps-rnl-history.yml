@@ -1,6 +1,12 @@
 name: Extract CHIRPS RNL Saudi historical city series
 
 on:
+  push:
+    branches: [feature/chirps-rnl-cog-history]
+    paths:
+      - ".github/workflows/chirps-rnl-history.yml"
+      - "scripts/chirps_rnl_cog_extract.py"
+      - "tests/test_chirps_rnl_cog_extract.py"
   workflow_dispatch:
     inputs:
       start_date:
@@ -30,11 +36,14 @@ jobs:
         run: python -m pip install --disable-pip-version-check rasterio rustac
       - name: Run local unit tests
         run: python -m unittest discover -s tests -p "test_*.py" -v
-      - name: Extract requested annual window from remote COGs
+      - name: Extract a short live smoke-test window on branch pushes, or requested window manually
+        env:
+          START_DATE: ${{ inputs.start_date || '2024-01-01' }}
+          END_DATE: ${{ inputs.end_date || '2024-01-03' }}
         run: |
           python scripts/chirps_rnl_cog_extract.py \
-            --start "${{ inputs.start_date }}" \
-            --end "${{ inputs.end_date }}" \
+            --start "$START_DATE" \
+            --end "$END_DATE" \
             --output /tmp/chirps_rnl_history.json
       - name: Validate extracted archive
         run: |
@@ -62,7 +71,7 @@ jobs:
       - name: Upload archive for review (does not publish or commit)
         uses: actions/upload-artifact@v4
         with:
-          name: chirps-rnl-sa-${{ inputs.start_date }}-${{ inputs.end_date }}
+          name: chirps-rnl-sa-${{ github.run_id }}
           path: /tmp/chirps_rnl_history.json
           if-no-files-found: error
           retention-days: 14
