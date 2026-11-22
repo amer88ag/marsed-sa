@@ -56,6 +56,9 @@
 <div class="metric"><small>الهطول الحالي</small><strong id="rain">—</strong><em>ملم · نموذج جوي</em></div>
 <div class="metric"><small>الرطوبة النسبية</small><strong id="humidity">—</strong><em>%</em></div>
 <div class="metric"><small>سرعة الرياح</small><strong id="wind">—</strong><em>كم/ساعة</em></div>
+<div class="metric"><small>أعلى حرارة متوقعة اليوم</small><strong id="tempMax">—</strong><em>°م · نموذج جوي</em></div>
+<div class="metric"><small>أقل حرارة متوقعة اليوم</small><strong id="tempMin">—</strong><em>°م · نموذج جوي</em></div>
+<div class="metric"><small>احتمال هطول الأمطار اليوم</small><strong id="rainChance">—</strong><em>% · توقع نموذجي</em></div>
 </div>
 <div class="notice" id="quality">هذه القيم مستمدة من نموذج طقس، وليست قياسات مباشرة من محطة أرصاد. قد تختلف عن الرصد الأرضي.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · البيانات مرخصة وفق CC BY 4.0 مع الإسناد.</div>
 </section>
@@ -185,7 +188,7 @@ async function loadNationalComparison(){
 
 var weatherRequestId=0;
 function clearWeatherDisplay(){
- ["temp","rain","humidity","wind"].forEach(function(id){setText(id,"—")});
+ ["temp","rain","humidity","wind","tempMax","tempMin","rainChance"].forEach(function(id){setText(id,"—")});
  $("rainChart").innerHTML="";
  setText("chartCaption","بانتظار بيانات المدينة المختارة.");
  setText("updated","لم يتم تأكيد تحديث البيانات بعد");
@@ -206,6 +209,10 @@ async function loadWeather(){
   setText("rain",number(measurement("precipitation"),1));
   setText("humidity",number(measurement("relative_humidity"),0));
   setText("wind",number(measurement("wind_speed"),0));
+  var todayForecast=data.daily.find(function(row){return row.valid_date===new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Riyadh"})})||data.daily[0];
+  setText("tempMax",number(todayForecast&&todayForecast.temperature_max,1));
+  setText("tempMin",number(todayForecast&&todayForecast.temperature_min,1));
+  setText("rainChance",number(todayForecast&&todayForecast.precipitation_probability_max,0));
   drawChart(data.daily.map(function(row){return row.valid_date}),data.daily.map(function(row){return row.precipitation}));
   setText("chartCaption","المصدر: Open-Meteo ("+data.daily.length+" يوماً). القيم التاريخية/المستقبلية نموذجية وليست قياسات محطة.");
   setText("loading","تم تحميل بيانات النموذج بنجاح.");
