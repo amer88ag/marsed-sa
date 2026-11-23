@@ -11,8 +11,8 @@
     const query = new URLSearchParams({
       latitude: String(location.lat),
       longitude: String(location.lon),
-      current: "temperature_2m,relative_humidity_2m,precipitation,rain,showers,wind_speed_10m,apparent_temperature,weather_code,is_day",
-      hourly: "temperature_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_speed_10m",
+      current: "temperature_2m,relative_humidity_2m,dew_point_2m,precipitation,rain,showers,wind_speed_10m,wind_direction_10m,wind_gusts_10m,apparent_temperature,weather_code,is_day,cloud_cover,pressure_msl,surface_pressure",
+      hourly: "temperature_2m,apparent_temperature,dew_point_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover,pressure_msl,surface_pressure,visibility,uv_index,shortwave_radiation",
       daily: "weather_code,precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max",
       past_days: "0",
       forecast_days: "7",
@@ -122,13 +122,19 @@
       provider_id: "open-meteo",
       retrieved_at: retrievedAt || new Date().toISOString(),
       valid_time: current.time || null,
-      location: { id: location.id, name: location.name, latitude: location.lat, longitude: location.lon },
+      location: { id: location.id, name: location.name, latitude: location.lat, longitude: location.lon, elevation_m: numericOrNull(payload.elevation, "elevation") },
       current: {
         temperature: numericOrNull(current.temperature_2m, "temperature_2m"),
         precipitation: numericOrNull(current.precipitation, "precipitation"),
         rain: numericOrNull(current.rain, "rain"),
         showers: numericOrNull(current.showers, "showers"),
         wind_speed: numericOrNull(current.wind_speed_10m, "wind_speed_10m"),
+        wind_direction: numericOrNull(current.wind_direction_10m, "wind_direction_10m"),
+        wind_gusts: numericOrNull(current.wind_gusts_10m, "wind_gusts_10m"),
+        dew_point: numericOrNull(current.dew_point_2m, "dew_point_2m"),
+        cloud_cover: numericOrNull(current.cloud_cover, "cloud_cover"),
+        pressure_msl: numericOrNull(current.pressure_msl, "pressure_msl"),
+        surface_pressure: numericOrNull(current.surface_pressure, "surface_pressure"),
         weather_code: numericOrNull(current.weather_code, "weather_code")
       },
       today: {
@@ -160,7 +166,13 @@
       ["apparent_temperature", "apparent_temperature", "°C"],
       ["relative_humidity", "relative_humidity_2m", "%"],
       ["precipitation", "precipitation", "mm"],
-      ["wind_speed", "wind_speed_10m", "km/h"]
+      ["wind_speed", "wind_speed_10m", "km/h"],
+      ["wind_direction", "wind_direction_10m", "°"],
+      ["wind_gusts", "wind_gusts_10m", "km/h"],
+      ["dew_point", "dew_point_2m", "°C"],
+      ["cloud_cover", "cloud_cover", "%"],
+      ["pressure_msl", "pressure_msl", "hPa"],
+      ["surface_pressure", "surface_pressure", "hPa"]
     ].map(([name, key, unit]) => ({ name, value: numericOrNull(current[key], key), unit }));
     const daily = payload.daily;
     const dailyTimes = Array.isArray(daily.time) ? daily.time : [];
@@ -172,7 +184,7 @@
     }
     const hourly = payload.hourly || {};
     const hourlyTimes = Array.isArray(hourly.time) ? hourly.time : [];
-    const hourlyFields = ["temperature_2m", "apparent_temperature", "precipitation_probability", "precipitation", "weather_code", "wind_speed_10m"];
+    const hourlyFields = ["temperature_2m", "apparent_temperature", "dew_point_2m", "relative_humidity_2m", "precipitation_probability", "precipitation", "weather_code", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "cloud_cover", "pressure_msl", "surface_pressure", "visibility", "uv_index", "shortwave_radiation"];
     for (const key of hourlyFields) {
       if (hourly[key] !== undefined && (!Array.isArray(hourly[key]) || hourly[key].length !== hourlyTimes.length)) {
         throw new TypeError("Hourly field length mismatch: " + key);
@@ -196,7 +208,17 @@
       precipitation_probability: numericOrNull((hourly.precipitation_probability || [])[index], "hourly.precipitation_probability"),
       precipitation: numericOrNull((hourly.precipitation || [])[index], "hourly.precipitation"),
       weather_code: numericOrNull((hourly.weather_code || [])[index], "hourly.weather_code"),
-      wind_speed: numericOrNull((hourly.wind_speed_10m || [])[index], "hourly.wind_speed_10m")
+      wind_speed: numericOrNull((hourly.wind_speed_10m || [])[index], "hourly.wind_speed_10m"),
+      dew_point: numericOrNull((hourly.dew_point_2m || [])[index], "hourly.dew_point_2m"),
+      relative_humidity: numericOrNull((hourly.relative_humidity_2m || [])[index], "hourly.relative_humidity_2m"),
+      wind_direction: numericOrNull((hourly.wind_direction_10m || [])[index], "hourly.wind_direction_10m"),
+      wind_gusts: numericOrNull((hourly.wind_gusts_10m || [])[index], "hourly.wind_gusts_10m"),
+      cloud_cover: numericOrNull((hourly.cloud_cover || [])[index], "hourly.cloud_cover"),
+      pressure_msl: numericOrNull((hourly.pressure_msl || [])[index], "hourly.pressure_msl"),
+      surface_pressure: numericOrNull((hourly.surface_pressure || [])[index], "hourly.surface_pressure"),
+      visibility: numericOrNull((hourly.visibility || [])[index], "hourly.visibility"),
+      uv_index: numericOrNull((hourly.uv_index || [])[index], "hourly.uv_index"),
+      shortwave_radiation: numericOrNull((hourly.shortwave_radiation || [])[index], "hourly.shortwave_radiation")
     }));
     return {
       schema_version: "1.1.0",
