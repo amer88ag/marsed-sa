@@ -299,7 +299,7 @@ function renderHourly(rows){
  if(!upcoming.length){target.textContent="لا تتوفر توقعات ساعية في الاستجابة الحالية.";return}
  target.innerHTML=upcoming.map(function(row){
   var hour=row.valid_time.slice(11,16),rain=row.precipitation_probability===null?"—":Math.round(row.precipitation_probability)+"٪";
-  return '<div class="hour"><b>'+escapeHtml(hour)+'</b><small>'+escapeHtml(weatherDescription(row.weather_code))+'</small><strong>'+escapeHtml(number(row.temperature,0))+'°</strong><small>احتمال المطر '+escapeHtml(rain)+'</small><small>رياح '+escapeHtml(number(row.wind_speed,0))+' كم/س</small></div>';
+  return '<div class="hour"><b>'+escapeHtml(hour)+'</b><small>'+escapeHtml(weatherDescription(row.weather_code))+'</small><strong>'+escapeHtml(number(row.temperature,0))+'°</strong><small>احتمال المطر '+escapeHtml(rain)+'</small><small>رياح '+escapeHtml(number(row.wind_speed,0))+' كم/س</small><small>هبات '+escapeHtml(number(row.wind_gusts,0))+' كم/س</small><small>رطوبة '+escapeHtml(number(row.relative_humidity,0))+'٪</small><small>ندى '+escapeHtml(number(row.dew_point,1))+'°</small><small>سحب '+escapeHtml(number(row.cloud_cover,0))+'٪</small><small>ضغط '+escapeHtml(number(row.pressure_msl,0))+' hPa</small><small>رؤية '+escapeHtml(row.visibility===null?'—':(row.visibility/1000).toFixed(1))+' كم</small><small>UV '+escapeHtml(number(row.uv_index,1))+'</small></div>';
  }).join("");
 }
 function renderDaily(rows){
