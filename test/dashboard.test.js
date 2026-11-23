@@ -147,13 +147,28 @@ test('Open-Meteo adapter builds a Riyadh-time request and normalizes model outpu
   assert.equal(url.hostname, 'api.open-meteo.com');
   assert.equal(url.searchParams.get('timezone'), 'Asia/Riyadh');
   assert.equal(url.searchParams.get('latitude'), '18.2164');
+  assert.match(url.searchParams.get('current'), /pressure_msl/);
+  assert.match(url.searchParams.get('current'), /surface_pressure/);
+  assert.match(url.searchParams.get('current'), /wind_gusts_10m/);
+  assert.match(url.searchParams.get('hourly'), /visibility/);
+  assert.match(url.searchParams.get('hourly'), /uv_index/);
   const normalized = adapter.normalizeCurrent({
-    current: { time: '2026-11-21T12:00', temperature_2m: 21, relative_humidity_2m: 40, precipitation: 0, wind_speed_10m: 8 },
-    daily: { time: ['2026-11-21'], precipitation_sum: [0.2] }
+    elevation: 2270,
+    current: { time: '2026-11-21T12:00', temperature_2m: 21, relative_humidity_2m: 40, dew_point_2m: 8, precipitation: 0, wind_speed_10m: 8, wind_direction_10m: 135, wind_gusts_10m: 22, cloud_cover: 35, pressure_msl: 1015, surface_pressure: 780 },
+    hourly: { time: ['2026-11-21T12:00'], temperature_2m: [21], dew_point_2m: [8], relative_humidity_2m: [40], wind_gusts_10m: [22], visibility: [24000], uv_index: [4], shortwave_radiation: [300] },
+    daily: { time: ['2026-11-21'], precipitation_sum: [0.2], uv_index_max: [6] }
   }, { id: 'abha', name: 'أبها', lat: 18.2164, lon: 42.5053 }, '2026-11-21T12:05:00Z');
   assert.equal(normalized.provider_id, 'open-meteo');
   assert.equal(normalized.location.id, 'abha');
   assert.equal(normalized.measurements.find(item => item.name === 'temperature').value, 21);
+  assert.equal(normalized.location.elevation_m, 2270);
+  assert.equal(normalized.measurements.find(item => item.name === 'pressure_msl').value, 1015);
+  assert.equal(normalized.measurements.find(item => item.name === 'surface_pressure').value, 780);
+  assert.equal(normalized.measurements.find(item => item.name === 'dew_point').value, 8);
+  assert.equal(normalized.measurements.find(item => item.name === 'wind_gusts').value, 22);
+  assert.equal(normalized.hourly[0].visibility, 24000);
+  assert.equal(normalized.hourly[0].uv_index, 4);
+  assert.equal(normalized.daily[0].uv_index_max, 6);
   assert.equal(normalized.daily[0].precipitation, 0.2);
   assert.match(normalized.provenance.methodology, /Numerical weather model/);
 });
