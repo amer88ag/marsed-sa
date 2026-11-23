@@ -229,7 +229,7 @@
       valid_time: current.time || null,
       current_weather_code: numericOrNull(current.weather_code, "current.weather_code"),
       is_day: current.is_day === 1 || current.is_day === true ? true : current.is_day === 0 || current.is_day === false ? false : null,
-      location: location ? { id: location.id || null, name: location.name || null, latitude: location.lat, longitude: location.lon } : null,
+      location: location ? { id: location.id || null, name: location.name || null, latitude: location.lat, longitude: location.lon, elevation_m: numericOrNull(payload.elevation, "elevation") } : null,
       measurements,
       daily: dailyForecast,
       hourly: hourlyForecast,
