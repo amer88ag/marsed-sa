@@ -555,3 +555,127 @@ test('weather service performs one batch request for multiple radar cities', asy
   assert.equal(calls, 1);
   assert.deepEqual(results.map(item => item.data.value), [1, 2]);
 });
+
+
+test('OSRM adapter builds a bounded city-to-city driving route request', () => {
+  const adapter = require('../src/providers/routing/osrm/adapter.js');
+  const url = new URL(adapter.buildRouteUrl(
+    { lat: 24.7, lon: 46.6 },
+    { lat: 21.5, lon: 39.2 }
+  ));
+  assert.equal(url.hostname, 'router.project-osrm.org');
+  assert.match(url.pathname, /route\/v1\/driving/);
+  assert.equal(url.searchParams.get('geometries'), 'geojson');
+  assert.equal(url.searchParams.get('overview'), 'full');
+  assert.throws(() => adapter.buildRouteUrl({ lat: NaN, lon: 46 }, { lat: 21, lon: 39 }), /finite longitude/);
+});
+
+test('OSRM adapter validates route geometry and samples points by travelled distance', () => {
+  const adapter = require('../src/providers/routing/osrm/adapter.js');
+  const route = adapter.normalizeRoute({
+    code: 'Ok',
+    routes: [{ distance: 200000, duration: 7200, geometry: { type: 'LineString', coordinates: [
+      [46.6, 24.7], [45.5, 24.0], [44.2, 23.0], [43.0, 22.0], [42.0, 21.0]
+    ] } }]
+  });
+  assert.equal(route.provider_id, 'osrm-demo');
+  assert.equal(route.distance_m, 200000);
+  const points = adapter.sampleRoute(route, 4);
+  assert.ok(points.length >= 2 && points.length <= 4);
+  assert.equal(points[0].lon, 46.6);
+  assert.equal(points[0].distance_km, 0);
+  assert.ok(points.at(-1).distance_km > 0);
+  assert.throws(() => adapter.normalizeRoute({ code: 'NoRoute', routes: [] }), /no usable route/);
+  assert.throws(() => adapter.sampleRoute({ geometry: [[46, 24]] }, 4), /at least two coordinates/);
+});
+
+test('routing service fetches and normalizes the route response', async () => {
+  const service = require('../src/services/routing/service.js');
+  let requestedUrl = '';
+  const fakeAdapter = {
+    buildRouteUrl: () => 'https://route.test/path',
+    normalizeRoute: payload => ({ distance_m: payload.distance })
+  };
+  const route = await service.fetchRoute({ lat: 24, lon: 46 }, { lat: 21, lon: 39 }, {
+    adapter: fakeAdapter,
+    fetch: async url => {
+      requestedUrl = url;
+      return { ok: true, json: async () => ({ distance: 123 }) };
+    }
+  });
+  assert.equal(requestedUrl, 'https://route.test/path');
+  assert.deepEqual(route, { distance_m: 123 });
+});
+
+test('route weather adapter requests hourly forecasts and preserves missing measurements', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  const points = [{ id: 'route-point-1', lat: 24.7, lon: 46.6 }, { id: 'route-point-2', lat: 21.5, lon: 39.2 }];
+  const url = new URL(adapter.buildRouteWeatherBatchUrl(points));
+  assert.equal(url.searchParams.get('forecast_days'), '2');
+  assert.match(url.searchParams.get('hourly'), /precipitation_probability/);
+  assert.equal(url.searchParams.get('timezone'), 'Asia/Riyadh,Asia/Riyadh');
+  const result = adapter.normalizeRouteWeatherBatch([
+    { hourly: { time: ['2026-11-23T18:00'], temperature_2m: [null], precipitation_probability: [35], precipitation: [null], weather_code: [null], wind_speed_10m: [12] } },
+    {}
+  ], points, '2026-11-23T12:00:00Z');
+  assert.equal(result[0].hourly[0].temperature, null);
+  assert.equal(result[0].hourly[0].precipitation_probability, 35);
+  assert.equal(result[1].hourly, null);
+  assert.throws(() => adapter.buildRouteWeatherBatchUrl([]), /non-empty list/);
+});
+
+test('dashboard exposes route planning without claiming live traffic or official road warnings', () => {
+  assert.match(html, /عين الطريق والرحلات/);
+  assert.match(html, /id="tripOrigin"/);
+  assert.match(html, /id="tripDestination"/);
+  assert.match(html, /RoutingService\.fetchRoute/);
+  assert.match(html, /WeatherService\.fetchRouteWeatherBatch/);
+  assert.match(html, /لا يتضمن حركة المرور الحية/);
+  assert.match(html, /لا تتوفر حالياً بيانات مؤكدة عن إغلاق الطرق أو الحوادث/);
+});
+
+
+test('road trip service remains research-only and references its registered providers', () => {
+  const services = JSON.parse(fs.readFileSync('config/services.json', 'utf8'));
+  const providers = JSON.parse(fs.readFileSync('config/providers.json', 'utf8'));
+  const roadService = services.services.find(item => item.id === 'road-trips');
+  const routingProvider = providers.providers.find(item => item.id === 'osrm-demo');
+  assert.ok(roadService);
+  assert.equal(roadService.status, 'research');
+  assert.ok(roadService.provider_ids.includes('open-meteo'));
+  assert.ok(roadService.provider_ids.includes('osrm-demo'));
+  assert.ok(routingProvider);
+  assert.equal(routingProvider.license_status, 'review_required');
+  assert.match(routingProvider.rate_limit, /1 request per second/);
+});
+
+
+test('route itinerary uses now by default and calculates Saudi local departure and arrival times', () => {
+  const itinerary = require('../src/services/routing/itinerary.js');
+  const now = new Date('2026-11-23T09:00:00.000Z');
+  const immediate = itinerary.resolveDepartureTime('', now, 3600);
+  assert.equal(immediate.departure.toISOString(), now.toISOString());
+  assert.equal(immediate.arrival.toISOString(), '2026-11-23T10:00:00.000Z');
+  const planned = itinerary.resolveDepartureTime('2026-11-23T15:00', now, 7200);
+  assert.equal(planned.departure.toISOString(), '2026-11-23T12:00:00.000Z');
+  assert.equal(planned.arrival.toISOString(), '2026-11-23T14:00:00.000Z');
+  assert.equal(planned.forecast_window_hours, 48);
+});
+
+test('route itinerary rejects past, impossible, malformed and out-of-window departures', () => {
+  const itinerary = require('../src/services/routing/itinerary.js');
+  const now = new Date('2026-11-23T09:00:00.000Z');
+  assert.throws(() => itinerary.resolveDepartureTime('2026-11-23T11:00', now, 3600), /past/);
+  assert.throws(() => itinerary.resolveDepartureTime('2026-02-30T12:00', now, 3600), /valid Saudi local/);
+  assert.throws(() => itinerary.resolveDepartureTime('not-a-date', now, 3600), /YYYY-MM-DDTHH:mm/);
+  assert.throws(() => itinerary.resolveDepartureTime('2026-11-25T13:00', now, 3600), /48-hour/);
+  assert.throws(() => itinerary.resolveDepartureTime('', now, 49 * 3600), /48-hour/);
+});
+
+test('road trip interface exposes optional Saudi-local planned departure time', () => {
+  assert.match(html, /id="tripDeparture" type="datetime-local"/);
+  assert.match(html, /RouteItinerary\.resolveDepartureTime/);
+  assert.match(html, /اتركه فارغاً للانطلاق الآن/);
+  assert.match(html, /وقت الانطلاق:/);
+  assert.match(html, /الوصول المتوقع:/);
+});

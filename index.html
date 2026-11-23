@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <style>
 :root{color-scheme:light;--navy:#102b46;--blue:#1769aa;--sky:#eaf4fb;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa;--green:#16794b;--amber:#9a5a00;--red:#b42318}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}button,select{font:inherit}button{cursor:pointer}.top{background:linear-gradient(120deg,#102b46,#174d76);color:#fff;padding:22px max(20px,calc((100% - 1280px)/2));}.brand{display:flex;justify-content:space-between;align-items:center;gap:16px}.brand h1{font-size:clamp(21px,3vw,30px);margin:0}.brand p{margin:7px 0 0;color:#c6d8e7;font-size:14px}.status{font-size:12px;border:1px solid #7092ac;border-radius:30px;padding:8px 12px;white-space:nowrap}.wrap{max-width:1280px;margin:auto;padding:22px 18px 48px}.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.toolbar label{font-size:13px;color:var(--muted)}select,.btn{border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:white;color:var(--ink)}.btn.primary{background:var(--blue);border-color:var(--blue);color:white}.btn:disabled{opacity:.5;cursor:not-allowed}.updated{margin-inline-start:auto;color:var(--muted);font-size:12px}.grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 3px 14px #183b5710}.panel-head{display:flex;justify-content:space-between;align-items:center;padding:15px 17px;border-bottom:1px solid var(--line)}.panel-head h2{font-size:16px;margin:0}.panel-head span{font-size:12px;color:var(--muted)}#map{height:450px;width:100%;background:#e8eff4}.map-note{padding:9px 14px;color:var(--muted);font-size:11px;border-top:1px solid var(--line)}.radar-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line)}.radar-tools label{font-size:12px;color:var(--muted)}.radar-tools select{padding:8px 10px}.radar-legend{display:flex;gap:12px;flex-wrap:wrap;padding:9px 14px;font-size:11px;color:var(--muted)}.legend-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:4px}.radar-meta{padding:0 14px 10px;font-size:11px;color:var(--muted);line-height:1.7}.side{display:grid;gap:16px;align-content:start}.place-title{padding:16px 17px 0}.place-title h2{margin:0;font-size:22px}.place-title p{margin:5px 0;color:var(--muted);font-size:12px}.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}.metric{background:#f6f9fc;border:1px solid #e8eef3;border-radius:12px;padding:13px}.metric small{color:var(--muted);font-size:12px}.metric strong{display:block;font-size:25px;margin-top:8px;font-weight:700}.metric em{font-style:normal;color:var(--muted);font-size:11px}.notice{margin:0 14px 14px;padding:11px 12px;border-radius:10px;background:#fff7e8;color:#79500b;font-size:12px;line-height:1.7}.chart-wrap{padding:12px 14px 16px}.chart{width:100%;height:180px;display:block}.data-state{padding:10px 14px;color:var(--muted);font-size:12px;line-height:1.7}.data-state.error{color:var(--red)}.data-meta{font-size:11px;color:var(--muted);padding:0 14px 14px}.chart-labels{display:flex;gap:14px;flex-wrap:wrap;padding:0 14px 8px;font-size:11px;color:var(--muted)}.chart-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:10px}.sources{display:grid;gap:0}.source{padding:14px 16px;border-bottom:1px solid var(--line)}.source:last-child{border:0}.source b{display:block;font-size:14px}.source p{margin:5px 0;color:var(--muted);font-size:12px;line-height:1.6}.source a{color:var(--blue);text-decoration:none;font-size:12px}.source .tag{display:inline-block;margin-top:7px;border-radius:30px;padding:4px 8px;background:#edf5fb;color:#275b80;font-size:10px}.section-title{font-size:18px;margin:24px 0 12px}.foot{margin-top:18px;color:var(--muted);font-size:11px;line-height:1.8}.error{color:var(--red)}.loading{color:var(--muted);font-size:13px;padding:10px 14px}.leaflet-container{font-family:Tahoma,Arial,sans-serif}.weather-context{padding:0 14px 14px}.weather-context h3{font-size:14px;margin:12px 0 8px}.insight{padding:12px;border-radius:12px;background:#eef6fc;color:#234d6b;font-size:13px;line-height:1.8}.hourly{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scroll-snap-type:x proximity}.hour{min-width:86px;border:1px solid var(--line);border-radius:11px;padding:10px 8px;text-align:center;scroll-snap-align:start;background:#fbfdff}.hour b,.day b{display:block;font-size:13px}.hour strong{display:block;font-size:19px;margin:7px 0}.hour small,.day small{display:block;color:var(--muted);font-size:11px;line-height:1.6}.daily{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;padding:12px 14px}.day{background:#f7fafc;border:1px solid #e8eef3;border-radius:10px;padding:10px 7px;text-align:center;min-width:0}.day strong{display:block;font-size:14px;margin:7px 0}.day span{font-size:11px;color:var(--blue)}@media(max-width:850px){.daily{grid-template-columns:repeat(2,minmax(0,1fr))}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}button,select{font:inherit}button{cursor:pointer}.top{background:linear-gradient(120deg,#102b46,#174d76);color:#fff;padding:22px max(20px,calc((100% - 1280px)/2));}.brand{display:flex;justify-content:space-between;align-items:center;gap:16px}.brand h1{font-size:clamp(21px,3vw,30px);margin:0}.brand p{margin:7px 0 0;color:#c6d8e7;font-size:14px}.status{font-size:12px;border:1px solid #7092ac;border-radius:30px;padding:8px 12px;white-space:nowrap}.wrap{max-width:1280px;margin:auto;padding:22px 18px 48px}.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.toolbar label{font-size:13px;color:var(--muted)}select,.btn{border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:white;color:var(--ink)}.btn.primary{background:var(--blue);border-color:var(--blue);color:white}.btn:disabled{opacity:.5;cursor:not-allowed}.updated{margin-inline-start:auto;color:var(--muted);font-size:12px}.grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 3px 14px #183b5710}.panel-head{display:flex;justify-content:space-between;align-items:center;padding:15px 17px;border-bottom:1px solid var(--line)}.panel-head h2{font-size:16px;margin:0}.panel-head span{font-size:12px;color:var(--muted)}#map{height:450px;width:100%;background:#e8eff4}.map-note{padding:9px 14px;color:var(--muted);font-size:11px;border-top:1px solid var(--line)}.radar-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line)}.radar-tools label{font-size:12px;color:var(--muted)}.radar-tools select{padding:8px 10px}.radar-legend{display:flex;gap:12px;flex-wrap:wrap;padding:9px 14px;font-size:11px;color:var(--muted)}.legend-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:4px}.radar-meta{padding:0 14px 10px;font-size:11px;color:var(--muted);line-height:1.7}.trip-panel{margin:0 0 16px}.trip-controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:14px}.trip-controls input{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:var(--ink);font:inherit}.trip-controls .trip-time-help{grid-column:1/-1;margin:-3px 0 0;color:var(--muted);font-size:11px}.trip-controls button{grid-column:1/-1}.trip-controls label{display:grid;gap:6px;font-size:12px;color:var(--muted)}.trip-results{padding:0 14px 14px}.trip-summary{padding:10px 12px;border-radius:10px;background:#eef6fc;color:#234d6b;font-size:12px;line-height:1.8;margin-bottom:10px}.trip-table{width:100%;border-collapse:collapse;font-size:12px}.trip-table th,.trip-table td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}.trip-table th{color:var(--muted);font-weight:600}.trip-note{font-size:11px;color:var(--muted);line-height:1.8;margin-top:10px}@media(max-width:650px){.trip-controls{grid-template-columns:1fr 1fr}.trip-controls label:nth-child(3){grid-column:1/-1}.trip-controls button{grid-column:1/-1}.trip-results{overflow-x:auto}}.side{display:grid;gap:16px;align-content:start}.place-title{padding:16px 17px 0}.place-title h2{margin:0;font-size:22px}.place-title p{margin:5px 0;color:var(--muted);font-size:12px}.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}.metric{background:#f6f9fc;border:1px solid #e8eef3;border-radius:12px;padding:13px}.metric small{color:var(--muted);font-size:12px}.metric strong{display:block;font-size:25px;margin-top:8px;font-weight:700}.metric em{font-style:normal;color:var(--muted);font-size:11px}.notice{margin:0 14px 14px;padding:11px 12px;border-radius:10px;background:#fff7e8;color:#79500b;font-size:12px;line-height:1.7}.chart-wrap{padding:12px 14px 16px}.chart{width:100%;height:180px;display:block}.data-state{padding:10px 14px;color:var(--muted);font-size:12px;line-height:1.7}.data-state.error{color:var(--red)}.data-meta{font-size:11px;color:var(--muted);padding:0 14px 14px}.chart-labels{display:flex;gap:14px;flex-wrap:wrap;padding:0 14px 8px;font-size:11px;color:var(--muted)}.chart-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:10px}.sources{display:grid;gap:0}.source{padding:14px 16px;border-bottom:1px solid var(--line)}.source:last-child{border:0}.source b{display:block;font-size:14px}.source p{margin:5px 0;color:var(--muted);font-size:12px;line-height:1.6}.source a{color:var(--blue);text-decoration:none;font-size:12px}.source .tag{display:inline-block;margin-top:7px;border-radius:30px;padding:4px 8px;background:#edf5fb;color:#275b80;font-size:10px}.section-title{font-size:18px;margin:24px 0 12px}.foot{margin-top:18px;color:var(--muted);font-size:11px;line-height:1.8}.error{color:var(--red)}.loading{color:var(--muted);font-size:13px;padding:10px 14px}.leaflet-container{font-family:Tahoma,Arial,sans-serif}.weather-context{padding:0 14px 14px}.weather-context h3{font-size:14px;margin:12px 0 8px}.insight{padding:12px;border-radius:12px;background:#eef6fc;color:#234d6b;font-size:13px;line-height:1.8}.hourly{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scroll-snap-type:x proximity}.hour{min-width:86px;border:1px solid var(--line);border-radius:11px;padding:10px 8px;text-align:center;scroll-snap-align:start;background:#fbfdff}.hour b,.day b{display:block;font-size:13px}.hour strong{display:block;font-size:19px;margin:7px 0}.hour small,.day small{display:block;color:var(--muted);font-size:11px;line-height:1.6}.daily{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;padding:12px 14px}.day{background:#f7fafc;border:1px solid #e8eef3;border-radius:10px;padding:10px 7px;text-align:center;min-width:0}.day strong{display:block;font-size:14px;margin:7px 0}.day span{font-size:11px;color:var(--blue)}@media(max-width:850px){.daily{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:850px){.grid{grid-template-columns:1fr}.side{grid-template-columns:1fr}.updated{width:100%;margin:0}#map{height:360px}.wrap{padding:14px 12px 32px}.top{padding:18px 16px}.status{font-size:10px}}
 </style>
 </head>
@@ -27,6 +27,18 @@
 <button class="btn primary" id="refresh">تحديث البيانات</button>
 <div class="updated" id="updated">لم يتم جلب البيانات بعد</div>
 </div>
+<section class="panel trip-panel">
+<div class="panel-head"><h2>عين الطريق والرحلات</h2><span>تجربة أولية بين المدن</span></div>
+<div class="trip-controls">
+<label for="tripOrigin">مدينة الانطلاق<select id="tripOrigin" aria-label="مدينة الانطلاق"><option value="riyadh">الرياض</option><option value="abha">أبها</option><option value="jeddah">جدة</option><option value="dammam">الدمام</option><option value="tabuk">تبوك</option><option value="hail">حائل</option><option value="buraidah">بريدة</option><option value="madinah">المدينة المنورة</option><option value="makkah">مكة المكرمة</option><option value="jazan">جازان</option><option value="najran">نجران</option><option value="arar">عرعر</option><option value="sakaka">سكاكا</option></select></label>
+<label for="tripDestination">مدينة الوصول<select id="tripDestination" aria-label="مدينة الوصول"><option value="riyadh">الرياض</option><option value="abha">أبها</option><option value="jeddah">جدة</option><option value="dammam">الدمام</option><option value="tabuk">تبوك</option><option value="hail">حائل</option><option value="buraidah">بريدة</option><option value="madinah">المدينة المنورة</option><option value="makkah">مكة المكرمة</option><option value="jazan">جازان</option><option value="najran">نجران</option><option value="arar">عرعر</option><option value="sakaka">سكاكا</option></select></label>
+<label for="tripDeparture">وقت الانطلاق (اختياري)<input id="tripDeparture" type="datetime-local" step="900" aria-label="وقت الانطلاق بتوقيت السعودية"></label>
+<p class="trip-time-help">اتركه فارغاً للانطلاق الآن. التوقعات المتاحة تغطي 48 ساعة قادمة فقط، ويُفسّر الوقت بتوقيت السعودية.</p>
+<button class="btn primary" id="planTrip" type="button">احسب الطريق والطقس</button>
+</div>
+<div class="trip-results"><div id="tripStatus" class="data-state">اختر مدينتين لعرض مسار القيادة وملخص الطقس المتوقع على امتداده.</div><div id="tripOutput"></div>
+<div class="trip-note">المسار تقديري من خدمة OSRM التجريبية المبنية على بيانات OpenStreetMap، وزمنه لا يتضمن حركة المرور الحية. الطقس توقع نموذجي عند نقاط مختارة على الطريق، وليس رصداً ميدانياً أو تحذيراً رسمياً. لا تتوفر حالياً بيانات مؤكدة عن إغلاق الطرق أو الحوادث.</div></div>
+</section>
 <div class="grid">
 <section class="panel">
 <div class="panel-head"><h2>الخريطة التفاعلية</h2><span>المملكة العربية السعودية</span></div>
@@ -77,14 +89,15 @@
 <script src="src/providers/weather/open-meteo/adapter.js"></script>
 <script src="src/providers/precipitation/chirps/adapter.js"></script>
 <script src="src/services/weather/service.js"></script>
-<script src="src/services/precipitation/service.js"></script>
+<script src="src/services/precipitation/service.js"></script>\n<script src="src/providers/routing/osrm/adapter.js"></script>\n<script src="src/services/routing/service.js"></script>
+<script src="src/services/routing/itinerary.js"></script>
 <script>
 (function(){
 "use strict";
 var places={
 riyadh:{name:"الرياض",lat:24.7136,lon:46.6753},abha:{name:"أبها",lat:18.2164,lon:42.5053},jeddah:{name:"جدة",lat:21.4858,lon:39.1925},dammam:{name:"الدمام",lat:26.4207,lon:50.0888},tabuk:{name:"تبوك",lat:28.3838,lon:36.5550},hail:{name:"حائل",lat:27.5114,lon:41.7208},buraidah:{name:"بريدة",lat:26.3260,lon:43.9750},madinah:{name:"المدينة المنورة",lat:24.5247,lon:39.5692},makkah:{name:"مكة المكرمة",lat:21.3891,lon:39.8579},jazan:{name:"جازان",lat:16.8892,lon:42.5511},najran:{name:"نجران",lat:17.5650,lon:44.2289},arar:{name:"عرعر",lat:30.9753,lon:41.0381},sakaka:{name:"سكاكا",lat:29.9697,lon:40.2064}
 };
-var map=null,cityMarkers={},radarCircles={},radarData={},radarMode="current",radarRequestId=0,radarUpdatedAt=null,activeKey="riyadh",chirpsDataset=null;
+var map=null,cityMarkers={},radarCircles={},radarData={},radarMode="current",radarRequestId=0,radarUpdatedAt=null,activeKey="riyadh",chirpsDataset=null,tripLine=null,tripMarkers=[];
 var $=function(id){return document.getElementById(id)};
 function setText(id,value){$(id).textContent=value}
 function number(v,d){return v===null||v===undefined||!isFinite(Number(v))?"—":Number(v).toFixed(d||0)}
@@ -110,6 +123,76 @@ function initMap(){
   }
  });
  if(cityMarkers[activeKey])cityMarkers[activeKey].openPopup();
+}
+function initTripControls(){
+ $("tripOrigin").value="riyadh";
+ $("tripDestination").value="jeddah";
+}
+function formatDuration(seconds){
+ var minutes=Math.round(seconds/60),hours=Math.floor(minutes/60),remaining=minutes%60;
+ return hours?hours+" ساعة و"+remaining+" دقيقة":remaining+" دقيقة";
+}
+function weatherAtEta(rows,eta){
+ if(!Array.isArray(rows)||!rows.length)return null;
+ var target=eta.getTime(),best=null,bestDelta=Infinity;
+ rows.forEach(function(row){
+  var time=new Date(row.valid_time+"+03:00").getTime(),delta=Math.abs(time-target);
+  if(Number.isFinite(time)&&delta<bestDelta){best=row;bestDelta=delta}
+ });
+ return best&&bestDelta<=90*60*1000?best:null;
+}
+function clearTripMap(){
+ if(tripLine&&map)map.removeLayer(tripLine);
+ tripLine=null;
+ tripMarkers.forEach(function(marker){if(map)map.removeLayer(marker)});
+ tripMarkers=[];
+}
+async function planTrip(){
+ var originKey=$("tripOrigin").value,destinationKey=$("tripDestination").value;
+ if(!places[originKey]||!places[destinationKey]||originKey===destinationKey){
+  setText("tripStatus","اختر مدينتين مختلفتين.");return;
+ }
+ $("planTrip").disabled=true;
+ setText("tripStatus","جارٍ حساب مسار القيادة ثم جلب توقعات الطقس على نقاط الطريق…");
+ $("tripOutput").innerHTML="";
+ try{
+  var origin=places[originKey],destination=places[destinationKey];
+  var route=await RoutingService.fetchRoute({lat:origin.lat,lon:origin.lon},{lat:destination.lat,lon:destination.lon});
+  var points=OsrmAdapter.sampleRoute(route,8);
+  var itinerary=RouteItinerary.resolveDepartureTime($("tripDeparture").value,new Date(),route.duration_s);
+  var weather=await WeatherService.fetchRouteWeatherBatch(points);
+  var startTime=itinerary.departure.getTime(),totalKm=route.distance_m/1000;
+  var rows=points.map(function(point,index){
+   var fraction=totalKm>0?point.distance_km/totalKm:index/Math.max(1,points.length-1);
+   var eta=new Date(startTime+route.duration_s*fraction*1000);
+   var result=weather.find(function(item){return item.location_id===point.id});
+   var forecast=weatherAtEta(result&&result.hourly,eta);
+   return {point:point,eta:eta,forecast:forecast};
+  });
+  clearTripMap();
+  if(map&&window.L){
+   var latlngs=route.geometry.map(function(pair){return [pair[1],pair[0]]});
+   tripLine=L.polyline(latlngs,{color:"#7c3aed",weight:5,opacity:.82}).addTo(map);
+   rows.forEach(function(row,index){
+    var marker=L.circleMarker([row.point.lat,row.point.lon],{radius:7,color:"#ffffff",weight:2,fillColor:"#7c3aed",fillOpacity:.95}).addTo(map);
+    marker.bindPopup("<b>"+escapeHtml(row.point.name)+"</b><br>"+number(row.point.distance_km,1)+" كم من البداية");
+    tripMarkers.push(marker);
+   });
+   map.fitBounds(tripLine.getBounds(),{padding:[24,24]});
+  }
+  var table='<div class="trip-summary"><b>'+escapeHtml(origin.name)+' ← '+escapeHtml(destination.name)+'</b><br>المسافة: '+number(totalKm,1)+' كم · زمن القيادة التقديري: '+formatDuration(route.duration_s)+'<br>نقاط الطقس: '+rows.length+' · وقت الانطلاق: '+itinerary.departure.toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})+' بتوقيت السعودية. الوصول المتوقع: '+itinerary.arrival.toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})+' بتوقيت السعودية.</div>';
+  table+='<table class="trip-table"><thead><tr><th>النقطة</th><th>المسافة</th><th>وقت الوصول</th><th>الحرارة</th><th>احتمال المطر</th><th>الرياح</th></tr></thead><tbody>';
+  table+=rows.map(function(row){
+   var f=row.forecast;
+   return '<tr><td>'+escapeHtml(row.point.name)+'</td><td>'+number(row.point.distance_km,1)+' كم</td><td>'+row.eta.toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})+'</td><td>'+(f&&f.temperature!==null?number(f.temperature,0)+'°م':'غير متاح')+'</td><td>'+(f&&f.precipitation_probability!==null?Math.round(f.precipitation_probability)+'٪':'غير متاح')+'</td><td>'+(f&&f.wind_speed!==null?number(f.wind_speed,0)+' كم/س':'غير متاح')+'</td></tr>';
+  }).join("");
+  table+='</tbody></table>';
+  $("tripOutput").innerHTML=table;
+  setText("tripStatus","تم حساب المسار وجلب ملخص الطقس للنقاط المتاحة. لا توجد بيانات مرور حي ضمن هذه النتيجة.");
+ }catch(error){
+  clearTripMap();
+  setText("tripStatus","تعذر حساب الرحلة أو جلب الطقس: "+(error&&error.message?error.message:"خطأ غير معروف")+". أعد المحاولة لاحقاً.");
+ }finally{$("planTrip").disabled=false}
 }
 function radarColor(item,mode){
  if(!item)return "#7b8794";
@@ -311,7 +394,7 @@ $("place").addEventListener("change",function(e){selectCity(e.target.value)});
 $("refresh").addEventListener("click",loadWeather);
 $("radarMode").addEventListener("change",function(e){radarMode=e.target.value;renderRadar()});
 $("refreshRadar").addEventListener("click",loadRadar);
-initMap();loadWeather();loadChirps();loadRadar();
+initMap();initTripControls();$("planTrip").addEventListener("click",planTrip);loadWeather();loadChirps();loadRadar();
 })();
 </script>
 </body></html>

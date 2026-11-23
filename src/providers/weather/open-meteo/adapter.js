@@ -62,6 +62,57 @@
       }
     });
   }
+  function buildRouteWeatherBatchUrl(locations) {
+    if (!Array.isArray(locations) || locations.length === 0 ||
+        locations.some(location => !location || !Number.isFinite(location.lat) || !Number.isFinite(location.lon))) {
+      throw new TypeError("A non-empty list of route points with finite lat/lon is required");
+    }
+    const query = new URLSearchParams({
+      latitude: locations.map(location => String(location.lat)).join(","),
+      longitude: locations.map(location => String(location.lon)).join(","),
+      hourly: "temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m",
+      forecast_days: "2",
+      timezone: locations.map(() => "Asia/Riyadh").join(",")
+    });
+    return "https://api.open-meteo.com/v1/forecast?" + query.toString();
+  }
+  function normalizeRouteWeatherBatch(payload, locations, retrievedAt) {
+    if (!Array.isArray(payload) || payload.length !== locations.length) {
+      throw new TypeError("Open-Meteo route weather response length mismatch");
+    }
+    return payload.map((item, index) => {
+      const hourly = item && item.hourly;
+      if (!hourly || !Array.isArray(hourly.time)) {
+        return { location_id: locations[index].id, hourly: null, error: "Hourly forecast unavailable" };
+      }
+      const times = hourly.time;
+      const fields = ["temperature_2m", "precipitation_probability", "precipitation", "weather_code", "wind_speed_10m"];
+      for (const key of fields) {
+        if (hourly[key] !== undefined && (!Array.isArray(hourly[key]) || hourly[key].length !== times.length)) {
+          return { location_id: locations[index].id, hourly: null, error: "Hourly field length mismatch: " + key };
+        }
+      }
+      try {
+        const rows = times.map((time, rowIndex) => ({
+          valid_time: time,
+          temperature: numericOrNull((hourly.temperature_2m || [])[rowIndex], "hourly.temperature_2m"),
+          precipitation_probability: numericOrNull((hourly.precipitation_probability || [])[rowIndex], "hourly.precipitation_probability"),
+          precipitation: numericOrNull((hourly.precipitation || [])[rowIndex], "hourly.precipitation"),
+          weather_code: numericOrNull((hourly.weather_code || [])[rowIndex], "hourly.weather_code"),
+          wind_speed: numericOrNull((hourly.wind_speed_10m || [])[rowIndex], "hourly.wind_speed_10m")
+        }));
+        return {
+          location_id: locations[index].id,
+          hourly: rows,
+          retrieved_at: retrievedAt || new Date().toISOString(),
+          provider_id: "open-meteo",
+          error: null
+        };
+      } catch (error) {
+        return { location_id: locations[index].id, hourly: null, error: error.message };
+      }
+    });
+  }
   function normalizeOverview(payload, location, retrievedAt) {
     if (!payload || !payload.current || !payload.daily || !Array.isArray(payload.daily.time) || !payload.daily.time.length) {
       throw new TypeError("Open-Meteo overview response is incomplete");
@@ -169,5 +220,5 @@
       }
     };
   }
-  return { buildCurrentUrl, normalizeCurrent, buildOverviewUrl, normalizeOverview, buildOverviewBatchUrl, normalizeOverviewBatch };
+  return { buildCurrentUrl, normalizeCurrent, buildOverviewUrl, normalizeOverview, buildOverviewBatchUrl, normalizeOverviewBatch, buildRouteWeatherBatchUrl, normalizeRouteWeatherBatch };
 });
