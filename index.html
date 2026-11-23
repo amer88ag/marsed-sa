@@ -84,7 +84,7 @@
 var places={
 riyadh:{name:"الرياض",lat:24.7136,lon:46.6753},abha:{name:"أبها",lat:18.2164,lon:42.5053},jeddah:{name:"جدة",lat:21.4858,lon:39.1925},dammam:{name:"الدمام",lat:26.4207,lon:50.0888},tabuk:{name:"تبوك",lat:28.3838,lon:36.5550},hail:{name:"حائل",lat:27.5114,lon:41.7208},buraidah:{name:"بريدة",lat:26.3260,lon:43.9750},madinah:{name:"المدينة المنورة",lat:24.5247,lon:39.5692},makkah:{name:"مكة المكرمة",lat:21.3891,lon:39.8579},jazan:{name:"جازان",lat:16.8892,lon:42.5511},najran:{name:"نجران",lat:17.5650,lon:44.2289},arar:{name:"عرعر",lat:30.9753,lon:41.0381},sakaka:{name:"سكاكا",lat:29.9697,lon:40.2064}
 };
-var map=null,cityMarkers={},radarCircles={},radarData={},radarMode="current",radarRequestId=0,activeKey="riyadh",chirpsDataset=null;
+var map=null,cityMarkers={},radarCircles={},radarData={},radarMode="current",radarRequestId=0,radarUpdatedAt=null,activeKey="riyadh",chirpsDataset=null;
 var $=function(id){return document.getElementById(id)};
 function setText(id,value){$(id).textContent=value}
 function number(v,d){return v===null||v===undefined||!isFinite(Number(v))?"—":Number(v).toFixed(d||0)}
@@ -146,25 +146,28 @@ function renderRadar(){
  });
  var count=Object.keys(radarData).filter(function(key){return !!radarData[key]}).length;
  var label=radarMode==="rain"?"الأمطار المتوقعة اليوم":"حالة الطقس الحالية";
- setText("radarMeta",label+" · بيانات متاحة لـ "+count+" من "+Object.keys(places).length+" مدينة · "+(window.radarUpdatedAt?"آخر جلب: "+window.radarUpdatedAt:"لم يكتمل التحديث")+". المصدر: نموذج Open-Meteo، وليس رصداً مباشراً أو إنذاراً رسمياً. اللون الرمادي يعني عدم توفر قيمة كافية.");
+ setText("radarMeta",label+" · بيانات متاحة لـ "+count+" من "+Object.keys(places).length+" مدينة · "+(radarUpdatedAt?"آخر تحديث ناجح: "+radarUpdatedAt:"لا يوجد تحديث ناجح بعد")+". المصدر: نموذج Open-Meteo، وليس رصداً مباشراً أو إنذاراً رسمياً. اللون الرمادي يعني عدم توفر قيمة كافية.");
 }
 async function loadRadar(){
  var requestId=++radarRequestId,keys=Object.keys(places);
  $("refreshRadar").disabled=true;
- setText("radarMeta","جارٍ تحديث بيانات النموذج للمدن الـ13…");
- var results=await Promise.all(keys.map(async function(key){
-  var p=places[key];
-  try{return {key:key,data:await WeatherService.fetchOverview({id:key,name:p.name,lat:p.lat,lon:p.lon})};}
-  catch(error){return {key:key,error:error};}
- }));
- if(requestId!==radarRequestId)return;
- radarData={};
- results.forEach(function(result){if(result.data)radarData[result.key]=result.data;});
- window.radarUpdatedAt=new Date().toLocaleString("ar-SA",{timeZone:"Asia/Riyadh"});
- renderRadar();
- var failed=results.length-Object.keys(radarData).length;
- if(failed)setText("radarMeta",$("radarMeta").textContent+" · تعذر جلب "+failed+" مدينة؛ لم تُستبدل بياناتها بقيم صفرية.");
- $("refreshRadar").disabled=false;
+ setText("radarMeta","جارٍ تحديث ملخص الطقس للمدن الـ13 بطلب موحد…");
+ try{
+  var locations=keys.map(function(key){var p=places[key];return {id:key,name:p.name,lat:p.lat,lon:p.lon};});
+  var results=await WeatherService.fetchOverviewBatch(locations);
+  if(requestId!==radarRequestId)return;
+  radarData={};
+  results.forEach(function(result){if(result.data)radarData[result.location_id]=result.data;});
+  if(Object.keys(radarData).length)radarUpdatedAt=new Date().toLocaleString("ar-SA",{timeZone:"Asia/Riyadh"});
+  renderRadar();
+  var failed=keys.length-Object.keys(radarData).length;
+  if(failed)setText("radarMeta",$("radarMeta").textContent+" · بيانات غير متاحة لـ "+failed+" مدينة؛ لا تُستبدل القيم المفقودة بأصفار.");
+  if(!Object.keys(radarData).length)setText("radarMeta","تعذر الحصول على بيانات المدن حالياً. تحقق من الاتصال ثم أعد المحاولة. المصدر: Open-Meteo.");
+ }catch(error){
+  if(requestId===radarRequestId)setText("radarMeta","تعذر تحديث طبقة المدن: "+(error&&error.message?error.message:"خطأ غير معروف")+". البيانات السابقة إن وجدت لا تُعد تحديثاً جديداً.");
+ }finally{
+  if(requestId===radarRequestId)$("refreshRadar").disabled=false;
+ } 
 }
 function weatherDescription(code){
  if(code===null||code===undefined||code==="")return "غير متاح";
