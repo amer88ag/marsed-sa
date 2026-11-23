@@ -67,6 +67,16 @@
 <div class="metric"><small>هبات الرياح</small><strong id="windGusts">—</strong><em>كم/ساعة · أقصى هبة متوقعة</em></div>
 <div class="metric"><small>اتجاه الرياح</small><strong id="windDirection" style="font-size:20px">—</strong><em>اتجاه قادم منه الهواء</em></div>
 <div class="metric"><small>مؤشر الأشعة فوق البنفسجية</small><strong id="uvIndex">—</strong><em>أقصى قيمة متوقعة اليوم</em></div>
+<div class="metric"><small>حرارة البصيلة الرطبة</small><strong id="wetBulb">—</strong><em>°م · مؤشر يجمع الحرارة والرطوبة</em></div>
+<div class="metric"><small>طاقة الحمل الحراري CAPE</small><strong id="cape">—</strong><em>J/kg · مؤشر قابلية الحمل الحراري</em></div>
+<div class="metric"><small>ارتفاع مستوى التجمد</small><strong id="freezingLevel">—</strong><em>متر فوق سطح البحر</em></div>
+<div class="metric"><small>ارتفاع طبقة الحدود الجوية</small><strong id="boundaryLayer">—</strong><em>متر · يتغير خلال اليوم</em></div>
+<div class="metric"><small>حرارة التربة السطحية</small><strong id="soilTemp">—</strong><em>°م · طبقة 0–7 سم</em></div>
+<div class="metric"><small>رطوبة التربة السطحية</small><strong id="soilMoisture">—</strong><em>م³/م³ · طبقة 0–7 سم</em></div>
+<div class="metric"><small>سرعة الرياح على 80 م</small><strong id="wind80">—</strong><em>كم/ساعة</em></div>
+<div class="metric"><small>سرعة الرياح على 100 م</small><strong id="wind100">—</strong><em>كم/ساعة</em></div>
+<div class="metric"><small>الإشعاع الشمسي الكلي</small><strong id="solarRadiation">—</strong><em>W/m²</em></div>
+<div class="metric"><small>الإشعاع المباشر / المنتشر</small><strong id="solarSplit">—</strong><em>W/m² · مباشر / منتشر</em></div>
 </div>
 <div class="weather-context"><h3>ماذا يعني هذا لك؟</h3><div id="weatherInsight" class="insight">يظهر ملخص عملي بعد تحميل بيانات الطقس.</div></div>
 <div class="panel-head"><h2>الساعات القادمة</h2><span>توقعات النموذج</span></div><div id="hourlyForecast" class="weather-context hourly">بانتظار البيانات</div>
@@ -299,7 +309,7 @@ function renderHourly(rows){
  if(!upcoming.length){target.textContent="لا تتوفر توقعات ساعية في الاستجابة الحالية.";return}
  target.innerHTML=upcoming.map(function(row){
   var hour=row.valid_time.slice(11,16),rain=row.precipitation_probability===null?"—":Math.round(row.precipitation_probability)+"٪";
-  return '<div class="hour"><b>'+escapeHtml(hour)+'</b><small>'+escapeHtml(weatherDescription(row.weather_code))+'</small><strong>'+escapeHtml(number(row.temperature,0))+'°</strong><small>احتمال المطر '+escapeHtml(rain)+'</small><small>رياح '+escapeHtml(number(row.wind_speed,0))+' كم/س</small><small>هبات '+escapeHtml(number(row.wind_gusts,0))+' كم/س</small><small>رطوبة '+escapeHtml(number(row.relative_humidity,0))+'٪</small><small>ندى '+escapeHtml(number(row.dew_point,1))+'°</small><small>سحب '+escapeHtml(number(row.cloud_cover,0))+'٪</small><small>ضغط '+escapeHtml(number(row.pressure_msl,0))+' hPa</small><small>رؤية '+escapeHtml(row.visibility===null?'—':(row.visibility/1000).toFixed(1))+' كم</small><small>UV '+escapeHtml(number(row.uv_index,1))+'</small></div>';
+  return '<div class="hour"><b>'+escapeHtml(hour)+'</b><small>'+escapeHtml(weatherDescription(row.weather_code))+'</small><strong>'+escapeHtml(number(row.temperature,0))+'°</strong><small>احتمال المطر '+escapeHtml(rain)+'</small><small>رياح '+escapeHtml(number(row.wind_speed,0))+' كم/س</small><small>هبات '+escapeHtml(number(row.wind_gusts,0))+' كم/س</small><small>رطوبة '+escapeHtml(number(row.relative_humidity,0))+'٪</small><small>ندى '+escapeHtml(number(row.dew_point,1))+'°</small><small>سحب '+escapeHtml(number(row.cloud_cover,0))+'٪</small><small>ضغط '+escapeHtml(number(row.pressure_msl,0))+' hPa</small><small>رؤية '+escapeHtml(row.visibility===null?'—':(row.visibility/1000).toFixed(1))+' كم</small><small>UV '+escapeHtml(number(row.uv_index,1))+'</small><small>بصيلة رطبة '+escapeHtml(number(row.wet_bulb_temperature,1))+'°</small><small>CAPE '+escapeHtml(number(row.cape,0))+' J/kg</small><small>تجمد '+escapeHtml(number(row.freezing_level_height,0))+' م</small><small>تبخر '+escapeHtml(number(row.evapotranspiration,2))+' ملم</small><small>رياح 80م '+escapeHtml(number(row.wind_speed_80m,0))+' كم/س</small></div>';
  }).join("");
 }
 function renderDaily(rows){
@@ -308,7 +318,7 @@ function renderDaily(rows){
  target.innerHTML=rows.slice(0,7).map(function(row,index){
   var date=new Date(row.valid_date+"T12:00:00+03:00"),label=index===0?"اليوم":dayNames[date.getDay()];
   var chance=row.precipitation_probability_max===null?"—":Math.round(row.precipitation_probability_max)+"٪";
-  return '<div class="day"><b>'+escapeHtml(label)+'</b><small>'+escapeHtml(row.valid_date)+'</small><strong>'+escapeHtml(weatherDescription(row.weather_code))+'</strong><span>'+escapeHtml(number(row.temperature_max,0))+'° / '+escapeHtml(number(row.temperature_min,0))+'°</span><small>احتمال المطر '+escapeHtml(chance)+'</small><small>كمية متوقعة '+escapeHtml(number(row.precipitation,1))+' ملم</small><small>مؤشر UV '+escapeHtml(number(row.uv_index_max,1))+'</small></div>';
+  return '<div class="day"><b>'+escapeHtml(label)+'</b><small>'+escapeHtml(row.valid_date)+'</small><strong>'+escapeHtml(weatherDescription(row.weather_code))+'</strong><span>'+escapeHtml(number(row.temperature_max,0))+'° / '+escapeHtml(number(row.temperature_min,0))+'°</span><small>احتمال المطر '+escapeHtml(chance)+'</small><small>كمية متوقعة '+escapeHtml(number(row.precipitation,1))+' ملم</small><small>مؤشر UV '+escapeHtml(number(row.uv_index_max,1))+'</small><small>التبخر المرجعي ET₀ '+escapeHtml(number(row.et0_fao_evapotranspiration,1))+' ملم/يوم</small></div>';
  }).join("");
 }
 function drawChart(labels,values){
@@ -364,7 +374,7 @@ async function loadChirps(){
 }
 var weatherRequestId=0;
 function clearWeatherDisplay(){
- ["temp","feels","rain","humidity","wind","condition","daylight","elevation","pressureMsl","surfacePressure","dewPoint","cloudCover","windGusts","windDirection","uvIndex","weatherInsight"].forEach(function(id){setText(id,"—")});
+ ["temp","feels","rain","humidity","wind","condition","daylight","elevation","pressureMsl","surfacePressure","dewPoint","cloudCover","windGusts","windDirection","uvIndex","wetBulb","cape","freezingLevel","boundaryLayer","soilTemp","soilMoisture","wind80","wind100","solarRadiation","solarSplit","weatherInsight"].forEach(function(id){setText(id,"—")});
  $("hourlyForecast").textContent="بانتظار بيانات الطقس."; $("dailyForecast").textContent="بانتظار بيانات الطقس.";
  $("rainChart").innerHTML="";
  setText("chartCaption","بانتظار بيانات المدينة المختارة.");
@@ -395,6 +405,16 @@ async function loadWeather(){
   setText("windGusts",number(measurement("wind_gusts"),0));
   setText("windDirection",windDirectionLabel(measurement("wind_direction")));
   setText("uvIndex",number(data.daily&&data.daily[0]&&data.daily[0].uv_index_max,1));
+  setText("wetBulb",number(measurement("wet_bulb_temperature"),1));
+  setText("cape",number(measurement("cape"),0));
+  setText("freezingLevel",number(measurement("freezing_level_height"),0));
+  setText("boundaryLayer",number(measurement("boundary_layer_height"),0));
+  setText("soilTemp",number(measurement("soil_temperature_0_7cm"),1));
+  setText("soilMoisture",number(measurement("soil_moisture_0_7cm"),3));
+  setText("wind80",number(measurement("wind_speed_80m"),1));
+  setText("wind100",number(measurement("wind_speed_100m"),1));
+  setText("solarRadiation",number(measurement("shortwave_radiation"),0));
+  setText("solarSplit",number(measurement("direct_radiation"),0)+" / "+number(measurement("diffuse_radiation"),0));
   setText("condition",weatherDescription(data.current_weather_code));
   setText("daylight",data.is_day===true?"نهار":data.is_day===false?"ليل":"فترة اليوم غير متاحة");
   setText("weatherInsight",practicalInsight(data));
