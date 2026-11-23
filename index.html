@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <style>
 :root{color-scheme:light;--navy:#102b46;--blue:#1769aa;--sky:#eaf4fb;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa;--green:#16794b;--amber:#9a5a00;--red:#b42318}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}button,select{font:inherit}button{cursor:pointer}.top{background:linear-gradient(120deg,#102b46,#174d76);color:#fff;padding:22px max(20px,calc((100% - 1280px)/2));}.brand{display:flex;justify-content:space-between;align-items:center;gap:16px}.brand h1{font-size:clamp(21px,3vw,30px);margin:0}.brand p{margin:7px 0 0;color:#c6d8e7;font-size:14px}.status{font-size:12px;border:1px solid #7092ac;border-radius:30px;padding:8px 12px;white-space:nowrap}.wrap{max-width:1280px;margin:auto;padding:22px 18px 48px}.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.toolbar label{font-size:13px;color:var(--muted)}select,.btn{border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:white;color:var(--ink)}.btn.primary{background:var(--blue);border-color:var(--blue);color:white}.btn:disabled{opacity:.5;cursor:not-allowed}.updated{margin-inline-start:auto;color:var(--muted);font-size:12px}.grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 3px 14px #183b5710}.panel-head{display:flex;justify-content:space-between;align-items:center;padding:15px 17px;border-bottom:1px solid var(--line)}.panel-head h2{font-size:16px;margin:0}.panel-head span{font-size:12px;color:var(--muted)}#map{height:450px;width:100%;background:#e8eff4}.map-note{padding:9px 14px;color:var(--muted);font-size:11px;border-top:1px solid var(--line)}.side{display:grid;gap:16px;align-content:start}.place-title{padding:16px 17px 0}.place-title h2{margin:0;font-size:22px}.place-title p{margin:5px 0;color:var(--muted);font-size:12px}.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}.metric{background:#f6f9fc;border:1px solid #e8eef3;border-radius:12px;padding:13px}.metric small{color:var(--muted);font-size:12px}.metric strong{display:block;font-size:25px;margin-top:8px;font-weight:700}.metric em{font-style:normal;color:var(--muted);font-size:11px}.notice{margin:0 14px 14px;padding:11px 12px;border-radius:10px;background:#fff7e8;color:#79500b;font-size:12px;line-height:1.7}.chart-wrap{padding:12px 14px 16px}.chart{width:100%;height:180px;display:block}.data-state{padding:10px 14px;color:var(--muted);font-size:12px;line-height:1.7}.data-state.error{color:var(--red)}.data-meta{font-size:11px;color:var(--muted);padding:0 14px 14px}.chart-labels{display:flex;gap:14px;flex-wrap:wrap;padding:0 14px 8px;font-size:11px;color:var(--muted)}.chart-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:10px}.sources{display:grid;gap:0}.source{padding:14px 16px;border-bottom:1px solid var(--line)}.source:last-child{border:0}.source b{display:block;font-size:14px}.source p{margin:5px 0;color:var(--muted);font-size:12px;line-height:1.6}.source a{color:var(--blue);text-decoration:none;font-size:12px}.source .tag{display:inline-block;margin-top:7px;border-radius:30px;padding:4px 8px;background:#edf5fb;color:#275b80;font-size:10px}.section-title{font-size:18px;margin:24px 0 12px}.foot{margin-top:18px;color:var(--muted);font-size:11px;line-height:1.8}.error{color:var(--red)}.loading{color:var(--muted);font-size:13px;padding:10px 14px}.leaflet-container{font-family:Tahoma,Arial,sans-serif}.weather-context{padding:0 14px 14px}.weather-context h3{font-size:14px;margin:12px 0 8px}.insight{padding:12px;border-radius:12px;background:#eef6fc;color:#234d6b;font-size:13px;line-height:1.8}.hourly{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scroll-snap-type:x proximity}.hour{min-width:86px;border:1px solid var(--line);border-radius:11px;padding:10px 8px;text-align:center;scroll-snap-align:start;background:#fbfdff}.hour b,.day b{display:block;font-size:13px}.hour strong{display:block;font-size:19px;margin:7px 0}.hour small,.day small{display:block;color:var(--muted);font-size:11px;line-height:1.6}.daily{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;padding:12px 14px}.day{background:#f7fafc;border:1px solid #e8eef3;border-radius:10px;padding:10px 7px;text-align:center;min-width:0}.day strong{display:block;font-size:14px;margin:7px 0}.day span{font-size:11px;color:var(--blue)}@media(max-width:850px){.daily{grid-template-columns:repeat(2,minmax(0,1fr))}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}button,select{font:inherit}button{cursor:pointer}.top{background:linear-gradient(120deg,#102b46,#174d76);color:#fff;padding:22px max(20px,calc((100% - 1280px)/2));}.brand{display:flex;justify-content:space-between;align-items:center;gap:16px}.brand h1{font-size:clamp(21px,3vw,30px);margin:0}.brand p{margin:7px 0 0;color:#c6d8e7;font-size:14px}.status{font-size:12px;border:1px solid #7092ac;border-radius:30px;padding:8px 12px;white-space:nowrap}.wrap{max-width:1280px;margin:auto;padding:22px 18px 48px}.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.toolbar label{font-size:13px;color:var(--muted)}select,.btn{border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:white;color:var(--ink)}.btn.primary{background:var(--blue);border-color:var(--blue);color:white}.btn:disabled{opacity:.5;cursor:not-allowed}.updated{margin-inline-start:auto;color:var(--muted);font-size:12px}.grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 3px 14px #183b5710}.panel-head{display:flex;justify-content:space-between;align-items:center;padding:15px 17px;border-bottom:1px solid var(--line)}.panel-head h2{font-size:16px;margin:0}.panel-head span{font-size:12px;color:var(--muted)}#map{height:450px;width:100%;background:#e8eff4}.map-note{padding:9px 14px;color:var(--muted);font-size:11px;border-top:1px solid var(--line)}.radar-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line)}.radar-tools label{font-size:12px;color:var(--muted)}.radar-tools select{padding:8px 10px}.radar-legend{display:flex;gap:12px;flex-wrap:wrap;padding:9px 14px;font-size:11px;color:var(--muted)}.legend-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:4px}.radar-meta{padding:0 14px 10px;font-size:11px;color:var(--muted);line-height:1.7}.side{display:grid;gap:16px;align-content:start}.place-title{padding:16px 17px 0}.place-title h2{margin:0;font-size:22px}.place-title p{margin:5px 0;color:var(--muted);font-size:12px}.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}.metric{background:#f6f9fc;border:1px solid #e8eef3;border-radius:12px;padding:13px}.metric small{color:var(--muted);font-size:12px}.metric strong{display:block;font-size:25px;margin-top:8px;font-weight:700}.metric em{font-style:normal;color:var(--muted);font-size:11px}.notice{margin:0 14px 14px;padding:11px 12px;border-radius:10px;background:#fff7e8;color:#79500b;font-size:12px;line-height:1.7}.chart-wrap{padding:12px 14px 16px}.chart{width:100%;height:180px;display:block}.data-state{padding:10px 14px;color:var(--muted);font-size:12px;line-height:1.7}.data-state.error{color:var(--red)}.data-meta{font-size:11px;color:var(--muted);padding:0 14px 14px}.chart-labels{display:flex;gap:14px;flex-wrap:wrap;padding:0 14px 8px;font-size:11px;color:var(--muted)}.chart-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:10px}.sources{display:grid;gap:0}.source{padding:14px 16px;border-bottom:1px solid var(--line)}.source:last-child{border:0}.source b{display:block;font-size:14px}.source p{margin:5px 0;color:var(--muted);font-size:12px;line-height:1.6}.source a{color:var(--blue);text-decoration:none;font-size:12px}.source .tag{display:inline-block;margin-top:7px;border-radius:30px;padding:4px 8px;background:#edf5fb;color:#275b80;font-size:10px}.section-title{font-size:18px;margin:24px 0 12px}.foot{margin-top:18px;color:var(--muted);font-size:11px;line-height:1.8}.error{color:var(--red)}.loading{color:var(--muted);font-size:13px;padding:10px 14px}.leaflet-container{font-family:Tahoma,Arial,sans-serif}.weather-context{padding:0 14px 14px}.weather-context h3{font-size:14px;margin:12px 0 8px}.insight{padding:12px;border-radius:12px;background:#eef6fc;color:#234d6b;font-size:13px;line-height:1.8}.hourly{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scroll-snap-type:x proximity}.hour{min-width:86px;border:1px solid var(--line);border-radius:11px;padding:10px 8px;text-align:center;scroll-snap-align:start;background:#fbfdff}.hour b,.day b{display:block;font-size:13px}.hour strong{display:block;font-size:19px;margin:7px 0}.hour small,.day small{display:block;color:var(--muted);font-size:11px;line-height:1.6}.daily{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;padding:12px 14px}.day{background:#f7fafc;border:1px solid #e8eef3;border-radius:10px;padding:10px 7px;text-align:center;min-width:0}.day strong{display:block;font-size:14px;margin:7px 0}.day span{font-size:11px;color:var(--blue)}@media(max-width:850px){.daily{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:850px){.grid{grid-template-columns:1fr}.side{grid-template-columns:1fr}.updated{width:100%;margin:0}#map{height:360px}.wrap{padding:14px 12px 32px}.top{padding:18px 16px}.status{font-size:10px}}
 </style>
 </head>
@@ -30,7 +30,7 @@
 <div class="grid">
 <section class="panel">
 <div class="panel-head"><h2>الخريطة التفاعلية</h2><span>المملكة العربية السعودية</span></div>
-<div id="map" role="application" aria-label="خريطة تفاعلية للمملكة العربية السعودية"></div>
+<div class="radar-tools"><label for="radarMode">طبقة الخريطة</label><select id="radarMode" aria-label="اختر طبقة الرادار"><option value="current">الطقس الحالي حسب النموذج</option><option value="rain">الأمطار المتوقعة اليوم</option></select><button class="btn" id="refreshRadar" type="button">تحديث بيانات المدن</button></div><div id="map" role="application" aria-label="خريطة تفاعلية للمملكة العربية السعودية"></div><div class="radar-legend" id="radarLegend"><span><i class="legend-dot" style="background:#23865b"></i>طقس مستقر / دون مطر</span><span><i class="legend-dot" style="background:#d97706"></i>احتمال أو حالة متوسطة</span><span><i class="legend-dot" style="background:#1769aa"></i>هطول / احتمال أعلى</span><span><i class="legend-dot" style="background:#b42318"></i>رمز عواصف رعدية</span><span><i class="legend-dot" style="background:#7b8794"></i>لا تتوفر بيانات</span></div><div class="radar-meta" id="radarMeta">جارٍ تحميل ملخص المدن من نموذج الطقس…</div>
 <div class="map-note">الخريطة الأساسية من OpenStreetMap. موقع المؤشر يوضح المدينة المختارة، وليس قياساً لمحطة رصد.</div>
 </section>
 <div class="side">
@@ -84,7 +84,7 @@
 var places={
 riyadh:{name:"الرياض",lat:24.7136,lon:46.6753},abha:{name:"أبها",lat:18.2164,lon:42.5053},jeddah:{name:"جدة",lat:21.4858,lon:39.1925},dammam:{name:"الدمام",lat:26.4207,lon:50.0888},tabuk:{name:"تبوك",lat:28.3838,lon:36.5550},hail:{name:"حائل",lat:27.5114,lon:41.7208},buraidah:{name:"بريدة",lat:26.3260,lon:43.9750},madinah:{name:"المدينة المنورة",lat:24.5247,lon:39.5692},makkah:{name:"مكة المكرمة",lat:21.3891,lon:39.8579},jazan:{name:"جازان",lat:16.8892,lon:42.5511},najran:{name:"نجران",lat:17.5650,lon:44.2289},arar:{name:"عرعر",lat:30.9753,lon:41.0381},sakaka:{name:"سكاكا",lat:29.9697,lon:40.2064}
 };
-var map=null,cityMarkers={},activeKey="riyadh",chirpsDataset=null;
+var map=null,cityMarkers={},radarCircles={},radarData={},radarMode="current",radarRequestId=0,radarUpdatedAt=null,activeKey="riyadh",chirpsDataset=null;
 var $=function(id){return document.getElementById(id)};
 function setText(id,value){$(id).textContent=value}
 function number(v,d){return v===null||v===undefined||!isFinite(Number(v))?"—":Number(v).toFixed(d||0)}
@@ -103,8 +103,71 @@ function initMap(){
   var p=places[key],cityMarker=L.marker([p.lat,p.lon]).addTo(map).bindPopup(p.name);
   cityMarker.on("click",function(){selectCity(key)});
   cityMarkers[key]=cityMarker;
+  if(typeof L.circleMarker==="function"){
+   var circle=L.circleMarker([p.lat,p.lon],{radius:11,color:"#ffffff",weight:2,fillColor:"#7b8794",fillOpacity:0.88}).addTo(map);
+   circle.on("click",function(){selectCity(key)});
+   radarCircles[key]=circle;
+  }
  });
  if(cityMarkers[activeKey])cityMarkers[activeKey].openPopup();
+}
+function radarColor(item,mode){
+ if(!item)return "#7b8794";
+ if(mode==="rain"){
+  var amount=item.today.precipitation,prob=item.today.precipitation_probability_max;
+  if(amount===null||prob===null)return "#7b8794";
+  if(prob>=60&&amount>=2)return "#1769aa";
+  if(prob>=30&&amount>0)return "#d97706";
+  return "#23865b";
+ }
+ var code=item.current.weather_code,rain=item.current.precipitation;
+ if(code===null&&rain===null)return "#7b8794";
+ if(code!==null&&[95,96,99].includes(code))return "#b42318";
+ if(rain!==null&&rain>=0.1)return "#1769aa";
+ if(code!==null&&[51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code))return "#d97706";
+ return "#23865b";
+}
+function radarPopup(key,item){
+ var p=places[key];
+ if(!item)return "<b>"+escapeHtml(p.name)+"</b><br>بيانات النموذج غير متاحة حالياً";
+ return "<b>"+escapeHtml(p.name)+"</b><br>الحرارة: "+(item.current.temperature===null?"غير متاح":number(item.current.temperature,1)+"°م")+
+  "<br>الهطول الحالي: "+(item.current.precipitation===null?"غير متاح":number(item.current.precipitation,1)+" ملم")+
+  "<br>المتوقع اليوم: "+(item.today.precipitation===null?"غير متاح":number(item.today.precipitation,1)+" ملم")+
+  "<br>احتمال المطر: "+(item.today.precipitation_probability_max===null?"غير متاح":Math.round(item.today.precipitation_probability_max)+"٪")+
+  "<br><small>نموذج Open-Meteo · ليس رصداً أرضياً أو تنبيهاً رسمياً</small>";
+}
+function renderRadar(){
+ Object.keys(places).forEach(function(key){
+  var circle=radarCircles[key],item=radarData[key];
+  if(!circle)return;
+  circle.setStyle({fillColor:radarColor(item,radarMode)});
+  circle.bindPopup(radarPopup(key,item));
+  if(!item)circle.setStyle({fillColor:"#7b8794",fillOpacity:0.65});
+ });
+ var count=Object.keys(radarData).filter(function(key){return !!radarData[key]}).length;
+ var label=radarMode==="rain"?"الأمطار المتوقعة اليوم":"حالة الطقس الحالية";
+ setText("radarMeta",label+" · بيانات متاحة لـ "+count+" من "+Object.keys(places).length+" مدينة · "+(radarUpdatedAt?"آخر تحديث ناجح: "+radarUpdatedAt:"لا يوجد تحديث ناجح بعد")+". المصدر: نموذج Open-Meteo، وليس رصداً مباشراً أو إنذاراً رسمياً. اللون الرمادي يعني عدم توفر قيمة كافية.");
+}
+async function loadRadar(){
+ var requestId=++radarRequestId,keys=Object.keys(places);
+ $("refreshRadar").disabled=true;
+ setText("radarMeta","جارٍ تحديث ملخص الطقس للمدن الـ13 بطلب موحد…");
+ try{
+  var locations=keys.map(function(key){var p=places[key];return {id:key,name:p.name,lat:p.lat,lon:p.lon};});
+  var results=await WeatherService.fetchOverviewBatch(locations);
+  if(requestId!==radarRequestId)return;
+  radarData={};
+  results.forEach(function(result){if(result.data)radarData[result.location_id]=result.data;});
+  if(Object.keys(radarData).length)radarUpdatedAt=new Date().toLocaleString("ar-SA",{timeZone:"Asia/Riyadh"});
+  renderRadar();
+  var failed=keys.length-Object.keys(radarData).length;
+  if(failed)setText("radarMeta",$("radarMeta").textContent+" · بيانات غير متاحة لـ "+failed+" مدينة؛ لا تُستبدل القيم المفقودة بأصفار.");
+  if(!Object.keys(radarData).length)setText("radarMeta","تعذر الحصول على بيانات المدن حالياً. تحقق من الاتصال ثم أعد المحاولة. المصدر: Open-Meteo.");
+ }catch(error){
+  if(requestId===radarRequestId)setText("radarMeta","تعذر تحديث طبقة المدن: "+(error&&error.message?error.message:"خطأ غير معروف")+". البيانات السابقة إن وجدت لا تُعد تحديثاً جديداً.");
+ }finally{
+  if(requestId===radarRequestId)$("refreshRadar").disabled=false;
+ } 
 }
 function weatherDescription(code){
  if(code===null||code===undefined||code==="")return "غير متاح";
@@ -246,7 +309,9 @@ async function loadWeather(){
 }
 $("place").addEventListener("change",function(e){selectCity(e.target.value)});
 $("refresh").addEventListener("click",loadWeather);
-initMap();loadWeather();loadChirps();
+$("radarMode").addEventListener("change",function(e){radarMode=e.target.value;renderRadar()});
+$("refreshRadar").addEventListener("click",loadRadar);
+initMap();loadWeather();loadChirps();loadRadar();
 })();
 </script>
 </body></html>
