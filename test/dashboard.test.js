@@ -412,6 +412,40 @@ test('Open-Meteo adapter normalizes practical hourly and seven-day weather conte
   assert.equal(normalized.daily[0].uv_index_max, 7);
 });
 
+test('Open-Meteo adapter exposes advanced atmosphere, wind-height, soil and radiation metrics', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  const url = new URL(adapter.buildCurrentUrl({ lat: 24.7, lon: 46.6 }));
+  for (const field of ['wet_bulb_temperature_2m', 'cape', 'freezing_level_height', 'boundary_layer_height', 'soil_temperature_0_to_7cm', 'soil_moisture_0_to_7cm', 'wind_speed_80m', 'wind_speed_100m', 'shortwave_radiation']) {
+    assert.ok(url.searchParams.get('current').includes(field), 'current request includes ' + field);
+  }
+  assert.ok(url.searchParams.get('hourly').includes('evapotranspiration'));
+  assert.ok(url.searchParams.get('daily').includes('et0_fao_evapotranspiration'));
+  const normalized = adapter.normalizeCurrent({
+    current: {
+      wet_bulb_temperature_2m: 19, cape: 450, freezing_level_height: 4200,
+      boundary_layer_height: 1100, soil_temperature_0_to_7cm: 24,
+      soil_moisture_0_to_7cm: 0.18, wind_speed_80m: 28, wind_speed_100m: 32,
+      shortwave_radiation: 650, direct_radiation: 400, diffuse_radiation: 250
+    },
+    hourly: {
+      time: ['2026-11-24T12:00'], wet_bulb_temperature_2m: [19], cape: [450],
+      freezing_level_height: [4200], boundary_layer_height: [1100], evapotranspiration: [0.12],
+      soil_temperature_0_to_7cm: [24], soil_moisture_0_to_7cm: [0.18],
+      wind_speed_80m: [28], wind_speed_100m: [32], wind_speed_120m: [35],
+      direct_radiation: [400], diffuse_radiation: [250]
+    },
+    daily: { time: ['2026-11-24'], et0_fao_evapotranspiration: [4.1] }
+  }, { id: 'riyadh', name: 'الرياض', lat: 24.7, lon: 46.6 });
+  const value = name => normalized.measurements.find(item => item.name === name).value;
+  assert.equal(value('wet_bulb_temperature'), 19);
+  assert.equal(value('cape'), 450);
+  assert.equal(value('freezing_level_height'), 4200);
+  assert.equal(value('soil_moisture_0_7cm'), 0.18);
+  assert.equal(value('wind_speed_100m'), 32);
+  assert.equal(normalized.hourly[0].evapotranspiration, 0.12);
+  assert.equal(normalized.daily[0].et0_fao_evapotranspiration, 4.1);
+});
+
 test('Open-Meteo adapter rejects mismatched hourly forecast arrays', () => {
   const adapter = require('../src/providers/weather/open-meteo/adapter.js');
   assert.throws(() => adapter.normalizeCurrent({
