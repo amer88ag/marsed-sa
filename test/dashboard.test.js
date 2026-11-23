@@ -497,7 +497,7 @@ test('dashboard provides selectable current-weather and daily-rain map layers', 
   assert.match(html, /function loadRadar\(\)/);
   assert.match(html, /WeatherService\.fetchOverview/);
   assert.match(html, /L\.circleMarker/);
-  assert.match(html, /لم تُستبدل بياناتها بقيم صفرية/);
+  assert.match(html, /لا تُستبدل القيم المفقودة بأصفار/);
   assert.match(html, /ليس رصداً أرضياً أو تنبيهاً رسمياً/);
 });
 
