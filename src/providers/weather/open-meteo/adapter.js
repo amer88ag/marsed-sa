@@ -11,9 +11,9 @@
     const query = new URLSearchParams({
       latitude: String(location.lat),
       longitude: String(location.lon),
-      current: "temperature_2m,relative_humidity_2m,dew_point_2m,precipitation,rain,showers,wind_speed_10m,wind_direction_10m,wind_gusts_10m,apparent_temperature,weather_code,is_day,cloud_cover,pressure_msl,surface_pressure",
-      hourly: "temperature_2m,apparent_temperature,dew_point_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover,pressure_msl,surface_pressure,visibility,uv_index,shortwave_radiation",
-      daily: "weather_code,precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max",
+      current: "temperature_2m,relative_humidity_2m,dew_point_2m,precipitation,rain,showers,wind_speed_10m,wind_direction_10m,wind_gusts_10m,apparent_temperature,weather_code,is_day,cloud_cover,pressure_msl,surface_pressure,wet_bulb_temperature_2m,cape,freezing_level_height,boundary_layer_height,soil_temperature_0_to_7cm,soil_moisture_0_to_7cm,wind_speed_80m,wind_speed_100m,wind_direction_80m,wind_direction_100m,shortwave_radiation,direct_radiation,diffuse_radiation,visibility,uv_index",
+      hourly: "temperature_2m,apparent_temperature,dew_point_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover,pressure_msl,surface_pressure,visibility,uv_index,shortwave_radiation,wet_bulb_temperature_2m,cape,freezing_level_height,boundary_layer_height,evapotranspiration,soil_temperature_0_to_7cm,soil_temperature_7_to_28cm,soil_temperature_28_to_100cm,soil_temperature_100_to_255cm,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,soil_moisture_28_to_100cm,soil_moisture_100_to_255cm,wind_speed_80m,wind_speed_100m,wind_speed_120m,wind_direction_80m,wind_direction_100m,wind_direction_120m,direct_radiation,diffuse_radiation",
+      daily: "weather_code,precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,et0_fao_evapotranspiration",
       past_days: "0",
       forecast_days: "7",
       timezone: "Asia/Riyadh"
@@ -169,6 +169,19 @@
       ["wind_speed", "wind_speed_10m", "km/h"],
       ["wind_direction", "wind_direction_10m", "°"],
       ["wind_gusts", "wind_gusts_10m", "km/h"],
+      ["wet_bulb_temperature", "wet_bulb_temperature_2m", "°C"],
+      ["cape", "cape", "J/kg"],
+      ["freezing_level_height", "freezing_level_height", "m"],
+      ["boundary_layer_height", "boundary_layer_height", "m"],
+      ["soil_temperature_0_7cm", "soil_temperature_0_to_7cm", "°C"],
+      ["soil_moisture_0_7cm", "soil_moisture_0_to_7cm", "m³/m³"],
+      ["wind_speed_80m", "wind_speed_80m", "km/h"],
+      ["wind_speed_100m", "wind_speed_100m", "km/h"],
+      ["wind_direction_80m", "wind_direction_80m", "°"],
+      ["wind_direction_100m", "wind_direction_100m", "°"],
+      ["shortwave_radiation", "shortwave_radiation", "W/m²"],
+      ["direct_radiation", "direct_radiation", "W/m²"],
+      ["diffuse_radiation", "diffuse_radiation", "W/m²"],
       ["dew_point", "dew_point_2m", "°C"],
       ["cloud_cover", "cloud_cover", "%"],
       ["pressure_msl", "pressure_msl", "hPa"],
@@ -176,7 +189,7 @@
     ].map(([name, key, unit]) => ({ name, value: numericOrNull(current[key], key), unit }));
     const daily = payload.daily;
     const dailyTimes = Array.isArray(daily.time) ? daily.time : [];
-    const dailyFields = ["weather_code", "precipitation_sum", "precipitation_probability_max", "temperature_2m_max", "temperature_2m_min", "sunrise", "sunset", "uv_index_max"];
+    const dailyFields = ["weather_code", "precipitation_sum", "precipitation_probability_max", "temperature_2m_max", "temperature_2m_min", "sunrise", "sunset", "uv_index_max", "et0_fao_evapotranspiration"];
     for (const key of dailyFields) {
       if (daily[key] !== undefined && (!Array.isArray(daily[key]) || daily[key].length !== dailyTimes.length)) {
         throw new TypeError("Daily field length mismatch: " + key);
@@ -184,7 +197,7 @@
     }
     const hourly = payload.hourly || {};
     const hourlyTimes = Array.isArray(hourly.time) ? hourly.time : [];
-    const hourlyFields = ["temperature_2m", "apparent_temperature", "dew_point_2m", "relative_humidity_2m", "precipitation_probability", "precipitation", "weather_code", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "cloud_cover", "pressure_msl", "surface_pressure", "visibility", "uv_index", "shortwave_radiation"];
+    const hourlyFields = ["temperature_2m", "apparent_temperature", "dew_point_2m", "relative_humidity_2m", "precipitation_probability", "precipitation", "weather_code", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "cloud_cover", "pressure_msl", "surface_pressure", "visibility", "uv_index", "shortwave_radiation", "wet_bulb_temperature_2m", "cape", "freezing_level_height", "boundary_layer_height", "evapotranspiration", "soil_temperature_0_to_7cm", "soil_temperature_7_to_28cm", "soil_temperature_28_to_100cm", "soil_temperature_100_to_255cm", "soil_moisture_0_to_7cm", "soil_moisture_7_to_28cm", "soil_moisture_28_to_100cm", "soil_moisture_100_to_255cm", "wind_speed_80m", "wind_speed_100m", "wind_speed_120m", "wind_direction_80m", "wind_direction_100m", "wind_direction_120m", "direct_radiation", "diffuse_radiation"];
     for (const key of hourlyFields) {
       if (hourly[key] !== undefined && (!Array.isArray(hourly[key]) || hourly[key].length !== hourlyTimes.length)) {
         throw new TypeError("Hourly field length mismatch: " + key);
@@ -199,7 +212,8 @@
       temperature_min: numericOrNull((daily.temperature_2m_min || [])[index], "temperature_2m_min"),
       sunrise: (daily.sunrise || [])[index] ?? null,
       sunset: (daily.sunset || [])[index] ?? null,
-      uv_index_max: numericOrNull((daily.uv_index_max || [])[index], "uv_index_max")
+      uv_index_max: numericOrNull((daily.uv_index_max || [])[index], "uv_index_max"),
+      et0_fao_evapotranspiration: numericOrNull((daily.et0_fao_evapotranspiration || [])[index], "et0_fao_evapotranspiration")
     }));
     const hourlyForecast = hourlyTimes.map((time, index) => ({
       valid_time: time,
@@ -218,7 +232,28 @@
       surface_pressure: numericOrNull((hourly.surface_pressure || [])[index], "hourly.surface_pressure"),
       visibility: numericOrNull((hourly.visibility || [])[index], "hourly.visibility"),
       uv_index: numericOrNull((hourly.uv_index || [])[index], "hourly.uv_index"),
-      shortwave_radiation: numericOrNull((hourly.shortwave_radiation || [])[index], "hourly.shortwave_radiation")
+      shortwave_radiation: numericOrNull((hourly.shortwave_radiation || [])[index], "hourly.shortwave_radiation"),
+      wet_bulb_temperature: numericOrNull((hourly.wet_bulb_temperature_2m || [])[index], "hourly.wet_bulb_temperature_2m"),
+      cape: numericOrNull((hourly.cape || [])[index], "hourly.cape"),
+      freezing_level_height: numericOrNull((hourly.freezing_level_height || [])[index], "hourly.freezing_level_height"),
+      boundary_layer_height: numericOrNull((hourly.boundary_layer_height || [])[index], "hourly.boundary_layer_height"),
+      evapotranspiration: numericOrNull((hourly.evapotranspiration || [])[index], "hourly.evapotranspiration"),
+      soil_temperature_0_7cm: numericOrNull((hourly.soil_temperature_0_to_7cm || [])[index], "hourly.soil_temperature_0_to_7cm"),
+      soil_temperature_7_28cm: numericOrNull((hourly.soil_temperature_7_to_28cm || [])[index], "hourly.soil_temperature_7_to_28cm"),
+      soil_temperature_28_100cm: numericOrNull((hourly.soil_temperature_28_to_100cm || [])[index], "hourly.soil_temperature_28_to_100cm"),
+      soil_temperature_100_255cm: numericOrNull((hourly.soil_temperature_100_to_255cm || [])[index], "hourly.soil_temperature_100_to_255cm"),
+      soil_moisture_0_7cm: numericOrNull((hourly.soil_moisture_0_to_7cm || [])[index], "hourly.soil_moisture_0_to_7cm"),
+      soil_moisture_7_28cm: numericOrNull((hourly.soil_moisture_7_to_28cm || [])[index], "hourly.soil_moisture_7_to_28cm"),
+      soil_moisture_28_100cm: numericOrNull((hourly.soil_moisture_28_to_100cm || [])[index], "hourly.soil_moisture_28_to_100cm"),
+      soil_moisture_100_255cm: numericOrNull((hourly.soil_moisture_100_to_255cm || [])[index], "hourly.soil_moisture_100_to_255cm"),
+      wind_speed_80m: numericOrNull((hourly.wind_speed_80m || [])[index], "hourly.wind_speed_80m"),
+      wind_speed_100m: numericOrNull((hourly.wind_speed_100m || [])[index], "hourly.wind_speed_100m"),
+      wind_speed_120m: numericOrNull((hourly.wind_speed_120m || [])[index], "hourly.wind_speed_120m"),
+      wind_direction_80m: numericOrNull((hourly.wind_direction_80m || [])[index], "hourly.wind_direction_80m"),
+      wind_direction_100m: numericOrNull((hourly.wind_direction_100m || [])[index], "hourly.wind_direction_100m"),
+      wind_direction_120m: numericOrNull((hourly.wind_direction_120m || [])[index], "hourly.wind_direction_120m"),
+      direct_radiation: numericOrNull((hourly.direct_radiation || [])[index], "hourly.direct_radiation"),
+      diffuse_radiation: numericOrNull((hourly.diffuse_radiation || [])[index], "hourly.diffuse_radiation")
     }));
     return {
       schema_version: "1.1.0",
