@@ -34,6 +34,34 @@
     });
     return "https://api.open-meteo.com/v1/forecast?" + query.toString();
   }
+  function buildOverviewBatchUrl(locations) {
+    if (!Array.isArray(locations) || locations.length === 0 ||
+        locations.some(location => !location || !Number.isFinite(location.lat) || !Number.isFinite(location.lon))) {
+      throw new TypeError("A non-empty list of locations with finite lat/lon is required");
+    }
+    const query = new URLSearchParams({
+      latitude: locations.map(location => String(location.lat)).join(","),
+      longitude: locations.map(location => String(location.lon)).join(","),
+      current: "temperature_2m,precipitation,rain,showers,wind_speed_10m,weather_code",
+      daily: "precipitation_sum,precipitation_probability_max",
+      forecast_days: "1",
+      timezone: locations.map(() => "Asia/Riyadh").join(",")
+    });
+    return "https://api.open-meteo.com/v1/forecast?" + query.toString();
+  }
+  function normalizeOverviewBatch(payload, locations, retrievedAt) {
+    if (!Array.isArray(payload) || payload.length !== locations.length) {
+      throw new TypeError("Open-Meteo multi-location response length mismatch");
+    }
+    return payload.map((item, index) => {
+      const location = locations[index];
+      try {
+        return { location_id: location.id, data: normalizeOverview(item, location, retrievedAt), error: null };
+      } catch (error) {
+        return { location_id: location.id, data: null, error: error.message };
+      }
+    });
+  }
   function normalizeOverview(payload, location, retrievedAt) {
     if (!payload || !payload.current || !payload.daily || !Array.isArray(payload.daily.time) || !payload.daily.time.length) {
       throw new TypeError("Open-Meteo overview response is incomplete");
@@ -141,5 +169,5 @@
       }
     };
   }
-  return { buildCurrentUrl, normalizeCurrent, buildOverviewUrl, normalizeOverview };
+  return { buildCurrentUrl, normalizeCurrent, buildOverviewUrl, normalizeOverview, buildOverviewBatchUrl, normalizeOverviewBatch };
 });
