@@ -36,5 +36,16 @@
     if (!response.ok) throw new Error("HTTP " + response.status);
     return adapter.normalizeOverviewBatch(await response.json(), locations, config.retrievedAt);
   }
-  return { fetchWeather, fetchOverview, fetchOverviewBatch };
+  async function fetchRouteWeatherBatch(locations, options) {
+    const config = options || {};
+    const adapter = config.adapter || (typeof OpenMeteoAdapter !== "undefined" ? OpenMeteoAdapter : null);
+    const fetcher = config.fetch || (typeof fetch === "function" ? fetch : null);
+    if (!adapter || !fetcher || typeof adapter.buildRouteWeatherBatchUrl !== "function" || typeof adapter.normalizeRouteWeatherBatch !== "function") {
+      throw new Error("Route weather dependencies are unavailable");
+    }
+    const response = await fetcher(adapter.buildRouteWeatherBatchUrl(locations), { headers: { Accept: "application/json" } });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    return adapter.normalizeRouteWeatherBatch(await response.json(), locations, config.retrievedAt);
+  }
+  return { fetchWeather, fetchOverview, fetchOverviewBatch, fetchRouteWeatherBatch };
 });

@@ -10,8 +10,15 @@
       "description": "عرض مؤشرات الطقس النموذجية للمدن السعودية.",
       "status": "active",
       "ui_entry": "index.html#weather",
-      "provider_ids": ["open-meteo", "ncm"],
-      "capabilities": ["current_conditions", "daily_forecast", "precipitation"],
+      "provider_ids": [
+        "open-meteo",
+        "ncm"
+      ],
+      "capabilities": [
+        "current_conditions",
+        "daily_forecast",
+        "precipitation"
+      ],
       "data_class": "model_output",
       "safety_notice": "ليست قياسات محطات رسمية ولا بديلاً عن تنبيهات الجهات المختصة."
     },
@@ -22,8 +29,13 @@
       "description": "عرض بيانات CHIRPS النقطية التجريبية ومقارنة المنتجات.",
       "status": "research",
       "ui_entry": "index.html#chirps",
-      "provider_ids": ["chirps-v3"],
-      "capabilities": ["historical_daily_precipitation", "sat_rnl_comparison"],
+      "provider_ids": [
+        "chirps-v3"
+      ],
+      "capabilities": [
+        "historical_daily_precipitation",
+        "sat_rnl_comparison"
+      ],
       "data_class": "satellite_estimate",
       "safety_notice": "العينة الحالية ثلاثة أيام و13 نقطة مدينة؛ ليست قياسات محطات أو متوسطات مناطق."
     },
@@ -34,7 +46,10 @@
       "description": "خدمة مستقبلية تنتظر اعتماد مصدر البيانات وشروط العرض.",
       "status": "planned",
       "provider_ids": [],
-      "capabilities": ["air_quality_index", "pollutants"]
+      "capabilities": [
+        "air_quality_index",
+        "pollutants"
+      ]
     },
     {
       "id": "earthquakes",
@@ -43,7 +58,9 @@
       "description": "خدمة مستقبلية لعرض الأحداث الزلزالية من مصدر معتمد.",
       "status": "planned",
       "provider_ids": [],
-      "capabilities": ["earthquake_events"]
+      "capabilities": [
+        "earthquake_events"
+      ]
     },
     {
       "id": "water",
@@ -52,7 +69,10 @@
       "description": "خدمة مستقبلية لمؤشرات المياه والسدود بعد اعتماد المصادر.",
       "status": "planned",
       "provider_ids": [],
-      "capabilities": ["reservoirs", "water_resources"]
+      "capabilities": [
+        "reservoirs",
+        "water_resources"
+      ]
     },
     {
       "id": "vegetation",
@@ -61,7 +81,9 @@
       "description": "خدمة مستقبلية لمؤشرات الغطاء النباتي مثل NDVI.",
       "status": "planned",
       "provider_ids": [],
-      "capabilities": ["vegetation_indices"]
+      "capabilities": [
+        "vegetation_indices"
+      ]
     },
     {
       "id": "maps",
@@ -69,8 +91,13 @@
       "category": "geography",
       "description": "طبقات جغرافية مرخصة مع إسناد ومعلومات مصدر.",
       "status": "research",
-      "provider_ids": ["openstreetmap"],
-      "capabilities": ["base_map", "geographic_layers"]
+      "provider_ids": [
+        "openstreetmap"
+      ],
+      "capabilities": [
+        "base_map",
+        "geographic_layers"
+      ]
     },
     {
       "id": "reports",
@@ -79,7 +106,29 @@
       "description": "تقارير مشتقة من الخدمات بعد اجتياز بوابات جودة البيانات.",
       "status": "planned",
       "provider_ids": [],
-      "capabilities": ["summaries", "exports"]
+      "capabilities": [
+        "summaries",
+        "exports"
+      ]
+    },
+    {
+      "id": "road-trips",
+      "title": "عين الطريق والرحلات",
+      "category": "mobility",
+      "description": "حساب مسار تجريبي بين المدن وعرض توقعات الطقس النموذجية على نقاط مختارة من الطريق.",
+      "status": "research",
+      "ui_entry": "index.html#road-trips",
+      "provider_ids": [
+        "osrm-demo",
+        "open-meteo",
+        "openstreetmap"
+      ],
+      "capabilities": [
+        "city_to_city_route",
+        "route_weather_forecast"
+      ],
+      "data_class": "route_estimate_and_model_output",
+      "safety_notice": "زمن المسار ليس حركة مرور حية. لا تتوفر بيانات موثقة عن الحوادث أو الإغلاقات أو التنبيهات الرسمية ضمن هذه التجربة."
     }
   ]
 }

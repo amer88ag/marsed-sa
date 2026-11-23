@@ -90,6 +90,24 @@
       "rate_limit": "Public tile usage policy applies; do not bulk download or treat public tiles as a free unlimited CDN",
       "health_status": "not_monitored",
       "notes": "Basemap only; administrative boundary redistribution requires separate source/license review."
+    },
+    {
+      "id": "osrm-demo",
+      "name": "OSRM Demo Server",
+      "official_url": "https://project-osrm.org/",
+      "domain": "routing",
+      "products": [
+        "driving-route-geometry",
+        "distance-duration-estimate"
+      ],
+      "auth_mode": "none",
+      "license_status": "review_required",
+      "license": "OpenStreetMap-derived route data under ODbL attribution; demo service restricted to reasonable non-commercial use, max 1 request/second, best-effort without uptime or latency guarantees",
+      "attribution": "© OpenStreetMap contributors · Route calculated by OSRM",
+      "coverage": "Route availability depends on mapped road network and demo server data",
+      "rate_limit": "Maximum 1 request per second; avoid automated polling; public demo access can be withdrawn",
+      "health_status": "not_monitored",
+      "notes": "Prototype route geometry and modelled duration only. Not live traffic, road closure, incident, or official safety data; replace with a suitable provider before production."
     }
   ]
 }
