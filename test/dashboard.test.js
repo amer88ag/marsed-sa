@@ -500,3 +500,58 @@ test('dashboard provides selectable current-weather and daily-rain map layers', 
   assert.match(html, /لم تُستبدل بياناتها بقيم صفرية/);
   assert.match(html, /ليس رصداً أرضياً أو تنبيهاً رسمياً/);
 });
+
+
+test('national radar batches all city coordinates into one Open-Meteo request', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  const locations = [
+    { id: 'riyadh', name: 'الرياض', lat: 24.7136, lon: 46.6753 },
+    { id: 'abha', name: 'أبها', lat: 18.2164, lon: 42.5053 }
+  ];
+  const url = new URL(adapter.buildOverviewBatchUrl(locations));
+  assert.equal(url.searchParams.get('latitude'), '24.7136,18.2164');
+  assert.equal(url.searchParams.get('longitude'), '46.6753,42.5053');
+  assert.equal(url.searchParams.get('timezone'), 'Asia/Riyadh,Asia/Riyadh');
+  assert.throws(() => adapter.buildOverviewBatchUrl([]), /non-empty list/);
+  assert.throws(() => adapter.buildOverviewBatchUrl([{ lat: NaN, lon: 42 }]), /finite lat\/lon/);
+});
+
+test('national radar batch normalization maps each response to its city and preserves partial failures', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  const locations = [
+    { id: 'riyadh', name: 'الرياض', lat: 24.7, lon: 46.6 },
+    { id: 'abha', name: 'أبها', lat: 18.2, lon: 42.5 }
+  ];
+  const results = adapter.normalizeOverviewBatch([
+    { current: { time: '2026-11-23T12:00', temperature_2m: 28, precipitation: 0, weather_code: 1 },
+      daily: { time: ['2026-11-23'], precipitation_sum: [0], precipitation_probability_max: [0] } },
+    { current: { temperature_2m: 'invalid' }, daily: { time: ['2026-11-23'] } }
+  ], locations, '2026-11-23T09:00:00Z');
+  assert.equal(results[0].location_id, 'riyadh');
+  assert.equal(results[0].data.current.temperature, 28);
+  assert.equal(results[1].location_id, 'abha');
+  assert.equal(results[1].data, null);
+  assert.match(results[1].error, /Invalid numeric field/);
+  assert.throws(() => adapter.normalizeOverviewBatch([], locations), /length mismatch/);
+});
+
+test('weather service performs one batch request for multiple radar cities', async () => {
+  const service = require('../src/services/weather/service.js');
+  let calls = 0;
+  const locations = [
+    { id: 'riyadh', lat: 24.7, lon: 46.6 },
+    { id: 'abha', lat: 18.2, lon: 42.5 }
+  ];
+  const fakeAdapter = {
+    buildOverviewBatchUrl: () => 'https://provider.test/batch',
+    normalizeOverviewBatch: (payload, requested) => requested.map((location, index) => ({
+      location_id: location.id, data: { value: payload[index].value }, error: null
+    }))
+  };
+  const results = await service.fetchOverviewBatch(locations, {
+    adapter: fakeAdapter,
+    fetch: async () => { calls += 1; return { ok: true, json: async () => [{ value: 1 }, { value: 2 }] }; }
+  });
+  assert.equal(calls, 1);
+  assert.deepEqual(results.map(item => item.data.value), [1, 2]);
+});
