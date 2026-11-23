@@ -404,7 +404,7 @@ async function loadWeather(){
   setText("loading","تم تحميل بيانات النموذج بنجاح.");
   setText("updated","آخر جلب: "+new Date().toLocaleString("ar-SA",{timeZone:"Asia/Riyadh"}));
   setText("connection","● متصل");
-  $("quality").innerHTML='تنبيه منهجي: البيانات الحالية والتاريخية والتوقعات مستمدة من نماذج الطقس لدى Open-Meteo، وليست رصداً مباشراً أو تنبيهاً رسمياً من المركز الوطني للأرصاد. الارتفاع تقدير تضاريسي من Copernicus DEM GLO-90 بدقة 90م، وليس قياساً مساحياً. الضغط عند مستوى سطح البحر أنسب لمقارنة الطقس بين المواقع، بينما ضغط سطح الموقع يتأثر بالارتفاع.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · <a href="https://open-meteo.com/en/docs/elevation-api" target="_blank" rel="noopener">Copernicus DEM GLO-90 elevation</a> · الإسناد وفق CC BY 4.0.';
+  $("quality").innerHTML='تنبيه منهجي: البيانات الحالية والتاريخية والتوقعات مستمدة من نماذج الطقس لدى Open-Meteo، لا تمثل هذه القيم رصداً مباشراً أو تنبيهاً رسمياً من المركز الوطني للأرصاد. الارتفاع تقدير تضاريسي من Copernicus DEM GLO-90 بدقة 90م، وليس قياساً مساحياً. الضغط عند مستوى سطح البحر أنسب لمقارنة الطقس بين المواقع، بينما ضغط سطح الموقع يتأثر بالارتفاع.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · <a href="https://open-meteo.com/en/docs/elevation-api" target="_blank" rel="noopener">Copernicus DEM GLO-90 elevation</a> · الإسناد وفق CC BY 4.0.';
  }catch(error){
   if(requestId!==weatherRequestId||requestedKey!==activeKey)return;
   clearWeatherDisplay();
