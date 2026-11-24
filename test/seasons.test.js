@@ -38,3 +38,11 @@ test('season and agricultural JavaScript parses without syntax errors', () => {
   assert.equal(scripts.length, 1);
   for (const script of scripts) new vm.Script(script, { filename: 'seasons/index.html' });
 });
+
+test('orchard calendar covers the farm fruit trees with source-aware caveats', () => {
+  for (const name of ['العنب','الرمان','التين','الكمثرى','الخوخ والمشمش','الحمضيات والبرتقال','التوت']) assert.ok(page.includes(name), name);
+  assert.match(page, /موسم حصاد 2024/);
+  assert.match(page, /قبل تفتح البراعم/);
+  assert.match(page, /لا نضع تاريخاً ثابتاً/);
+  assert.match(page, /أبها ليست درجة مناخية واحدة/);
+});
