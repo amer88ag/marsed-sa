@@ -35,7 +35,7 @@ test('weather provider adapter builds explicit Riyadh-time requests and service 
   const service = fs.readFileSync('src/services/weather/service.js', 'utf8');
   assert.match(adapter, /api\.open-meteo\.com\/v1\/forecast/);
   assert.match(adapter, /timezone: "Asia\/Riyadh"/);
-  assert.match(service, /if \(!response\.ok\) throw new Error/);
+  assert.match(service, /http\.request\(/); // HTTP failures are asserted behaviourally in 'weather service surfaces provider HTTP failures'
   assert.match(html, /تعذر جلب البيانات/);
 });
 
@@ -660,7 +660,10 @@ test('route weather adapter requests hourly forecasts and preserves missing meas
   const adapter = require('../src/providers/weather/open-meteo/adapter.js');
   const points = [{ id: 'route-point-1', lat: 24.7, lon: 46.6 }, { id: 'route-point-2', lat: 21.5, lon: 39.2 }];
   const url = new URL(adapter.buildRouteWeatherBatchUrl(points));
-  assert.equal(url.searchParams.get('forecast_days'), '2');
+  // forecast_days counts Saudi calendar days, so 2 would not cover a rolling 48 h window.
+  assert.equal(url.searchParams.get('forecast_days'), '4');
+  assert.equal(new URL(adapter.buildRouteWeatherBatchUrl(points, { forecastDays: 3 })).searchParams.get('forecast_days'), '3');
+  assert.throws(() => adapter.buildRouteWeatherBatchUrl(points, { forecastDays: 0 }), /forecastDays/);
   assert.match(url.searchParams.get('hourly'), /precipitation_probability/);
   assert.equal(url.searchParams.get('timezone'), 'Asia/Riyadh,Asia/Riyadh');
   const result = adapter.normalizeRouteWeatherBatch([

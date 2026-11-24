@@ -110,10 +110,13 @@
 <div class="foot">مرصد السعودية مشروع مستقل غير تابع للمركز الوطني للأرصاد أو NASA أو UCSB. لا تستخدم هذه اللوحة لاتخاذ قرارات السلامة أو الإخلاء أو الملاحة. في الحالات الطارئة اتبع تنبيهات الجهات الرسمية. © مرصد السعودية.</div>
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="src/platform/http/client.js"></script>
 <script src="src/providers/weather/open-meteo/adapter.js"></script>
 <script src="src/providers/precipitation/chirps/adapter.js"></script>
 <script src="src/services/weather/service.js"></script>
-<script src="src/services/precipitation/service.js"></script>\n<script src="src/providers/routing/osrm/adapter.js"></script>\n<script src="src/services/routing/service.js"></script>
+<script src="src/services/precipitation/service.js"></script>
+<script src="src/providers/routing/osrm/adapter.js"></script>
+<script src="src/services/routing/service.js"></script>
 <script src="src/services/routing/itinerary.js"></script>
 <script>
 (function(){
@@ -121,7 +124,10 @@
 var places={
 riyadh:{name:"الرياض",lat:24.7136,lon:46.6753},abha:{name:"أبها",lat:18.2164,lon:42.5053},jeddah:{name:"جدة",lat:21.4858,lon:39.1925},dammam:{name:"الدمام",lat:26.4207,lon:50.0888},tabuk:{name:"تبوك",lat:28.3838,lon:36.5550},hail:{name:"حائل",lat:27.5114,lon:41.7208},buraidah:{name:"بريدة",lat:26.3260,lon:43.9750},madinah:{name:"المدينة المنورة",lat:24.5247,lon:39.5692},makkah:{name:"مكة المكرمة",lat:21.3891,lon:39.8579},jazan:{name:"جازان",lat:16.8892,lon:42.5511},najran:{name:"نجران",lat:17.5650,lon:44.2289},arar:{name:"عرعر",lat:30.9753,lon:41.0381},sakaka:{name:"سكاكا",lat:29.9697,lon:40.2064}
 };
-var map=null,cityMarkers={},radarCircles={},radarData={},radarMode="current",radarRequestId=0,radarUpdatedAt=null,activeKey="riyadh",chirpsDataset=null,tripLine=null,tripMarkers=[];
+var map=null,cityMarkers={},radarCircles={},radarData={},radarMode="current",radarRequestId=0,radarUpdatedAt=null,activeKey="riyadh",chirpsDataset=null,tripLine=null,tripMarkers=[],tripRequestId=0,tripAbort=null,weatherAbort=null,radarAbort=null;
+var REQUEST_TIMEOUT_MS=15000;
+function freshController(previous){if(previous)previous.abort();return typeof AbortController==="function"?new AbortController():null}
+function errorText(error){return typeof HttpClient!=="undefined"&&error&&error.kind?HttpClient.describeError(error):(error&&error.message?error.message:"خطأ غير معروف")}
 var $=function(id){return document.getElementById(id)};
 function setText(id,value){$(id).textContent=value}
 function number(v,d){return v===null||v===undefined||!isFinite(Number(v))?"—":Number(v).toFixed(d||0)}
@@ -156,15 +162,7 @@ function formatDuration(seconds){
  var minutes=Math.round(seconds/60),hours=Math.floor(minutes/60),remaining=minutes%60;
  return hours?hours+" ساعة و"+remaining+" دقيقة":remaining+" دقيقة";
 }
-function weatherAtEta(rows,eta){
- if(!Array.isArray(rows)||!rows.length)return null;
- var target=eta.getTime(),best=null,bestDelta=Infinity;
- rows.forEach(function(row){
-  var time=new Date(row.valid_time+"+03:00").getTime(),delta=Math.abs(time-target);
-  if(Number.isFinite(time)&&delta<bestDelta){best=row;bestDelta=delta}
- });
- return best&&bestDelta<=90*60*1000?best:null;
-}
+function weatherAtEta(rows,eta){return RouteItinerary.weatherAtEta(rows,eta)}
 function clearTripMap(){
  if(tripLine&&map)map.removeLayer(tripLine);
  tripLine=null;
@@ -176,23 +174,29 @@ async function planTrip(){
  if(!places[originKey]||!places[destinationKey]||originKey===destinationKey){
   setText("tripStatus","اختر مدينتين مختلفتين.");return;
  }
+ var requestId=++tripRequestId;
+ tripAbort=freshController(tripAbort);
+ var signal=tripAbort?tripAbort.signal:undefined;
  $("planTrip").disabled=true;
  setText("tripStatus","جارٍ حساب مسار القيادة ثم جلب توقعات الطقس على نقاط الطريق…");
  $("tripOutput").innerHTML="";
  try{
   var origin=places[originKey],destination=places[destinationKey];
-  var route=await RoutingService.fetchRoute({lat:origin.lat,lon:origin.lon},{lat:destination.lat,lon:destination.lon});
+  var route=await RoutingService.fetchRoute({lat:origin.lat,lon:origin.lon},{lat:destination.lat,lon:destination.lon},{signal:signal,timeoutMs:REQUEST_TIMEOUT_MS});
+  if(requestId!==tripRequestId)return;
   var points=OsrmAdapter.sampleRoute(route,8);
-  var itinerary=RouteItinerary.resolveDepartureTime($("tripDeparture").value,new Date(),route.duration_s);
-  var weather=await WeatherService.fetchRouteWeatherBatch(points);
-  var startTime=itinerary.departure.getTime(),totalKm=route.distance_m/1000;
+  var now=new Date();
+  var itinerary=RouteItinerary.resolveDepartureTime($("tripDeparture").value,now,route.duration_s);
+  var weather=await WeatherService.fetchRouteWeatherBatch(points,{signal:signal,timeoutMs:REQUEST_TIMEOUT_MS,forecastDays:RouteItinerary.requiredForecastDays(now)});
+  if(requestId!==tripRequestId)return;
+  var totalKm=route.distance_m/1000;
   var rows=points.map(function(point,index){
-   var fraction=totalKm>0?point.distance_km/totalKm:index/Math.max(1,points.length-1);
-   var eta=new Date(startTime+route.duration_s*fraction*1000);
+   var eta=totalKm>0?RouteItinerary.etaAtDistance(itinerary.departure,route.duration_s,point.distance_km,totalKm):new Date(itinerary.departure.getTime()+route.duration_s*1000*index/Math.max(1,points.length-1));
    var result=weather.find(function(item){return item.location_id===point.id});
    var forecast=weatherAtEta(result&&result.hourly,eta);
    return {point:point,eta:eta,forecast:forecast};
   });
+  var unavailable=rows.filter(function(row){return !row.forecast}).length;
   clearTripMap();
   if(map&&window.L){
    var latlngs=route.geometry.map(function(pair){return [pair[1],pair[0]]});
@@ -212,11 +216,12 @@ async function planTrip(){
   }).join("");
   table+='</tbody></table>';
   $("tripOutput").innerHTML=table;
-  setText("tripStatus","تم حساب المسار وجلب ملخص الطقس للنقاط المتاحة. لا توجد بيانات مرور حي ضمن هذه النتيجة.");
+  setText("tripStatus","تم حساب المسار وجلب ملخص الطقس للنقاط المتاحة. زمن القيادة تقدير من OSRM وليس زمن مرور حياً، ولا تتوفر بيانات ازدحام أو حوادث أو إغلاقات."+(unavailable?" · لا يتوفر توقع ساعي مطابق لوقت الوصول في "+unavailable+" نقطة؛ عُرضت «غير متاح» بدلاً من تقدير مختلق.":""));
  }catch(error){
+  if(requestId!==tripRequestId)return;
   clearTripMap();
-  setText("tripStatus","تعذر حساب الرحلة أو جلب الطقس: "+(error&&error.message?error.message:"خطأ غير معروف")+". أعد المحاولة لاحقاً.");
- }finally{$("planTrip").disabled=false}
+  setText("tripStatus","تعذر حساب الرحلة أو جلب الطقس: "+errorText(error)+". أعد المحاولة لاحقاً.");
+ }finally{if(requestId===tripRequestId)$("planTrip").disabled=false}
 }
 function radarColor(item,mode){
  if(!item)return "#7b8794";
@@ -261,7 +266,8 @@ async function loadRadar(){
  setText("radarMeta","جارٍ تحديث ملخص الطقس للمدن الـ13 بطلب موحد…");
  try{
   var locations=keys.map(function(key){var p=places[key];return {id:key,name:p.name,lat:p.lat,lon:p.lon};});
-  var results=await WeatherService.fetchOverviewBatch(locations);
+  radarAbort=freshController(radarAbort);
+  var results=await WeatherService.fetchOverviewBatch(locations,{signal:radarAbort?radarAbort.signal:undefined,timeoutMs:REQUEST_TIMEOUT_MS});
   if(requestId!==radarRequestId)return;
   radarData={};
   results.forEach(function(result){if(result.data)radarData[result.location_id]=result.data;});
@@ -271,7 +277,7 @@ async function loadRadar(){
   if(failed)setText("radarMeta",$("radarMeta").textContent+" · بيانات غير متاحة لـ "+failed+" مدينة؛ لا تُستبدل القيم المفقودة بأصفار.");
   if(!Object.keys(radarData).length)setText("radarMeta","تعذر الحصول على بيانات المدن حالياً. تحقق من الاتصال ثم أعد المحاولة. المصدر: Open-Meteo.");
  }catch(error){
-  if(requestId===radarRequestId)setText("radarMeta","تعذر تحديث طبقة المدن: "+(error&&error.message?error.message:"خطأ غير معروف")+". البيانات السابقة إن وجدت لا تُعد تحديثاً جديداً.");
+  if(requestId===radarRequestId)setText("radarMeta","تعذر تحديث طبقة المدن: "+errorText(error)+". البيانات السابقة إن وجدت لا تُعد تحديثاً جديداً.");
  }finally{
   if(requestId===radarRequestId)$("refreshRadar").disabled=false;
  } 
@@ -355,8 +361,11 @@ function drawChirpsChart(satRecords,rnlRecords){
 }
 function renderChirps(){
  if(!chirpsDataset||!chirpsDataset.series){setText("chirpsState","تعذر تحميل ملف عينة CHIRPS المحفوظ في هذا الإصدار. تحقق من الاتصال، ثم أعد تحميل الصفحة. تحديث العينة يتم عبر مهمة البحث على فرع التطوير ولا ينشر تلقائياً إلى main.");return}
- var satNormalized=PrecipitationService.getCitySeries(chirpsDataset,activeKey,"sat");
- var rnlNormalized=PrecipitationService.getCitySeries(chirpsDataset,activeKey,"rnl");
+ var satNormalized,rnlNormalized;
+ try{
+  satNormalized=PrecipitationService.getCitySeries(chirpsDataset,activeKey,"sat");
+  rnlNormalized=PrecipitationService.getCitySeries(chirpsDataset,activeKey,"rnl");
+ }catch(error){$("chirpsChart").innerHTML="";setText("chirpsState","لا توجد سلسلة CHIRPS صالحة لهذه المدينة في ملف العينة الحالي ("+error.message+"). لم تُعرض قيم بديلة.");return}
  var satRecords=satNormalized.observations.map(function(row){return {date:row.valid_date,precipitation_mm:row.value}});
  var rnlRecords=rnlNormalized.observations.map(function(row){return {date:row.valid_date,precipitation_mm:row.value}});
  if(!satRecords.length&&!rnlRecords.length){$("chirpsChart").innerHTML="";setText("chirpsState","لا توجد سجلات لهذه المدينة في ملف البيانات الحالي.");return}
@@ -368,7 +377,7 @@ function renderChirps(){
 }
 async function loadChirps(){
  try{
-  var payload=await PrecipitationService.fetchDataset("./data/chirps_daily.json");
+  var payload=await PrecipitationService.fetchDataset("./data/chirps_daily.json",{timeoutMs:REQUEST_TIMEOUT_MS});
   chirpsDataset=payload;
   renderChirps();
  }catch(error){
@@ -392,7 +401,8 @@ async function loadWeather(){
  $("refresh").disabled=true;$("connection").textContent="● جارٍ الاتصال";
  if(map){map.setView([p.lat,p.lon],7);if(cityMarkers[requestedKey])cityMarkers[requestedKey].openPopup()}
  try{
-  var data=await WeatherService.fetchWeather({id:requestedKey,name:p.name,lat:p.lat,lon:p.lon});
+  weatherAbort=freshController(weatherAbort);
+  var data=await WeatherService.fetchWeather({id:requestedKey,name:p.name,lat:p.lat,lon:p.lon},{signal:weatherAbort?weatherAbort.signal:undefined,timeoutMs:REQUEST_TIMEOUT_MS});
   if(requestId!==weatherRequestId||requestedKey!==activeKey)return;
   var measurement=function(name){var item=data.measurements.find(function(entry){return entry.name===name});return item?item.value:null};
   setText("temp",number(measurement("temperature"),1));
@@ -433,7 +443,7 @@ async function loadWeather(){
   clearWeatherDisplay();
   setText("loading","تعذر جلب البيانات. تحقق من الاتصال ثم أعد المحاولة.");
   $("loading").classList.add("error");setText("connection","● تعذر الاتصال");
-  setText("chartCaption","لم تُعرض بيانات بديلة أو تقديرات مصطنعة. "+error.message);
+  setText("chartCaption","لم تُعرض بيانات بديلة أو تقديرات مصطنعة. "+errorText(error));
  }finally{
   if(requestId===weatherRequestId)$("refresh").disabled=false;
  }

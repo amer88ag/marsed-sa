@@ -1,8 +1,11 @@
 (function (root, factory) {
-  const api = factory();
+  const http = (typeof module === "object" && module.exports)
+    ? require("../../platform/http/client.js")
+    : (root && root.HttpClient) || null;
+  const api = factory(http);
   if (typeof module === "object" && module.exports) module.exports = api;
   if (root) root.NasaGibsSatellite = api;
-})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+})(typeof globalThis !== "undefined" ? globalThis : this, function (http) {
   "use strict";
   const BASE = "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/";
   const KVP = BASE + "wmts.cgi";
@@ -57,24 +60,138 @@
     if (!periods.length) throw new Error("NASA GIBS did not return a readable time domain");
     return periods;
   }
-  function latestAvailableDate(periods) {
-    if (!Array.isArray(periods) || !periods.length) return null;
-    return periods.reduce(function (latest, period) {
-      return !latest || period.end > latest ? period.end : latest;
-    }, null);
+  // WMTS time steps (ISO 8601 durations). Day, month and year steps are aligned to
+  // the period start. Sub-daily steps (e.g. PT10M) make every calendar day in the
+  // range selectable. Unknown steps are treated conservatively: only the period
+  // start and end dates are considered available.
+  function parseStep(step) {
+    if (step === null || step === undefined || step === "") return { unit: "D", n: 1, implicit: true };
+    const text = String(step).trim().toUpperCase();
+    let match = /^P(\d+)([DMYW])$/.exec(text);
+    if (match) {
+      const n = Number(match[1]);
+      if (!Number.isInteger(n) || n < 1) return null;
+      return match[2] === "W" ? { unit: "D", n: n * 7 } : { unit: match[2], n: n };
+    }
+    match = /^PT(\d+)([HMS])$/.exec(text);
+    if (match && Number(match[1]) > 0) return { unit: "SUBDAILY", n: Number(match[1]) };
+    return null;
+  }
+  function dayNumber(value) { return Math.round(Date.parse(value + "T00:00:00Z") / 86400000); }
+  function fromDayNumber(days) { return new Date(days * 86400000).toISOString().slice(0, 10); }
+  function addMonths(value, months) {
+    const parts = value.split("-").map(Number);
+    const date = new Date(Date.UTC(parts[0], parts[1] - 1 + months, parts[2]));
+    // Reject calendar overflow (e.g. Jan 31 + 1 month) instead of silently shifting.
+    return date.getUTCDate() === parts[2] ? date.toISOString().slice(0, 10) : null;
+  }
+  function monthIndex(value) { const p = value.split("-").map(Number); return p[0] * 12 + (p[1] - 1); }
+  function isAligned(date, period) {
+    const step = parseStep(period.step);
+    if (!step) return date === period.start || date === period.end;
+    if (step.unit === "SUBDAILY") return true;
+    if (step.unit === "D") return (dayNumber(date) - dayNumber(period.start)) % step.n === 0;
+    const months = step.unit === "Y" ? step.n * 12 : step.n;
+    const diff = monthIndex(date) - monthIndex(period.start);
+    return diff >= 0 && diff % months === 0 && addMonths(period.start, diff) === date;
   }
   function isDateAvailable(date, periods) {
     if (!validDate(date) || !Array.isArray(periods)) return false;
     return periods.some(function (period) {
-      return date >= period.start && date <= period.end;
+      return period && date >= period.start && date <= period.end && isAligned(date, period);
     });
   }
-  async function getAvailableDates(layerKey, fetchImpl) {
+  // Latest step-aligned date inside one period that is <= cap (cap optional).
+  function latestInPeriod(period, cap) {
+    const limit = cap && cap < period.end ? cap : period.end;
+    if (limit < period.start) return null;
+    const step = parseStep(period.step);
+    if (!step) return period.end <= limit ? period.end : period.start;
+    if (step.unit === "SUBDAILY") return limit;
+    if (step.unit === "D") {
+      const offset = dayNumber(limit) - dayNumber(period.start);
+      return fromDayNumber(dayNumber(period.start) + Math.floor(offset / step.n) * step.n);
+    }
+    const months = step.unit === "Y" ? step.n * 12 : step.n;
+    let k = Math.floor((monthIndex(limit) - monthIndex(period.start)) / months);
+    for (; k >= 0; k--) {
+      const candidate = addMonths(period.start, k * months);
+      if (candidate && candidate <= limit) return candidate;
+    }
+    return null;
+  }
+  function latestAvailableOnOrBefore(periods, cap) {
+    if (!Array.isArray(periods) || !periods.length) return null;
+    if (cap !== undefined && cap !== null && !validDate(cap)) return null;
+    return periods.reduce(function (best, period) {
+      const candidate = latestInPeriod(period, cap || null);
+      return candidate && (!best || candidate > best) ? candidate : best;
+    }, null);
+  }
+  function latestAvailableDate(periods) {
+    return latestAvailableOnOrBefore(periods, null);
+  }
+  function earliestAvailableDate(periods) {
+    if (!Array.isArray(periods) || !periods.length) return null;
+    return periods.reduce(function (first, period) {
+      return !first || period.start < first ? period.start : first;
+    }, null);
+  }
+  // Next/previous available date strictly after/before `date` (direction +1/-1),
+  // honouring steps and gaps, optionally bounded by `cap` (inclusive upper bound).
+  function adjacentAvailableDate(date, periods, direction, cap) {
+    if (!validDate(date) || !Array.isArray(periods) || (direction !== 1 && direction !== -1)) return null;
+    let best = null;
+    periods.forEach(function (period) {
+      const step = parseStep(period.step);
+      const upper = cap && cap < period.end ? cap : period.end;
+      if (upper < period.start) return;
+      let candidate = null;
+      if (direction === -1) {
+        if (date <= period.start) return;
+        candidate = latestInPeriod(period, shiftDate(date, -1) < upper ? shiftDate(date, -1) : upper);
+      } else {
+        if (date >= upper) return;
+        if (date < period.start) candidate = period.start;
+        else if (!step) candidate = period.end > date ? period.end : null;
+        else if (step.unit === "SUBDAILY") candidate = shiftDate(date, 1);
+        else if (step.unit === "D") {
+          const offset = dayNumber(date) - dayNumber(period.start);
+          candidate = fromDayNumber(dayNumber(period.start) + (Math.floor(offset / step.n) + 1) * step.n);
+        } else {
+          const months = step.unit === "Y" ? step.n * 12 : step.n;
+          for (let k = Math.max(0, Math.floor((monthIndex(date) - monthIndex(period.start)) / months)); k < 100000; k++) {
+            const next = addMonths(period.start, k * months);
+            if (next && next > date) { candidate = next; break; }
+            if (next && next > upper) break;
+          }
+        }
+        if (candidate && candidate > upper) candidate = null;
+      }
+      if (!candidate) return;
+      if (!best || (direction === 1 ? candidate < best : candidate > best)) best = candidate;
+    });
+    return best;
+  }
+  async function getAvailableDates(layerKey, fetchImpl, options) {
+    const config = options || {};
     const request = fetchImpl || (typeof fetch === "function" ? fetch : null);
-    if (!request) throw new Error("Fetch is unavailable in this environment");
-    const response = await request(describeDomainsUrl(layerKey), { headers: { Accept: "application/xml, text/xml" } });
-    if (!response || !response.ok) throw new Error("NASA GIBS date availability request failed");
-    const periods = parseAvailablePeriods(await response.text());
+    if (!request || !http) throw new Error("Fetch is unavailable in this environment");
+    let text;
+    try {
+      text = await http.request(describeDomainsUrl(layerKey), {
+        fetch: request,
+        parse: "text",
+        headers: { Accept: "application/xml, text/xml" },
+        signal: config.signal,
+        timeoutMs: config.timeoutMs
+      });
+    } catch (error) {
+      const wrapped = new Error("NASA GIBS date availability request failed (" + error.message + ")");
+      wrapped.kind = error.kind;
+      throw wrapped;
+    }
+    const periods = parseAvailablePeriods(text);
     return { periods: periods, latestDate: latestAvailableDate(periods) };
   }
   function buildTileUrl(layerKey, date) {
@@ -87,5 +204,5 @@
     if (!LAYERS[layerKey]) throw new TypeError("Unsupported NASA GIBS layer");
     return Object.assign({}, LAYERS[layerKey]);
   }
-  return { BASE, LAYERS, validDate, shiftDate, saudiDate, describeDomainsUrl, parseAvailablePeriods, latestAvailableDate, isDateAvailable, getAvailableDates, buildTileUrl, getLayer };
+  return { BASE, LAYERS, validDate, shiftDate, saudiDate, describeDomainsUrl, parseAvailablePeriods, parseStep, latestAvailableDate, latestAvailableOnOrBefore, earliestAvailableDate, adjacentAvailableDate, isDateAvailable, getAvailableDates, buildTileUrl, getLayer };
 });

@@ -31,8 +31,8 @@
 <option value="modisFalse">MODIS Terra — ألوان زائفة 7-2-1</option>
 </select></label>
 <label>تاريخ الصورة<input id="imageDate" type="date" disabled></label>
-<button class="btn" id="previousDay" type="button">اليوم السابق</button>
-<button class="btn" id="nextDay" type="button">اليوم التالي</button>
+<button class="btn" id="previousDay" type="button">التاريخ المتاح السابق</button>
+<button class="btn" id="nextDay" type="button">التاريخ المتاح التالي</button>
 <button class="btn primary" id="refreshImage" type="button">تحديث الصورة</button>
 </div>
 <div id="satMap" role="application" aria-label="خريطة صور الأقمار الصناعية فوق السعودية"></div>
@@ -69,11 +69,12 @@
 <footer class="status">مرصد السعودية مشروع مستقل. صور الأقمار من NASA GIBS مع الإسناد المناسب. لا تمثل هذه الصور تحذيراً رسمياً أو قياساً أرضياً مباشراً.</footer>
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="../src/platform/http/client.js"></script>
 <script src="../src/services/satellite/nasa-gibs.js"></script>
 <script>
 (function(){
 "use strict";
-var map=null,layer=null,activeKey="viirsTrue",availablePeriods=[],availabilityRequestId=0,renderRequestId=0,currentTileErrors=0;
+var map=null,layer=null,activeKey="viirsTrue",availablePeriods=[],availabilityRequestId=0,renderRequestId=0,currentTileErrors=0,availabilityAbort=null;
 function $(id){return document.getElementById(id)}
 function setStatus(message,isError){$("imageStatus").textContent=message;$("imageStatus").classList.toggle("error",!!isError)}
 function clearImage(){if(layer&&map){map.removeLayer(layer);layer=null}}
@@ -100,19 +101,18 @@ async function refreshAvailability(){
  clearImage();availablePeriods=[];$("imageDate").disabled=true;
  setStatus("جارٍ الاستعلام من NASA GIBS عن تواريخ الصور المتاحة للطبقة المختارة…");
  try{
-  var result=await NasaGibsSatellite.getAvailableDates(key);
+  if(availabilityAbort)availabilityAbort.abort();
+  availabilityAbort=typeof AbortController==="function"?new AbortController():null;
+  var result=await NasaGibsSatellite.getAvailableDates(key,null,{signal:availabilityAbort?availabilityAbort.signal:undefined,timeoutMs:15000});
   if(requestId!==availabilityRequestId)return;
   availablePeriods=result.periods;
   var latest=result.latestDate,today=NasaGibsSatellite.saudiDate(new Date());
   if(!latest){setStatus("لم تُرجع الخدمة تاريخاً متاحاً لهذه الطبقة.",true);return}
-  var latestAtOrBeforeToday=availablePeriods.reduce(function(best,period){
-   if(period.start>today)return best;
-   var end=period.end<today?period.end:today;
-   return end>=period.start&&(!best||end>best)?end:best;
-  },null);
+  // Step-aware: the latest date that the WMTS domain actually lists (respects P1D/P8D/P1M and gaps).
+  var latestAtOrBeforeToday=NasaGibsSatellite.latestAvailableOnOrBefore(availablePeriods,today);
   if(!latestAtOrBeforeToday){setStatus("لا توجد صورة متاحة لهذه الطبقة حتى تاريخ اليوم.",true);return}
   $("imageDate").max=latestAtOrBeforeToday;
-  $("imageDate").min=availablePeriods.reduce(function(first,p){return !first||p.start<first?p.start:first},null);
+  $("imageDate").min=NasaGibsSatellite.earliestAvailableDate(availablePeriods);
   var selected=$("imageDate").value;
   $("imageDate").value=NasaGibsSatellite.isDateAvailable(selected,availablePeriods)&&selected<=today?selected:latestAtOrBeforeToday;
   $("imageDate").disabled=false;
@@ -120,19 +120,16 @@ async function refreshAvailability(){
  }catch(error){
   if(requestId!==availabilityRequestId)return;
   $("imageDate").disabled=true;
+  if(error&&error.kind==="aborted")return;
   setStatus("تعذر التحقق من تواريخ الصور من NASA GIBS. لم نستخدم تاريخاً افتراضياً حتى لا نعرض تاريخاً غير مؤكد. تحقق من الاتصال أو أعد المحاولة. ("+error.message+")",true);
  }
 }
 function moveDate(offset){
  var date=$("imageDate").value;
  if(!NasaGibsSatellite.validDate(date)||!availablePeriods.length)return;
- var candidate=date;
- for(var i=0;i<3700;i++){
-  candidate=NasaGibsSatellite.shiftDate(candidate,offset);
-  if(candidate<$("imageDate").min||candidate>$("imageDate").max){setStatus("لا يوجد تاريخ متاح إضافي في هذا الاتجاه.",true);return}
-  if(NasaGibsSatellite.isDateAvailable(candidate,availablePeriods)){$("imageDate").value=candidate;loadLayer();return}
- }
- setStatus("لم نعثر على تاريخ متاح قريب ضمن نطاق البحث.",true);
+ var candidate=NasaGibsSatellite.adjacentAvailableDate(date,availablePeriods,offset,$("imageDate").max);
+ if(!candidate){setStatus("لا يوجد تاريخ متاح إضافي في هذا الاتجاه ضمن فترات وخطوات الطبقة.",true);return}
+ $("imageDate").value=candidate;loadLayer();
 }
 function init(){
  if(!window.L){setStatus("تعذر تحميل مكتبة الخريطة. تحقق من الاتصال.",true);return}

@@ -16,9 +16,12 @@ test("orchard weather section requests exact farm coordinates and labels data pr
 
 test("orchard weather service is loaded before the page controller", () => {
   assert.ok(page.indexOf('src="../src/services/agriculture/orchard-weather.js"') < page.indexOf("(function(){"));
-  assert.match(page, /OrchardWeather\.buildForecastUrl/);
-  assert.match(page, /OrchardWeather\.buildArchiveUrl/);
-  assert.match(page, /Promise\.allSettled/);
+  // Fetching moved into the service (independent forecast/reanalysis via Promise.allSettled).
+  assert.match(page, /OrchardWeather\.fetchOrchardData/);
+  const service = fs.readFileSync("src/services/agriculture/orchard-weather.js", "utf8");
+  assert.match(service, /Promise\.allSettled/);
+  assert.match(service, /buildForecastUrl\(location\)/);
+  assert.match(service, /buildArchiveUrl\(location/);
 });
 
 test("all inline page scripts remain syntactically valid", () => {

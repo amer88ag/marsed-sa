@@ -19,7 +19,7 @@ button{background:var(--blue);color:white;border-color:var(--blue);cursor:pointe
 .notice{margin:14px;padding:12px;border-radius:10px;background:#fff8e8;color:#7a4b00;font-size:12px;line-height:1.9}
 .summary{display:flex;gap:10px;flex-wrap:wrap;padding:0 14px 14px}.pill{background:#eef4f8;border-radius:9px;padding:8px 11px;font-size:12px}
 table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:right;padding:10px 12px;border-top:1px solid var(--line);white-space:nowrap}th{background:#f7f9fb;color:var(--muted);font-weight:600}
-.state-loaded{color:#147d45}.state-error,.state-timeout,.state-unsupported{color:#b42318}.small{color:var(--muted);font-size:11px}
+.state-loaded{color:#147d45}.state-unverified{color:#8a5700}.state-error,.state-timeout,.state-unsupported{color:#b42318}.small{color:var(--muted);font-size:11px}
 @media(max-width:650px){.controls{align-items:stretch}.controls label{min-width:100%}.controls button{width:100%;min-height:48px}.table-wrap{overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch}table{min-width:760px}th,td{padding:9px 8px}}
 </style>
 </head>
@@ -40,9 +40,10 @@ table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:right;
 <button id="runAll" type="button" aria-describedby="runAllHelp">فحص الطبقات الأربع</button>
 </div>
 <p id="runAllHelp" class="small" style="padding:0 14px;margin:0 0 10px">يفحص الطبقات الأربع بالتتابع، ويعرض تاريخ ونتيجة ومعاينة كل طبقة. على الجوال يظهر كل زر في سطر مستقل.</p>
-<div id="status" class="status" aria-live="polite">جارٍ التحقق من نطاق التواريخ المتاحة…</div>
+<div id="dateStatus" class="status" aria-live="polite">جارٍ التحقق من نطاق التواريخ المتاحة…</div>
+<div id="status" class="status" aria-live="polite">لم يبدأ فحص البلاطات بعد.</div>
 <div class="summary" id="summary"></div>
-<div class="notice"><b>حدود هذا الفحص:</b> نجاح تحميل البلاطة يعني أن خادم الصور أعاد صورة قابلة للتحميل عند مستوى التكبير المختبر (z=7). لا يثبت ذلك أن الصورة تحتوي قيماً فضائية صالحة أو أن كامل المنطقة المحيطة مغطاة؛ قد تكون البلاطة فارغة أو جزئية. الفحص عينة تشخيصية وليس شهادة تغطية وطنية أو تحققاً علمياً من المنتج.</div>
+<div class="notice"><b>حدود هذا الفحص:</b> نجاح تحميل البلاطة وحده يعني أن خادم الصور أعاد صورة عند مستوى التكبير المختبر (z=7)، ولا يثبت ذلك أن الصورة تحتوي قيماً فضائية صالحة. لذلك نفحص البكسلات متى سمح المتصفح (CORS) ونصنف البلاطة: «محتوى مرئي» أو «جزئية» أو «فارغة»؛ وإن تعذر فحص المحتوى تظهر «حُمّلت دون تحقق من المحتوى». الفحص عينة من 19 نقطة وليس شهادة تغطية وطنية أو تحققاً علمياً من المنتج، والتاريخ المفحوص هو أحدث تاريخ تُدرجه الخدمة لكل طبقة.</div>
 </section>
 <section class="panel">
 <div class="table-wrap"><table>
@@ -52,21 +53,27 @@ table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:right;
 </section>
 <p class="small">المصدر: NASA Global Imagery Browse Services (GIBS). هذا الفحص لا يمثل رصداً أرضياً أو تحذيراً رسمياً.</p>
 </main>
+<script src="../src/platform/http/client.js"></script>
 <script src="../src/services/satellite/nasa-gibs.js"></script>
 <script src="../src/services/satellite/nasa-gibs-coverage.js"></script>
 <script>
 (function(){
 "use strict";
 var $=function(id){return document.getElementById(id)};
-var busy=false,cachedPeriods=[],availabilityRequestId=0;
+var busy=false,cachedPeriods=[],availabilityRequestId=0,availabilityAbort=null,TIMEOUT_MS=12000;
+var STATE_LABELS={valid:"محتوى مرئي صالح",partial:"بلاطة جزئية",blank:"بلاطة فارغة/موحدة",loaded:"حُمّلت دون تحقق من المحتوى",timeout:"انتهت المهلة",unsupported:"غير مدعوم",error:"فشل التحميل"};
+// Scan results and date-availability state are shown in separate elements so a
+// date refresh never replaces the scan summary.
 function status(message,error){$("status").textContent=message;$("status").classList.toggle("error",!!error)}
+function dateStatus(message,error){$("dateStatus").textContent=message;$("dateStatus").classList.toggle("error",!!error)}
+function summaryText(counts){return "محتوى صالح "+counts.valid+" · جزئية "+counts.partial+" · فارغة "+counts.blank+" · دون تحقق "+counts.unverified+" · فشل/مهلة "+counts.failed+" (من "+counts.total+")"}
 function renderSummary(results){
- var loaded=results.filter(function(r){return r.status==="loaded"}).length;
- var failed=results.length-loaded;
+ var counts=NasaGibsCoverage.summarize(results);
  $("summary").innerHTML="";
- [["نجاح تحميل البلاطة",loaded],["تعذر التحميل أو انتهت المهلة",failed],["عدد المواقع المختبرة",results.length]].forEach(function(item){
+ [["محتوى مرئي صالح",counts.valid],["بلاطات جزئية",counts.partial],["بلاطات فارغة",counts.blank],["حُمّلت دون تحقق",counts.unverified],["تعذر التحميل أو انتهت المهلة",counts.failed],["عدد المواقع المختبرة",counts.total]].forEach(function(item){
   var span=document.createElement("span");span.className="pill";span.textContent=item[0]+": "+item[1];$("summary").appendChild(span);
  });
+ return counts;
 }
 function renderRows(results,layerTitle,date,append){
  var body=$("results");if(!append)body.innerHTML="";
@@ -76,7 +83,7 @@ function renderRows(results,layerTitle,date,append){
    var td=document.createElement("td");td.textContent=value;tr.appendChild(td);
   });
   var previewCell=document.createElement("td");
-  if(result.status==="loaded"){
+  if(["valid","partial","blank","loaded"].indexOf(result.status)!==-1){
    var preview=document.createElement("img");
    preview.src=result.url;preview.alt="معاينة بلاطة "+result.name;
    preview.loading="lazy";preview.width=96;preview.height=64;
@@ -89,36 +96,38 @@ function renderRows(results,layerTitle,date,append){
   }
   tr.appendChild(previewCell);
   var stateCell=document.createElement("td");
-  stateCell.textContent=result.status==="loaded"?"تم تحميل البلاطة":result.status==="timeout"?"انتهت المهلة":result.status==="unsupported"?"غير مدعوم":"فشل التحميل";
-  stateCell.className="state-"+result.status;
+  stateCell.textContent=STATE_LABELS[result.status]||"فشل التحميل";
+  stateCell.title=result.message||"";
+  stateCell.className="state-"+(result.status==="valid"?"loaded":result.status==="partial"||result.status==="loaded"?"unverified":"error");
   tr.appendChild(stateCell);
   body.appendChild(tr);
  });
+}
+function newSignal(){
+ if(availabilityAbort)availabilityAbort.abort();
+ availabilityAbort=typeof AbortController==="function"?new AbortController():null;
+ return availabilityAbort?availabilityAbort.signal:undefined;
 }
 async function refreshDates(){
  if(busy)return;
  var requestId=++availabilityRequestId,key=$("layer").value;
  $("run").disabled=true;$("imageDate").disabled=true;cachedPeriods=[];
- status("جارٍ طلب نطاق التواريخ من NASA GIBS للطبقة المحددة…");
+ dateStatus("جارٍ طلب نطاق التواريخ من NASA GIBS للطبقة المحددة…");
  try{
-  var result=await NasaGibsSatellite.getAvailableDates(key);
+  var result=await NasaGibsSatellite.getAvailableDates(key,null,{signal:newSignal(),timeoutMs:TIMEOUT_MS});
   if(requestId!==availabilityRequestId||key!==$("layer").value)return;
   var today=NasaGibsSatellite.saudiDate(new Date());
-  var latestAtOrBeforeToday=result.periods.reduce(function(best,period){
-   if(period.start>today)return best;
-   var end=period.end<today?period.end:today;
-   return end>=period.start&&(!best||end>best)?end:best;
-  },null);
+  var latestAtOrBeforeToday=NasaGibsSatellite.latestAvailableOnOrBefore(result.periods,today);
   if(!latestAtOrBeforeToday)throw new Error("لا توجد فترة متاحة حتى تاريخ اليوم");
   cachedPeriods=result.periods;
-  $("imageDate").min=result.periods.reduce(function(first,p){return !first||p.start<first?p.start:first},null);
+  $("imageDate").min=NasaGibsSatellite.earliestAvailableDate(result.periods);
   $("imageDate").max=latestAtOrBeforeToday;
   $("imageDate").value=latestAtOrBeforeToday;
   $("imageDate").disabled=false;$("run").disabled=false;
-  status("أحدث تاريخ متاح حتى اليوم وفق نطاق الخدمة: "+latestAtOrBeforeToday+". اختر تاريخاً ضمن الفترات المتاحة ثم ابدأ الفحص.");
+  dateStatus("أحدث تاريخ متاح حتى اليوم وفق نطاق الخدمة وخطوته الزمنية: "+latestAtOrBeforeToday+". اختر تاريخاً ضمن الفترات المتاحة ثم ابدأ الفحص.");
  }catch(error){
-  if(requestId!==availabilityRequestId||key!==$("layer").value)return;
-  status("تعذر التحقق من نطاق التواريخ. قد يكون الاتصال أو CORS غير متاح من هذا المتصفح. "+error.message,true)
+  if(requestId!==availabilityRequestId||key!==$("layer").value||(error&&error.kind==="aborted"))return;
+  dateStatus("تعذر التحقق من نطاق التواريخ. قد يكون الاتصال أو CORS غير متاح من هذا المتصفح أو انتهت المهلة. "+error.message,true)
  }
 }
 async function runAllLayers(){
@@ -126,58 +135,56 @@ async function runAllLayers(){
  var keys=["viirsTrue","modisTerraTrue","modisAquaTrue","modisFalse"];
  busy=true;$("run").disabled=true;$("runAll").disabled=true;$("layer").disabled=true;$("imageDate").disabled=true;
  $("results").innerHTML="";$("summary").innerHTML="";
- var allResults=[],today=NasaGibsSatellite.saudiDate(new Date());
+ var allResults=[],failedLayers=0,today=NasaGibsSatellite.saudiDate(new Date());
  try{
   for(var index=0;index<keys.length;index++){
    var key=keys[index],meta=NasaGibsSatellite.getLayer(key);
    status("جارٍ التحقق من تاريخ "+meta.title+" ("+(index+1)+"/4)…");
    try{
-    var availability=await NasaGibsSatellite.getAvailableDates(key);
-    var date=availability.periods.reduce(function(best,period){
-     if(period.start>today)return best;
-     var end=period.end<today?period.end:today;
-     return end>=period.start&&(!best||end>best)?end:best;
-    },null);
+    // A layer is tested only after its own date domain is verified; one layer's
+    // failure never marks the others as failed.
+    var availability=await NasaGibsSatellite.getAvailableDates(key,null,{timeoutMs:TIMEOUT_MS});
+    var date=NasaGibsSatellite.latestAvailableOnOrBefore(availability.periods,today);
     if(!date)throw new Error("لا يوجد تاريخ متاح حتى اليوم");
     status("جارٍ فحص "+meta.title+" بتاريخ "+date+" ("+(index+1)+"/4)…");
     var results=await Promise.all(NasaGibsCoverage.POINTS.map(function(point){
-     return NasaGibsCoverage.checkPoint(key,date,point,NasaGibsSatellite,Image,12000);
+     return NasaGibsCoverage.checkPoint(key,date,point,NasaGibsSatellite,Image,TIMEOUT_MS);
     }));
     renderRows(results,meta.title,date,true);
     allResults=allResults.concat(results);
-    var loaded=results.filter(function(result){return result.status==="loaded"}).length;
     var pill=document.createElement("span");pill.className="pill";
-    pill.textContent=meta.title+": "+loaded+"/"+results.length+" بلاطة محمّلة";
+    pill.textContent=meta.title+" ("+date+"): "+summaryText(NasaGibsCoverage.summarize(results));
     $("summary").appendChild(pill);
    }catch(layerError){
+    failedLayers++;
     var warning=document.createElement("span");warning.className="pill";
     warning.textContent=meta.title+": تعذر الفحص ("+layerError.message+")";
     $("summary").appendChild(warning);
    }
   }
-  var loadedTotal=allResults.filter(function(result){return result.status==="loaded"}).length;
-  status("اكتمل فحص الطبقات المتاحة: "+loadedTotal+" من "+allResults.length+" طلب بلاطة نجح. النتائج عينة وصول شبكي وليست إثباتاً لمحتوى علمي أو تغطية وطنية.");
+  var totals=NasaGibsCoverage.summarize(allResults);
+  status("اكتمل فحص الطبقات: "+summaryText(totals)+(failedLayers?" · تعذر فحص "+failedLayers+" طبقة":"")+". النتائج عينة من 19 نقطة وليست إثباتاً لتغطية وطنية.",failedLayers>0||totals.failed>0);
  }catch(error){status("توقف فحص الطبقات: "+error.message,true)}
  finally{
   busy=false;$("runAll").disabled=false;$("layer").disabled=false;
-  refreshDates();
+  refreshDates(); // updates #dateStatus only; the scan summary in #status stays visible
  }
 }
 async function run(){
  if(busy)return;
  var key=$("layer").value,date=$("imageDate").value;
- if(!NasaGibsSatellite.isDateAvailable(date,cachedPeriods)){status("التاريخ المختار غير متاح ضمن فترات هذه الطبقة. اختر تاريخاً آخر.",true);return}
- busy=true;$("run").disabled=true;$("layer").disabled=true;$("imageDate").disabled=true;status("جارٍ اختبار 19 موقعاً؛ قد يستغرق الفحص بعض الوقت…");
+ if(!NasaGibsSatellite.isDateAvailable(date,cachedPeriods)){status("التاريخ المختار غير متاح ضمن فترات هذه الطبقة أو لا يوافق خطوتها الزمنية. اختر تاريخاً آخر.",true);return}
+ busy=true;$("run").disabled=true;$("runAll").disabled=true;$("layer").disabled=true;$("imageDate").disabled=true;status("جارٍ اختبار 19 موقعاً؛ قد يستغرق الفحص بعض الوقت…");
  try{
   var results=await Promise.all(NasaGibsCoverage.POINTS.map(function(point){
-   return NasaGibsCoverage.checkPoint(key,date,point,NasaGibsSatellite,Image,12000);
+   return NasaGibsCoverage.checkPoint(key,date,point,NasaGibsSatellite,Image,TIMEOUT_MS);
   }));
-  renderRows(results,NasaGibsSatellite.getLayer(key).title,date,false);renderSummary(results);
-  var loaded=results.filter(function(r){return r.status==="loaded"}).length;
-  status("انتهى الفحص: "+loaded+" من "+results.length+" بلاطة استجابت للتحميل. هذه نتيجة وصول شبكي عند z=7 وليست إثباتاً لامتلاء البلاطات بالبيانات.",loaded!==results.length);
+  renderRows(results,NasaGibsSatellite.getLayer(key).title,date,false);
+  var counts=renderSummary(results);
+  status("انتهى الفحص: "+summaryText(counts)+". هذه عينة عند z=7 وليست تغطية وطنية.",counts.valid!==counts.total);
  }catch(error){status("تعذر إكمال الفحص: "+error.message,true)}
  finally{
-  busy=false;$("layer").disabled=false;
+  busy=false;$("layer").disabled=false;$("runAll").disabled=false;
   $("imageDate").disabled=!cachedPeriods.length;
   $("run").disabled=!NasaGibsSatellite.isDateAvailable($("imageDate").value,cachedPeriods);
  }

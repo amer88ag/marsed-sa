@@ -57,10 +57,61 @@
     };
   }
 
-  function probeImage(url, ImageCtor, timeoutMs) {
-    const ImageType = ImageCtor || (typeof Image !== "undefined" ? Image : null);
-    if (!ImageType) return Promise.resolve({ status: "unsupported", message: "Image loading is unavailable" });
-    const timeout = Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 12000;
+  // Pixel classification thresholds. GIBS fills areas without a valid overpass
+  // with black (JPEG) or transparent (PNG) pixels.
+  const EMPTY_CHANNEL_MAX = 8;
+  const BLANK_FRACTION = 0.98;
+  const PARTIAL_FRACTION = 0.25;
+  const UNIFORM_STDDEV = 1.5;
+
+  // Classifies RGBA pixel data. Returns { content, emptyFraction, stddev } where
+  // content is "valid" | "partial" | "blank".
+  function analyzePixels(data) {
+    if (!data || typeof data.length !== "number" || data.length < 4 || data.length % 4 !== 0) {
+      throw new TypeError("RGBA pixel data is required");
+    }
+    const pixels = data.length / 4;
+    let empty = 0, sum = 0, sumSq = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+      if (a < 10 || (r <= EMPTY_CHANNEL_MAX && g <= EMPTY_CHANNEL_MAX && b <= EMPTY_CHANNEL_MAX)) empty++;
+      const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      sum += luminance; sumSq += luminance * luminance;
+    }
+    const mean = sum / pixels;
+    const stddev = Math.sqrt(Math.max(0, sumSq / pixels - mean * mean));
+    const emptyFraction = empty / pixels;
+    let content = "valid";
+    if (emptyFraction >= BLANK_FRACTION || stddev < UNIFORM_STDDEV) content = "blank";
+    else if (emptyFraction >= PARTIAL_FRACTION) content = "partial";
+    return { content: content, emptyFraction: Number(emptyFraction.toFixed(4)), stddev: Number(stddev.toFixed(2)) };
+  }
+
+  function defaultCanvasFactory() {
+    return typeof document !== "undefined" && document && typeof document.createElement === "function"
+      ? function () { return document.createElement("canvas"); }
+      : null;
+  }
+
+  // Reads pixels from a loaded image. Returns null when the canvas is unavailable
+  // or tainted by CORS (content cannot be verified).
+  function readPixels(image, createCanvas) {
+    if (!createCanvas) return null;
+    try {
+      const canvas = createCanvas();
+      const width = image.naturalWidth || image.width || 256;
+      const height = image.naturalHeight || image.height || 256;
+      canvas.width = width; canvas.height = height;
+      const context = canvas.getContext && canvas.getContext("2d");
+      if (!context) return null;
+      context.drawImage(image, 0, 0, width, height);
+      return context.getImageData(0, 0, width, height).data;
+    } catch (error) {
+      return null; // SecurityError: tainted canvas
+    }
+  }
+
+  function loadImage(ImageType, url, timeout, crossOrigin) {
     return new Promise(function (resolve) {
       const image = new ImageType();
       let settled = false;
@@ -70,20 +121,74 @@
         clearTimeout(timer);
         image.onload = null;
         image.onerror = null;
-        resolve({ status: status, message: message || "" });
+        resolve({ status: status, message: message || "", image: image });
       };
       const timer = setTimeout(function () { finish("timeout", "انتهت مهلة تحميل البلاطة"); }, timeout);
       image.onload = function () { finish("loaded", "استجاب خادم الصور وحُمّلت البلاطة"); };
       image.onerror = function () { finish("error", "تعذر تحميل البلاطة من الخدمة"); };
+      if (crossOrigin) image.crossOrigin = "anonymous";
       image.src = url;
     });
   }
 
-  async function checkPoint(layerKey, date, point, satelliteService, ImageCtor, timeoutMs) {
+  // status: "valid" | "partial" | "blank" (content verified), "loaded" (delivered,
+  // content NOT verified), "error", "timeout", "unsupported".
+  // A delivered tile alone is never reported as valid satellite data.
+  async function probeImage(url, ImageCtor, timeoutMs, options) {
+    const config = options || {};
+    const ImageType = ImageCtor || (typeof Image !== "undefined" ? Image : null);
+    if (!ImageType) return { status: "unsupported", message: "Image loading is unavailable", contentChecked: false };
+    const timeout = Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 12000;
+    const createCanvas = config.createCanvas !== undefined ? config.createCanvas : defaultCanvasFactory();
+    const wantContent = config.analyzeContent !== false && !!createCanvas;
+    let attempt = await loadImage(ImageType, url, timeout, wantContent);
+    let corsFallback = false;
+    if (attempt.status === "error" && wantContent) {
+      // A CORS-mode failure may only mean the server refused CORS; retry plainly
+      // so delivery can still be reported (as unverified).
+      corsFallback = true;
+      attempt = await loadImage(ImageType, url, timeout, false);
+    }
+    if (attempt.status !== "loaded") {
+      return { status: attempt.status, message: attempt.message, contentChecked: false };
+    }
+    const pixels = !corsFallback && wantContent ? readPixels(attempt.image, createCanvas) : null;
+    if (!pixels) {
+      return {
+        status: "loaded",
+        message: "حُمّلت البلاطة لكن تعذر فحص محتواها المرئي (CORS أو عدم توفر Canvas)؛ لا يثبت ذلك وجود بيانات فضائية صالحة",
+        contentChecked: false
+      };
+    }
+    const analysis = analyzePixels(pixels);
+    const messages = {
+      valid: "حُمّلت البلاطة ويحتوي معظمها على قيم مرئية",
+      partial: "حُمّلت البلاطة لكن جزءاً كبيراً منها فارغ (فجوة مرور أو حافة مسار)",
+      blank: "حُمّلت البلاطة لكنها فارغة أو موحدة اللون؛ لا توجد بيانات مرئية صالحة"
+    };
+    return { status: analysis.content, message: messages[analysis.content], contentChecked: true, emptyFraction: analysis.emptyFraction, stddev: analysis.stddev };
+  }
+
+  async function checkPoint(layerKey, date, point, satelliteService, ImageCtor, timeoutMs, options) {
     const request = buildProbeUrl(layerKey, date, point, satelliteService);
-    const result = await probeImage(request.url, ImageCtor, timeoutMs);
+    const result = await probeImage(request.url, ImageCtor, timeoutMs, options);
     return Object.assign({ id: point.id, name: point.name, lat: point.lat, lon: point.lon, url: request.url }, request.tile, result);
   }
 
-  return { ZOOM, POINTS, tileCoordinates, buildProbeUrl, probeImage, checkPoint };
+  // Aggregates a list of probe results without merging distinct meanings.
+  function summarize(results) {
+    const counts = { total: 0, valid: 0, partial: 0, blank: 0, unverified: 0, failed: 0 };
+    (Array.isArray(results) ? results : []).forEach(function (result) {
+      counts.total++;
+      if (result.status === "valid") counts.valid++;
+      else if (result.status === "partial") counts.partial++;
+      else if (result.status === "blank") counts.blank++;
+      else if (result.status === "loaded") counts.unverified++;
+      else counts.failed++;
+    });
+    counts.delivered = counts.valid + counts.partial + counts.blank + counts.unverified;
+    return counts;
+  }
+
+  return { ZOOM, POINTS, tileCoordinates, buildProbeUrl, analyzePixels, probeImage, checkPoint, summarize };
 });

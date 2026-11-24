@@ -62,7 +62,7 @@ main{max-width:1120px;margin:auto;padding:18px 14px 36px}.hero,.panel{background
 <div id="farmAdvice" class="crop-grid" aria-live="polite"></div>
 <div class="note">لا تنفذ تقليماً جائراً أو تسميداً محدداً بالجرام اعتماداً على الشهر فقط. يراعى نوع الشجرة والصنف وعمرها ومرحلة البراعم ونتيجة تحليل التربة والماء. لا تُستخدم مبيدات أو جرعات علاجية من هذا التقويم دون تشخيص واتباع ملصق المنتج وإرشاد مختص.</div>
 </section>
-\n<div class="note">تنبيه مهم: هذه تواريخ تقريبية لتقويم نجمي/شعبي متداول، وليست مواعيد رسمية ملزمة ولا توقعاً جوياً. تختلف بعض التقاويم في بداية الموسم ومدته وتقسيم العقارب وغيرها؛ كما تختلف آثار الموسم بين مناطق المملكة بسبب الموقع والارتفاع والتضاريس. يعرض المرصد الموسم الشعبي إلى جانب بيانات الطقس الفعلية عند ربطها، ولا يفترض أن وصف الموسم ينطبق على طقس كل مدينة.</div>
+<div class="note">تنبيه مهم: هذه تواريخ تقريبية لتقويم نجمي/شعبي متداول، وليست مواعيد رسمية ملزمة ولا توقعاً جوياً. تختلف بعض التقاويم في بداية الموسم ومدته وتقسيم العقارب وغيرها؛ كما تختلف آثار الموسم بين مناطق المملكة بسبب الموقع والارتفاع والتضاريس. يعرض المرصد الموسم الشعبي إلى جانب بيانات الطقس الفعلية عند ربطها، ولا يفترض أن وصف الموسم ينطبق على طقس كل مدينة.</div>
 <section class="seasonal-block" id="farm-profile">
 <h2>مساعد متابعة حالة البستان</h2>
 <p>أدخل ارتفاع المزرعة واسم الشجرة ومرحلتها الحالية. الأداة ترتب لك نقاط الفحص الزراعي؛ لا تحول الارتفاع وحده إلى تاريخ زراعة أو تقليم، ولا تعتبر درجة الحرارة التي تدخلها توقعاً.</p>
@@ -82,9 +82,12 @@ main{max-width:1120px;margin:auto;padding:18px 14px 36px}.hero,.panel{background
 <button class="btn primary" id="loadOrchardWeather" type="button">جلب طقس المزرعة</button>
 </div>
 <div id="orchardWeatherStatus" class="note" aria-live="polite">لم تُجلب بيانات الطقس بعد. يمكنك تحديد الإحداثيات من صفحة قياس الارتفاع ثم إدخالها هنا.</div>
+<div id="orchardElevation" class="note" aria-live="polite" hidden></div>
 <h3>توقعات الأيام السبعة القادمة</h3>
+<div id="orchardForecastSource" class="note" hidden></div>
 <div id="orchardForecast" class="crop-grid"></div>
 <h3>الأيام السبعة السابقة — إعادة تحليل جوي</h3>
+<div id="orchardHistorySource" class="note" hidden></div>
 <div id="orchardHistory" class="crop-grid"></div>
 <div class="note">تمييز المصدر: توقع الأيام القادمة ناتج نموذج جوي وليس رصداً. بيانات الأيام السابقة من أرشيف إعادة التحليل وليست قياسات محطة أرضية. لا تتوفر في هذا المسار حالياً أمطار فعلية مقاسة من حساس المزرعة أو محطة رسمية؛ لا نعرض إعادة التحليل على أنها رصد. كما أن مؤشرات البرودة والحرارة والماء إنذارات متابعة عامة وليست حدود تحمل معتمدة لكل صنف.</div>
 </div>
@@ -118,6 +121,7 @@ main{max-width:1120px;margin:auto;padding:18px 14px 36px}.hero,.panel{background
 <p>التقويم الزراعي يستند جزئياً إلى مفكرة الوزارة الطبعة السابعة 2018–2019، وهي مرجع تاريخي إرشادي لا يثبت وحده صلاحية الموعد حالياً. بعض الجداول شهرية وعلى مستوى مناطق واسعة؛ لذلك يعرض المرصد نوافذ شهرية لا يوماً دقيقاً حين لا يدعم المصدر دقة أعلى. يجب تحديث التوصيات عند توفر إصدارات أحدث، وتحليلها بحسب الارتفاع والصنف والطقس المحلي.</p>
 </section>
 </main>
+<script src="../src/platform/http/client.js"></script>
 <script src="../src/services/agriculture/orchard-weather.js"></script>
 <script>
 (function(){
@@ -213,47 +217,73 @@ renderFarmProfile();
 
 
 
-var orchardButton=$("loadOrchardWeather");
+var orchardButton=$("loadOrchardWeather"),orchardRequestId=0,orchardAbort=null;
 function orchardCard(title, lines, alerts){
  var article=document.createElement("article");article.className="crop-card";
  var strong=document.createElement("strong");strong.textContent=title;article.appendChild(strong);
  lines.forEach(function(line){var p=document.createElement("p");p.textContent=line;article.appendChild(p)});
- (alerts||[]).forEach(function(alert){var p=document.createElement("p");p.textContent="تنبيه متابعة: "+alert.text;p.style.color=alert.level==="high"?"#b42318":"#8a5700";article.appendChild(p)});
+ (alerts||[]).forEach(function(alert){
+  var p=document.createElement("p");p.textContent="مؤشر متابعة: "+alert.text;p.style.color=alert.level==="high"?"#b42318":"#8a5700";article.appendChild(p);
+  var why=document.createElement("small");why.textContent="السبب: "+alert.basis+" · الحدود: "+alert.limits+" · المصدر: "+alert.source;why.style.display="block";article.appendChild(why);
+ });
  return article;
 }
 function renderOrchardDays(target,rows,stage,sourceLabel){
  var host=$(target);host.replaceChildren();
  if(!rows.length){host.textContent="لا تتوفر بيانات لهذه الفترة.";return}
- OrchardWeather.evaluate(rows,stage).forEach(function(item){
+ OrchardWeather.evaluate(rows,stage,sourceLabel).forEach(function(item){
   var d=item.day;
   var lines=[
    "الصغرى: "+(d.min===null?"غير متاحة":d.min+"°م")+" · العظمى: "+(d.max===null?"غير متاحة":d.max+"°م"),
    "الهطول: "+(d.precipitation===null?"غير متاح":d.precipitation+" ملم")+" · احتمال المطر: "+(d.precipitationProbability===null?"غير متاح":d.precipitationProbability+"%"),
-   "البخر-نتح المرجعي ET₀: "+(d.et0===null?"غير متاح":d.et0+" ملم")
+   "البخر-نتح المرجعي ET₀: "+(d.et0===null?"غير متاح":d.et0+" ملم")+" (قيمة مرجعية، ليست كمية ري)"
   ];
   host.appendChild(orchardCard(d.date+" — "+sourceLabel,lines,item.alerts));
  });
 }
+function renderOrchardSource(target,source){
+ var host=$(target);
+ if(!source){host.hidden=true;host.textContent="";return}
+ host.hidden=false;
+ host.textContent="النوع: "+source.label+" · المصدر: "+source.provider+" · الفترة: "+(source.date_start||"—")+" إلى "+(source.date_end||"—")+
+  " · نقطة الشبكة: "+(source.grid_latitude===null?"—":source.grid_latitude)+", "+(source.grid_longitude===null?"—":source.grid_longitude)+
+  " · وقت الجلب: "+new Date(source.retrieved_at).toLocaleString("ar-SA",{timeZone:"Asia/Riyadh"})+" · "+source.limitations.join(" · ")+" · "+source.attribution;
+}
+function orchardError(error){return typeof HttpClient!=="undefined"&&error&&error.kind?HttpClient.describeError(error):(error&&error.message?error.message:"خطأ غير معروف")}
 async function loadOrchardWeather(){
  var lat=Number($("orchardLat").value),lon=Number($("orchardLon").value);
  if($("orchardLat").value.trim()===""||$("orchardLon").value.trim()===""||!OrchardWeather.validLocation({lat:lat,lon:lon})){
   $("orchardWeatherStatus").textContent="أدخل خط عرض وخط طول صحيحين للمزرعة.";
   return;
  }
+ var requestId=++orchardRequestId;
+ if(orchardAbort)orchardAbort.abort();
+ orchardAbort=typeof AbortController==="function"?new AbortController():null;
  orchardButton.disabled=true;
- $("orchardWeatherStatus").textContent="جارٍ جلب التوقعات والأرشيف المناخي للموقع…";
- $("orchardForecast").replaceChildren();$("orchardHistory").replaceChildren();
- var location={lat:lat,lon:lon},stage=$("farmStage").value;
- var forecastPromise=fetch(OrchardWeather.buildForecastUrl(location),{headers:{Accept:"application/json"}}).then(function(r){if(!r.ok)throw new Error("توقعات الطقس: HTTP "+r.status);return r.json()}).then(OrchardWeather.normalizeDaily);
- var archivePromise=fetch(OrchardWeather.buildArchiveUrl(location),{headers:{Accept:"application/json"}}).then(function(r){if(!r.ok)throw new Error("الأرشيف: HTTP "+r.status);return r.json()}).then(OrchardWeather.normalizeDaily);
- var results=await Promise.allSettled([forecastPromise,archivePromise]);
- if(results[0].status==="fulfilled")renderOrchardDays("orchardForecast",results[0].value,stage,"توقع نموذجي");
- else $("orchardForecast").textContent="تعذر تحميل التوقعات: "+results[0].reason.message;
- if(results[1].status==="fulfilled")renderOrchardDays("orchardHistory",results[1].value,stage,"إعادة تحليل");
- else $("orchardHistory").textContent="تعذر تحميل إعادة التحليل: "+results[1].reason.message;
- var ok=results.some(function(x){return x.status==="fulfilled"});
- $("orchardWeatherStatus").textContent=ok?"اكتمل جلب البيانات. راجع وسم كل بطاقة: توقع نموذجي أو إعادة تحليل تاريخية؛ لا تمثل أي منهما قياس محطة مباشر.":"تعذر جلب بيانات الطقس حالياً. تحقق من الاتصال والإحداثيات ثم أعد المحاولة.";
- orchardButton.disabled=false;
+ try{
+  $("orchardWeatherStatus").textContent="جارٍ جلب التوقعات وإعادة التحليل لإحداثيات المزرعة…";
+  $("orchardForecast").replaceChildren();$("orchardHistory").replaceChildren();
+  renderOrchardSource("orchardForecastSource",null);renderOrchardSource("orchardHistorySource",null);$("orchardElevation").hidden=true;
+  var location={lat:lat,lon:lon},stage=$("farmStage").value;
+  var data=await OrchardWeather.fetchOrchardData(location,{signal:orchardAbort?orchardAbort.signal:undefined,timeoutMs:15000});
+  if(requestId!==orchardRequestId)return;
+  if(data.forecast.ok){renderOrchardSource("orchardForecastSource",data.forecast.source);renderOrchardDays("orchardForecast",data.forecast.rows,stage,"توقع نموذجي");}
+  else $("orchardForecast").textContent="تعذر تحميل التوقعات: "+orchardError(data.forecast.error);
+  if(data.archive.ok){renderOrchardSource("orchardHistorySource",data.archive.source);renderOrchardDays("orchardHistory",data.archive.rows,stage,"إعادة تحليل");}
+  else $("orchardHistory").textContent="تعذر تحميل إعادة التحليل: "+orchardError(data.archive.error);
+  var modelSource=data.forecast.source||data.archive.source;
+  var farmElevation=$("farmElevation").value.trim()===""?null:Number($("farmElevation").value);
+  var elevation=OrchardWeather.elevationContext(farmElevation,modelSource?modelSource.model_elevation_m:null);
+  $("orchardElevation").hidden=false;$("orchardElevation").textContent=elevation.text;
+  var ok=data.forecast.ok||data.archive.ok;
+  $("orchardWeatherStatus").textContent=ok?"اكتمل جلب البيانات"+(data.forecast.ok&&data.archive.ok?"":" جزئياً")+". راجع وسم كل بطاقة: توقع نموذجي أو إعادة تحليل تاريخية؛ لا تمثل أي منهما قياس محطة مباشر.":"تعذر جلب بيانات الطقس حالياً. تحقق من الاتصال والإحداثيات ثم أعد المحاولة.";
+ }catch(error){
+  if(requestId!==orchardRequestId)return;
+  $("orchardWeatherStatus").textContent="تعذر جلب بيانات الطقس: "+orchardError(error);
+ }finally{
+  // Re-enable after success, failure, timeout or cancellation.
+  if(requestId===orchardRequestId)orchardButton.disabled=false;
+ }
 }
 orchardButton.addEventListener("click",loadOrchardWeather);
 

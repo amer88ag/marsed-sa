@@ -62,7 +62,16 @@
       }
     });
   }
-  function buildRouteWeatherBatchUrl(locations) {
+  // Route forecasts must cover now + 48 h. Open-Meteo `forecast_days` counts Saudi
+  // calendar days from today 00:00, so 2 days is NOT a rolling 48 h window.
+  // Callers pass RouteItinerary.requiredForecastDays(now); the default (4) always
+  // covers 48 h plus the 30-minute ETA matching tolerance.
+  const ROUTE_FORECAST_DAYS_DEFAULT = 4;
+  function buildRouteWeatherBatchUrl(locations, options) {
+    const forecastDays = options && options.forecastDays !== undefined ? Number(options.forecastDays) : ROUTE_FORECAST_DAYS_DEFAULT;
+    if (!Number.isInteger(forecastDays) || forecastDays < 1 || forecastDays > 16) {
+      throw new RangeError("forecastDays must be an integer between 1 and 16");
+    }
     if (!Array.isArray(locations) || locations.length === 0 ||
         locations.some(location => !location || !Number.isFinite(location.lat) || !Number.isFinite(location.lon))) {
       throw new TypeError("A non-empty list of route points with finite lat/lon is required");
@@ -71,7 +80,7 @@
       latitude: locations.map(location => String(location.lat)).join(","),
       longitude: locations.map(location => String(location.lon)).join(","),
       hourly: "temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m",
-      forecast_days: "2",
+      forecast_days: String(forecastDays),
       timezone: locations.map(() => "Asia/Riyadh").join(",")
     });
     return "https://api.open-meteo.com/v1/forecast?" + query.toString();
@@ -277,5 +286,5 @@
       }
     };
   }
-  return { buildCurrentUrl, normalizeCurrent, buildOverviewUrl, normalizeOverview, buildOverviewBatchUrl, normalizeOverviewBatch, buildRouteWeatherBatchUrl, normalizeRouteWeatherBatch };
+  return { ROUTE_FORECAST_DAYS_DEFAULT, buildCurrentUrl, normalizeCurrent, buildOverviewUrl, normalizeOverview, buildOverviewBatchUrl, normalizeOverviewBatch, buildRouteWeatherBatchUrl, normalizeRouteWeatherBatch };
 });
