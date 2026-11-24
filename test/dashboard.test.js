@@ -147,13 +147,28 @@ test('Open-Meteo adapter builds a Riyadh-time request and normalizes model outpu
   assert.equal(url.hostname, 'api.open-meteo.com');
   assert.equal(url.searchParams.get('timezone'), 'Asia/Riyadh');
   assert.equal(url.searchParams.get('latitude'), '18.2164');
+  assert.match(url.searchParams.get('current'), /pressure_msl/);
+  assert.match(url.searchParams.get('current'), /surface_pressure/);
+  assert.match(url.searchParams.get('current'), /wind_gusts_10m/);
+  assert.match(url.searchParams.get('hourly'), /visibility/);
+  assert.match(url.searchParams.get('hourly'), /uv_index/);
   const normalized = adapter.normalizeCurrent({
-    current: { time: '2026-11-21T12:00', temperature_2m: 21, relative_humidity_2m: 40, precipitation: 0, wind_speed_10m: 8 },
-    daily: { time: ['2026-11-21'], precipitation_sum: [0.2] }
+    elevation: 2270,
+    current: { time: '2026-11-21T12:00', temperature_2m: 21, relative_humidity_2m: 40, dew_point_2m: 8, precipitation: 0, wind_speed_10m: 8, wind_direction_10m: 135, wind_gusts_10m: 22, cloud_cover: 35, pressure_msl: 1015, surface_pressure: 780 },
+    hourly: { time: ['2026-11-21T12:00'], temperature_2m: [21], dew_point_2m: [8], relative_humidity_2m: [40], wind_gusts_10m: [22], visibility: [24000], uv_index: [4], shortwave_radiation: [300] },
+    daily: { time: ['2026-11-21'], precipitation_sum: [0.2], uv_index_max: [6] }
   }, { id: 'abha', name: 'أبها', lat: 18.2164, lon: 42.5053 }, '2026-11-21T12:05:00Z');
   assert.equal(normalized.provider_id, 'open-meteo');
   assert.equal(normalized.location.id, 'abha');
   assert.equal(normalized.measurements.find(item => item.name === 'temperature').value, 21);
+  assert.equal(normalized.location.elevation_m, 2270);
+  assert.equal(normalized.measurements.find(item => item.name === 'pressure_msl').value, 1015);
+  assert.equal(normalized.measurements.find(item => item.name === 'surface_pressure').value, 780);
+  assert.equal(normalized.measurements.find(item => item.name === 'dew_point').value, 8);
+  assert.equal(normalized.measurements.find(item => item.name === 'wind_gusts').value, 22);
+  assert.equal(normalized.hourly[0].visibility, 24000);
+  assert.equal(normalized.hourly[0].uv_index, 4);
+  assert.equal(normalized.daily[0].uv_index_max, 6);
   assert.equal(normalized.daily[0].precipitation, 0.2);
   assert.match(normalized.provenance.methodology, /Numerical weather model/);
 });
@@ -275,7 +290,7 @@ test('weather refresh clears stale values and rejects out-of-order city response
   assert.ok(html.includes('var requestId=++weatherRequestId;'));
   assert.ok(html.includes('if(requestId!==weatherRequestId||requestedKey!==activeKey)return;'));
   assert.ok(html.includes('function clearWeatherDisplay()'));
-  assert.ok(html.includes('["temp","feels","rain","humidity","wind","condition","daylight","weatherInsight"].forEach'));
+  assert.ok(html.includes('["temp","feels","rain","humidity","wind","condition","daylight","elevation","pressureMsl","surfacePressure","dewPoint","cloudCover","windGusts","windDirection","uvIndex","wetBulb","cape","freezingLevel","boundaryLayer","soilTemp","soilMoisture","wind80","wind100","solarRadiation","solarSplit","weatherInsight"].forEach'));
   assert.ok(html.includes('if(requestId===weatherRequestId)$("refresh").disabled=false;'));
 });
 
@@ -395,6 +410,40 @@ test('Open-Meteo adapter normalizes practical hourly and seven-day weather conte
   assert.equal(normalized.daily[0].temperature_max, 31);
   assert.equal(normalized.daily[0].temperature_min, 19);
   assert.equal(normalized.daily[0].uv_index_max, 7);
+});
+
+test('Open-Meteo adapter exposes advanced atmosphere, wind-height, soil and radiation metrics', () => {
+  const adapter = require('../src/providers/weather/open-meteo/adapter.js');
+  const url = new URL(adapter.buildCurrentUrl({ lat: 24.7, lon: 46.6 }));
+  for (const field of ['wet_bulb_temperature_2m', 'cape', 'freezing_level_height', 'boundary_layer_height', 'soil_temperature_0_to_7cm', 'soil_moisture_0_to_7cm', 'wind_speed_80m', 'wind_speed_100m', 'shortwave_radiation']) {
+    assert.ok(url.searchParams.get('current').includes(field), 'current request includes ' + field);
+  }
+  assert.ok(url.searchParams.get('hourly').includes('evapotranspiration'));
+  assert.ok(url.searchParams.get('daily').includes('et0_fao_evapotranspiration'));
+  const normalized = adapter.normalizeCurrent({
+    current: {
+      wet_bulb_temperature_2m: 19, cape: 450, freezing_level_height: 4200,
+      boundary_layer_height: 1100, soil_temperature_0_to_7cm: 24,
+      soil_moisture_0_to_7cm: 0.18, wind_speed_80m: 28, wind_speed_100m: 32,
+      shortwave_radiation: 650, direct_radiation: 400, diffuse_radiation: 250
+    },
+    hourly: {
+      time: ['2026-11-24T12:00'], wet_bulb_temperature_2m: [19], cape: [450],
+      freezing_level_height: [4200], boundary_layer_height: [1100], evapotranspiration: [0.12],
+      soil_temperature_0_to_7cm: [24], soil_moisture_0_to_7cm: [0.18],
+      wind_speed_80m: [28], wind_speed_100m: [32], wind_speed_120m: [35],
+      direct_radiation: [400], diffuse_radiation: [250]
+    },
+    daily: { time: ['2026-11-24'], et0_fao_evapotranspiration: [4.1] }
+  }, { id: 'riyadh', name: 'الرياض', lat: 24.7, lon: 46.6 });
+  const value = name => normalized.measurements.find(item => item.name === name).value;
+  assert.equal(value('wet_bulb_temperature'), 19);
+  assert.equal(value('cape'), 450);
+  assert.equal(value('freezing_level_height'), 4200);
+  assert.equal(value('soil_moisture_0_7cm'), 0.18);
+  assert.equal(value('wind_speed_100m'), 32);
+  assert.equal(normalized.hourly[0].evapotranspiration, 0.12);
+  assert.equal(normalized.daily[0].et0_fao_evapotranspiration, 4.1);
 });
 
 test('Open-Meteo adapter rejects mismatched hourly forecast arrays', () => {

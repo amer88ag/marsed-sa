@@ -18,7 +18,7 @@
       "coverage": "Global model data",
       "rate_limit": "Free tier published limit applies; verify current terms before production use",
       "health_status": "not_monitored",
-      "notes": "Current prototype source. Model output, not station observation."
+      "notes": "Current prototype source. Model output, not station observation. Forecast elevation is a 90 m Copernicus DEM terrain estimate; attribute both Open-Meteo and Copernicus."
     },
     {
       "id": "chirps-v3",
