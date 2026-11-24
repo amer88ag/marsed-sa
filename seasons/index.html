@@ -73,6 +73,21 @@ main{max-width:1120px;margin:auto;padding:18px 14px 36px}.hero,.panel{background
 <label>أدنى حرارة سجلتها المزرعة °م (اختياري) <input id="farmMinTemp" type="number" step="0.1" inputmode="decimal" placeholder="قراءة محطة أو ميزان حرارة"></label>
 </div>
 <div id="farmProfileResult" class="crop-card" aria-live="polite"><h3>أدخل بيانات البستان</h3><p>ستظهر هنا قائمة تحقق مناسبة للشجرة والمرحلة، مع بيان ما يحتاج إلى قياس أو مختص.</p></div>
+<div class="seasonal-block" id="orchard-weather">
+<h2>ربط البستان بالطقس المحلي</h2>
+<p>أدخل إحداثيات المزرعة نفسها، وليس مركز المدينة. يجلب المرصد توقعات الأيام السبعة، ويعرض الأيام السابقة من إعادة التحليل منفصلة عن التوقعات.</p>
+<div class="planner-controls">
+<label>خط العرض <input id="orchardLat" type="number" min="-90" max="90" step="0.00001" inputmode="decimal" placeholder="مثال: 18.21640"></label>
+<label>خط الطول <input id="orchardLon" type="number" min="-180" max="180" step="0.00001" inputmode="decimal" placeholder="مثال: 42.50530"></label>
+<button class="btn primary" id="loadOrchardWeather" type="button">جلب طقس المزرعة</button>
+</div>
+<div id="orchardWeatherStatus" class="note" aria-live="polite">لم تُجلب بيانات الطقس بعد. يمكنك تحديد الإحداثيات من صفحة قياس الارتفاع ثم إدخالها هنا.</div>
+<h3>توقعات الأيام السبعة القادمة</h3>
+<div id="orchardForecast" class="crop-grid"></div>
+<h3>الأيام السبعة السابقة — إعادة تحليل جوي</h3>
+<div id="orchardHistory" class="crop-grid"></div>
+<div class="note">تمييز المصدر: توقع الأيام القادمة ناتج نموذج جوي وليس رصداً. بيانات الأيام السابقة من أرشيف إعادة التحليل وليست قياسات محطة أرضية. لا تتوفر في هذا المسار حالياً أمطار فعلية مقاسة من حساس المزرعة أو محطة رسمية؛ لا نعرض إعادة التحليل على أنها رصد. كما أن مؤشرات البرودة والحرارة والماء إنذارات متابعة عامة وليست حدود تحمل معتمدة لكل صنف.</div>
+</div>
 <div class="note">مهم: الارتفاع عامل مناخي وليس بديلاً عن قياس درجات الحرارة الدنيا أو معرفة الصنف واتجاه المزرعة. لا نطبق قاعدة حسابية ثابتة لتقديم أو تأخير المواعيد بحسب كل 100 متر؛ ذلك يحتاج بيانات محلية موثقة.</div>
 </section>
 <section class="seasonal-block" id="orchard-calendar">
@@ -103,6 +118,7 @@ main{max-width:1120px;margin:auto;padding:18px 14px 36px}.hero,.panel{background
 <p>التقويم الزراعي يستند جزئياً إلى مفكرة الوزارة الطبعة السابعة 2018–2019، وهي مرجع تاريخي إرشادي لا يثبت وحده صلاحية الموعد حالياً. بعض الجداول شهرية وعلى مستوى مناطق واسعة؛ لذلك يعرض المرصد نوافذ شهرية لا يوماً دقيقاً حين لا يدعم المصدر دقة أعلى. يجب تحديث التوصيات عند توفر إصدارات أحدث، وتحليلها بحسب الارتفاع والصنف والطقس المحلي.</p>
 </section>
 </main>
+<script src="../src/services/agriculture/orchard-weather.js"></script>
 <script>
 (function(){
 "use strict";
@@ -195,6 +211,51 @@ function renderFarmProfile(){
 ["farmElevation","farmTree","farmStage","farmMinTemp"].forEach(function(id){$(id).addEventListener("input",renderFarmProfile);$(id).addEventListener("change",renderFarmProfile)});
 renderFarmProfile();
 
+
+
+var orchardButton=$("loadOrchardWeather");
+function orchardCard(title, lines, alerts){
+ var article=document.createElement("article");article.className="crop-card";
+ var strong=document.createElement("strong");strong.textContent=title;article.appendChild(strong);
+ lines.forEach(function(line){var p=document.createElement("p");p.textContent=line;article.appendChild(p)});
+ (alerts||[]).forEach(function(alert){var p=document.createElement("p");p.textContent="تنبيه متابعة: "+alert.text;p.style.color=alert.level==="high"?"#b42318":"#8a5700";article.appendChild(p)});
+ return article;
+}
+function renderOrchardDays(target,rows,stage,sourceLabel){
+ var host=$(target);host.replaceChildren();
+ if(!rows.length){host.textContent="لا تتوفر بيانات لهذه الفترة.";return}
+ OrchardWeather.evaluate(rows,stage).forEach(function(item){
+  var d=item.day;
+  var lines=[
+   "الصغرى: "+(d.min===null?"غير متاحة":d.min+"°م")+" · العظمى: "+(d.max===null?"غير متاحة":d.max+"°م"),
+   "الهطول: "+(d.precipitation===null?"غير متاح":d.precipitation+" ملم")+" · احتمال المطر: "+(d.precipitationProbability===null?"غير متاح":d.precipitationProbability+"%"),
+   "البخر-نتح المرجعي ET₀: "+(d.et0===null?"غير متاح":d.et0+" ملم")
+  ];
+  host.appendChild(orchardCard(d.date+" — "+sourceLabel,lines,item.alerts));
+ });
+}
+async function loadOrchardWeather(){
+ var lat=Number($("orchardLat").value),lon=Number($("orchardLon").value);
+ if($("orchardLat").value.trim()===""||$("orchardLon").value.trim()===""||!OrchardWeather.validLocation({lat:lat,lon:lon})){
+  $("orchardWeatherStatus").textContent="أدخل خط عرض وخط طول صحيحين للمزرعة.";
+  return;
+ }
+ orchardButton.disabled=true;
+ $("orchardWeatherStatus").textContent="جارٍ جلب التوقعات والأرشيف المناخي للموقع…";
+ $("orchardForecast").replaceChildren();$("orchardHistory").replaceChildren();
+ var location={lat:lat,lon:lon},stage=$("farmStage").value;
+ var forecastPromise=fetch(OrchardWeather.buildForecastUrl(location),{headers:{Accept:"application/json"}}).then(function(r){if(!r.ok)throw new Error("توقعات الطقس: HTTP "+r.status);return r.json()}).then(OrchardWeather.normalizeDaily);
+ var archivePromise=fetch(OrchardWeather.buildArchiveUrl(location),{headers:{Accept:"application/json"}}).then(function(r){if(!r.ok)throw new Error("الأرشيف: HTTP "+r.status);return r.json()}).then(OrchardWeather.normalizeDaily);
+ var results=await Promise.allSettled([forecastPromise,archivePromise]);
+ if(results[0].status==="fulfilled")renderOrchardDays("orchardForecast",results[0].value,stage,"توقع نموذجي");
+ else $("orchardForecast").textContent="تعذر تحميل التوقعات: "+results[0].reason.message;
+ if(results[1].status==="fulfilled")renderOrchardDays("orchardHistory",results[1].value,stage,"إعادة تحليل");
+ else $("orchardHistory").textContent="تعذر تحميل إعادة التحليل: "+results[1].reason.message;
+ var ok=results.some(function(x){return x.status==="fulfilled"});
+ $("orchardWeatherStatus").textContent=ok?"اكتمل جلب البيانات. راجع وسم كل بطاقة: توقع نموذجي أو إعادة تحليل تاريخية؛ لا تمثل أي منهما قياس محطة مباشر.":"تعذر جلب بيانات الطقس حالياً. تحقق من الاتصال والإحداثيات ثم أعد المحاولة.";
+ orchardButton.disabled=false;
+}
+orchardButton.addEventListener("click",loadOrchardWeather);
 
 })();
 </script>
