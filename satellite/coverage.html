@@ -44,7 +44,7 @@ table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:right;
 </section>
 <section class="panel">
 <div class="table-wrap"><table>
-<thead><tr><th>الموقع</th><th>الإحداثيات</th><th>البلاطة z/x/y</th><th>نتيجة الطلب</th></tr></thead>
+<thead><tr><th>الموقع</th><th>الإحداثيات</th><th>البلاطة z/x/y</th><th>معاينة البلاطة</th><th>نتيجة الطلب</th></tr></thead>
 <tbody id="results"><tr><td colspan="4" class="small">لم يبدأ الفحص بعد.</td></tr></tbody>
 </table></div>
 </section>
@@ -70,11 +70,26 @@ function renderRows(results){
  var body=$("results");body.innerHTML="";
  results.forEach(function(result){
   var tr=document.createElement("tr");
-  [result.name,result.lat.toFixed(4)+", "+result.lon.toFixed(4),"z"+result.z+" / "+result.x+" / "+result.y,result.status==="loaded"?"تم تحميل البلاطة":result.status==="timeout"?"انتهت المهلة":result.status==="unsupported"?"غير مدعوم":"فشل التحميل"].forEach(function(value,index){
-   var td=document.createElement("td");td.textContent=value;
-   if(index===3)td.className="state-"+result.status;
-   tr.appendChild(td);
+  [result.name,result.lat.toFixed(4)+", "+result.lon.toFixed(4),"z"+result.z+" / "+result.x+" / "+result.y].forEach(function(value){
+   var td=document.createElement("td");td.textContent=value;tr.appendChild(td);
   });
+  var previewCell=document.createElement("td");
+  if(result.status==="loaded"){
+   var preview=document.createElement("img");
+   preview.src=result.url;preview.alt="معاينة بلاطة "+result.name;
+   preview.loading="lazy";preview.width=96;preview.height=64;
+   preview.style.objectFit="contain";preview.style.background="#eef2f5";
+   preview.style.borderRadius="6px";preview.style.display="block";
+   previewCell.appendChild(preview);
+  }else{
+   previewCell.textContent="لا توجد معاينة";
+   previewCell.className="small";
+  }
+  tr.appendChild(previewCell);
+  var stateCell=document.createElement("td");
+  stateCell.textContent=result.status==="loaded"?"تم تحميل البلاطة":result.status==="timeout"?"انتهت المهلة":result.status==="unsupported"?"غير مدعوم":"فشل التحميل";
+  stateCell.className="state-"+result.status;
+  tr.appendChild(stateCell);
   body.appendChild(tr);
  });
 }
