@@ -111,3 +111,10 @@
 - التوثيق المرجعي: https://open-meteo.com/en/docs
 - تفاصيل نماذج ECMWF: https://open-meteo.com/en/docs/ecmwf-api
 - المصدر لا يمثل قياس محطة أرضية؛ Open-Meteo يجمع نماذج عددية ويعرض بعض المتغيرات المشتقة.
+
+
+## CHIRPS v3 RNL daily COG distribution
+- يوفر WFP Source Cooperative توزيع CHIRPS v3 DAILY RNL كملفات Cloud-Optimized GeoTIFF يومية، بفهرس STAC GeoParquet، ودقة 0.05° وتغطية 60° شمالاً إلى 60° جنوباً، وترخيص CC BY 4.0.
+- RNL يوزع مجاميع CHIRPS الخماسية إلى قيم يومية باستخدام إعادة تحليل ERA5؛ لذلك تبقى تقديرات شبكية وليست قياسات يومية مستقلة من محطات المطر.
+- يستخرج المرصد عينات أقرب خلية عند إحداثيات 13 مدينة سعودية، ولا يحسب متوسط مساحة المدينة. القيم المفقودة تبقى null.
+- المصدر والإسناد: Climate Hazards Center CHIRPS v3 Data Repository؛ التوزيع بواسطة WFP Source Cooperative. راجع سجل المنتج وشروطه عند كل تشغيل.
