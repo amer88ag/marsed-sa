@@ -130,23 +130,29 @@ async function runAllLayers(){
   for(var index=0;index<keys.length;index++){
    var key=keys[index],meta=NasaGibsSatellite.getLayer(key);
    status("جارٍ التحقق من تاريخ "+meta.title+" ("+(index+1)+"/4)…");
-   var availability=await NasaGibsSatellite.getAvailableDates(key);
-   var date=availability.periods.reduce(function(best,period){
-    if(period.start>today)return best;
-    var end=period.end<today?period.end:today;
-    return end>=period.start&&(!best||end>best)?end:best;
-   },null);
-   if(!date){status("لا يوجد تاريخ متاح حتى اليوم للطبقة: "+meta.title,true);continue}
-   status("جارٍ فحص "+meta.title+" بتاريخ "+date+" ("+(index+1)+"/4)…");
-   var results=await Promise.all(NasaGibsCoverage.POINTS.map(function(point){
-    return NasaGibsCoverage.checkPoint(key,date,point,NasaGibsSatellite,Image,12000);
-   }));
-   renderRows(results,meta.title,date,true);
-   allResults=allResults.concat(results);
-   var loaded=results.filter(function(result){return result.status==="loaded"}).length;
-   var pill=document.createElement("span");pill.className="pill";
-   pill.textContent=meta.title+": "+loaded+"/"+results.length+" بلاطة محمّلة";
-   $("summary").appendChild(pill);
+   try{
+    var availability=await NasaGibsSatellite.getAvailableDates(key);
+    var date=availability.periods.reduce(function(best,period){
+     if(period.start>today)return best;
+     var end=period.end<today?period.end:today;
+     return end>=period.start&&(!best||end>best)?end:best;
+    },null);
+    if(!date)throw new Error("لا يوجد تاريخ متاح حتى اليوم");
+    status("جارٍ فحص "+meta.title+" بتاريخ "+date+" ("+(index+1)+"/4)…");
+    var results=await Promise.all(NasaGibsCoverage.POINTS.map(function(point){
+     return NasaGibsCoverage.checkPoint(key,date,point,NasaGibsSatellite,Image,12000);
+    }));
+    renderRows(results,meta.title,date,true);
+    allResults=allResults.concat(results);
+    var loaded=results.filter(function(result){return result.status==="loaded"}).length;
+    var pill=document.createElement("span");pill.className="pill";
+    pill.textContent=meta.title+": "+loaded+"/"+results.length+" بلاطة محمّلة";
+    $("summary").appendChild(pill);
+   }catch(layerError){
+    var warning=document.createElement("span");warning.className="pill";
+    warning.textContent=meta.title+": تعذر الفحص ("+layerError.message+")";
+    $("summary").appendChild(warning);
+   }
   }
   var loadedTotal=allResults.filter(function(result){return result.status==="loaded"}).length;
   status("اكتمل فحص الطبقات المتاحة: "+loadedTotal+" من "+allResults.length+" طلب بلاطة نجح. النتائج عينة وصول شبكي وليست إثباتاً لمحتوى علمي أو تغطية وطنية.");
