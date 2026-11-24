@@ -22,7 +22,7 @@ test("orchard weather service is loaded before the page controller", () => {
 });
 
 test("all inline page scripts remain syntactically valid", () => {
-  const scripts = [...page.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)]
+  const scripts = [...page.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
     .map(match => match[1].trim()).filter(Boolean);
   for (const script of scripts) new vm.Script(script, { filename: "seasons/index.html" });
 });
