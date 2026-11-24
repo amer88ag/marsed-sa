@@ -64,7 +64,7 @@
 <script>
 (function(){
 "use strict";
-var map=null,layer=null,activeKey="viirsTrue",availablePeriods=[],availabilityRequestId=0;
+var map=null,layer=null,activeKey="viirsTrue",availablePeriods=[],availabilityRequestId=0,renderRequestId=0,currentTileErrors=0;
 function $(id){return document.getElementById(id)}
 function setStatus(message,isError){$("imageStatus").textContent=message;$("imageStatus").classList.toggle("error",!!isError)}
 function clearImage(){if(layer&&map){map.removeLayer(layer);layer=null}}
@@ -73,15 +73,16 @@ function loadLayer(){
  var key=$("layer").value,date=$("imageDate").value;
  if(!NasaGibsSatellite.validDate(date)){setStatus("اختر تاريخاً صحيحاً للصورة.",true);return}
  if(!NasaGibsSatellite.isDateAvailable(date,availablePeriods)){setStatus("لا توجد بيانات موثقة لهذا التاريخ في الطبقة المختارة. اختر تاريخاً متاحاً.",true);return}
- var meta=NasaGibsSatellite.getLayer(key);
+ var meta=NasaGibsSatellite.getLayer(key),renderId=++renderRequestId;
+ currentTileErrors=0;
  clearImage();
- layer=L.tileLayer(NasaGibsSatellite.buildTileUrl(key,date),{
+ var nextLayer=L.tileLayer(NasaGibsSatellite.buildTileUrl(key,date),{
   minZoom:2,maxZoom:10,maxNativeZoom:9,opacity:1,
   attribution:'Imagery © <a href="https://www.earthdata.nasa.gov/">NASA Earthdata</a> / <a href="https://gibs.earthdata.nasa.gov/">GIBS</a>'
  });
- layer.on("tileerror",function(){setStatus("تعذر تحميل بعض مربعات الصورة. قد توجد فجوات تغطية مكانية رغم أن التاريخ ضمن نطاق المنتج.",true)});
- layer.on("load",function(){setStatus(meta.title+" · تاريخ المنتج: "+date+" · آخر تاريخ متاح حسب الخدمة: "+NasaGibsSatellite.latestAvailableDate(availablePeriods)+" · "+meta.note+" · المصدر: NASA GIBS")});
- layer.addTo(map);activeKey=key;
+ nextLayer.on("tileerror",function(){if(renderId!==renderRequestId)return;currentTileErrors++;setStatus("تعذر تحميل "+currentTileErrors+" من مربعات الصورة الظاهرة. قد توجد فجوات تغطية مكانية رغم أن التاريخ ضمن نطاق المنتج.",true)});
+ nextLayer.on("load",function(){if(renderId!==renderRequestId)return;var coverageNote=currentTileErrors?" · تغطية غير مكتملة: تعذر تحميل "+currentTileErrors+" مربعاً":" · اكتمل تحميل مربعات العرض الحالية";setStatus(meta.title+" · تاريخ المنتج: "+date+" · آخر تاريخ متاح حسب الخدمة: "+NasaGibsSatellite.latestAvailableDate(availablePeriods)+coverageNote+" · "+meta.note+" · المصدر: NASA GIBS",currentTileErrors>0)});
+ layer=nextLayer;layer.addTo(map);activeKey=key;
  setStatus("جارٍ تحميل "+meta.title+" بتاريخ "+date+"…");
 }
 async function refreshAvailability(){
