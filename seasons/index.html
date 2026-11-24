@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b46">
+<meta name="description" content="تقويم المواسم النجمية والشعبية في الجزيرة العربية: الوسم والمربعانية والشبط والعقارب وسهيل وغيرها.">
+<title>مواسم السنة والأنواء | مرصد السعودية</title>
+<style>
+:root{color-scheme:light;--navy:#102b46;--blue:#1769aa;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}
+header{background:linear-gradient(120deg,#102b46,#174d76);color:white;padding:18px max(16px,calc((100% - 1120px)/2))}
+header a{color:#d9eafa;text-decoration:none;font-size:13px}h1{font-size:24px;margin:12px 0 5px}header p{margin:0;color:#d0dfeb;font-size:13px}
+main{max-width:1120px;margin:auto;padding:18px 14px 36px}.hero,.panel{background:white;border:1px solid var(--line);border-radius:15px;overflow:hidden;box-shadow:0 3px 14px #183b5710}
+.hero{padding:17px;margin-bottom:14px}.eyebrow{font-size:12px;color:var(--muted)}.current{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}.current h2{font-size:25px;margin:6px 0}.current p{margin:4px 0;color:var(--muted);font-size:13px}.remaining{background:#eef6fc;color:#235477;border-radius:12px;padding:12px 15px;min-width:145px;text-align:center}.remaining strong{display:block;font-size:23px}.remaining small{font-size:11px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.filters button{border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 13px;border-radius:30px;font:inherit;cursor:pointer}.filters button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:white}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.season{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px;position:relative}.season.active{border:2px solid var(--blue);background:#f4f9fd}.season-top{display:flex;justify-content:space-between;gap:8px;align-items:center}.season h3{margin:0;font-size:17px}.dates{font-size:12px;color:var(--muted);white-space:nowrap}.season p{font-size:12px;line-height:1.8;color:#465768;margin:9px 0}.stars{font-size:11px;color:#245a7d;background:#eef6fc;border-radius:8px;padding:7px 9px}.season small{display:block;color:var(--muted);font-size:11px;margin-top:8px}.tag{font-size:10px;border-radius:30px;padding:4px 8px;background:#e7f3ec;color:#23623f}
+.note{margin:14px 0 0;padding:12px 13px;border-radius:11px;background:#fff7e8;color:#79500b;font-size:12px;line-height:1.9}.sources{padding:14px 16px;margin-top:14px}.sources h2{font-size:15px;margin:0 0 8px}.sources a{display:block;color:var(--blue);text-decoration:none;font-size:12px;margin:8px 0}.sources p{font-size:11px;color:var(--muted);line-height:1.8;margin:10px 0 0}
+@media(max-width:620px){main{padding:12px 10px 26px}.grid{grid-template-columns:1fr}.current h2{font-size:22px}}
+</style>
+</head>
+<body>
+<header><a href="../">← العودة إلى مرصد السعودية</a><h1>مواسم السنة والأنواء</h1><p>التقويم النجمي والشعبي ومواسم البرد والحر والمطر في الجزيرة العربية</p></header>
+<main>
+<section class="hero" aria-live="polite">
+<div class="current"><div><div class="eyebrow" id="today"></div><h2 id="currentName">جارٍ تحديد الموسم…</h2><p id="currentDates"></p><p id="currentDescription"></p></div><div class="remaining"><strong id="remaining">—</strong><small>يوماً حتى نهاية الموسم</small></div></div>
+</section>
+<div class="filters" role="group" aria-label="تصفية المواسم حسب الفصل"><button data-filter="all" aria-pressed="true">كل المواسم</button><button data-filter="winter" aria-pressed="false">البرد والشتاء</button><button data-filter="spring" aria-pressed="false">الربيع والاعتدال</button><button data-filter="summer" aria-pressed="false">الحر والقيظ</button><button data-filter="autumn" aria-pressed="false">سهيل والوسم</button></div>
+<section class="grid" id="seasons"></section>
+<div class="note">تنبيه مهم: هذه تواريخ تقريبية لتقويم نجمي/شعبي متداول، وليست مواعيد رسمية ملزمة ولا توقعاً جوياً. تختلف بعض التقاويم في بداية الموسم ومدته وتقسيم العقارب وغيرها؛ كما تختلف آثار الموسم بين مناطق المملكة بسبب الموقع والارتفاع والتضاريس. يعرض المرصد الموسم الشعبي إلى جانب بيانات الطقس الفعلية عند ربطها، ولا يفترض أن وصف الموسم ينطبق على طقس كل مدينة.</div>
+<section class="panel sources"><h2>المراجع والمنهج</h2>
+<a href="https://alojeiri.com/ar/season" target="_blank" rel="noopener">مركز صالح العجيري — تقويم المواسم ومنازلها</a>
+<a href="https://www.almisnid.com/almisnid/article-68.html" target="_blank" rel="noopener">أ.د. عبدالله المسند — السنة النجمية وتقسيم المواسم واختلاف الحسابات</a>
+<a href="https://www.mewa.gov.sa/ar/MediaCenter/PressReleases/PressFiles/20210607.pdf" target="_blank" rel="noopener">وزارة البيئة والمياه والزراعة — مدد المواسم في مادة منشورة ضمن الملف الصحفي</a>
+<p>اعتمد عرض التواريخ هنا تقويماً موسمياً شائعاً منشوراً لدى مركز صالح العجيري. قد تختلف بعض المصادر في التقسيم، ومنها مدة العقارب والمربعانية؛ لذلك لا تُدمج الاختلافات في تاريخ واحد على أنها حقيقة قطعية.</p>
+</section>
+</main>
+<script>
+(function(){
+"use strict";
+var seasons=[
+{name:"المربعانية",start:"12-07",end:"01-14",group:"winter",description:"قلب الشتاء في التقويم الشعبي؛ ترتبط بأشد فترات البرد في عدد من مناطق الجزيرة، وقد تظهر موجات صقيع بحسب المنطقة.",stars:["الإكليل","القلب","الشولة"]},
+{name:"الشبط",start:"01-15",end:"02-09",group:"winter",description:"فترة برد ورياح شمالية في الوصف الشعبي، وقد تشتد البرودة ليلاً.",stars:["النعايم","البلدة"]},
+{name:"العقارب",start:"02-10",end:"03-07",group:"winter",description:"تُوصف بأنها تقلبات برد متقطعة تسبق اعتدال الربيع. تختلف بعض الحسابات في مدتها وتقسيمها.",stars:["سعد الذابح","سعد بلع","سعد السعود"]},
+{name:"الحميمين",start:"03-08",end:"04-02",group:"spring",description:"مرحلة انتقال نحو الاعتدال والدفء ونمو النبات في الوصف الزراعي الشعبي.",stars:["سعد السعود","سعد الأخبية"]},
+{name:"الذراعان",start:"04-03",end:"04-28",group:"spring",description:"تزداد الحرارة تدريجياً، وترد في أوصافه رياح وتقلبات ربيعية.",stars:["المقدم","المؤخر"]},
+{name:"الكنة",start:"04-29",end:"06-06",group:"spring",description:"مرحلة انتقالية تتصاعد فيها الحرارة مع اقتراب القيظ، وتختلف آثارها بين المناطق.",stars:["الرشا","الشرطين","البطين"]},
+{name:"الثريا",start:"06-07",end:"06-19",group:"summer",description:"بداية مرحلة الحر الصيفي في التقويم النجمي، وترتبط في الموروث باشتداد حرارة الجو.",stars:["الثريا"]},
+{name:"التويبع",start:"06-20",end:"07-02",group:"summer",description:"مرحلة صيفية حارة تتزامن تقريباً مع أطول أيام السنة حول الانقلاب الصيفي.",stars:["الدبران"]},
+{name:"الجوزاء الأولى",start:"07-03",end:"07-15",group:"summer",description:"من مراحل القيظ، وتُذكر معها شدة الحر ونشاط الغبار في بعض المناطق.",stars:["الهقعة"]},
+{name:"الجوزاء الثانية",start:"07-16",end:"07-28",group:"summer",description:"تستمر أجواء القيظ وارتفاع الحرارة، مع اختلاف واضح بين السواحل والمرتفعات والداخل.",stars:["الهنعة"]},
+{name:"المرزم",start:"07-29",end:"08-10",group:"summer",description:"من فترات الحر الشديد في الموروث الشعبي، وتحتاج الأنشطة الخارجية إلى مراعاة الحرارة الفعلية.",stars:["الذراع"]},
+{name:"الكليبين",start:"08-11",end:"08-23",group:"summer",description:"آخر مراحل القيظ قبل سهيل في هذا التقسيم الشعبي.",stars:["النثرة"]},
+{name:"سهيل",start:"08-24",end:"10-15",group:"autumn",description:"طلوع سهيل علامة موسمية مشهورة لبداية تحول تدريجي؛ لا يعني انكسار الحر فوراً في جميع مناطق المملكة.",stars:["الطرفة","الجبهة","الزبرة","الصرفة"]},
+{name:"الوسم",start:"10-16",end:"12-06",group:"autumn",description:"موسم مشهور بارتباطه بأمطار نافعة للإنبات والكمأة في الموروث الزراعي، لكن تحقق المطر ومكانه يعتمدان على الحالة الجوية الفعلية.",stars:["العواء","السماك","الغفر","الزبانا"]}
+];
+function parts(md){return md.split("-").map(Number)}
+function ordinal(md,year){var p=parts(md);return Math.floor((Date.UTC(year,p[0]-1,p[1])-Date.UTC(year,0,1))/86400000)}
+function fmtDate(md){var p=parts(md);return String(p[1]).padStart(2,"0")+"/"+String(p[0]).padStart(2,"0")}
+function activeAt(s,md){var x=parts(md),v=x[0]*100+x[1],a=parts(s.start),b=parts(s.end),lo=a[0]*100+a[1],hi=b[0]*100+b[1];return lo<=hi?(v>=lo&&v<=hi):(v>=lo||v<=hi)}
+function saudiNow(){var d=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Riyadh"}));return d}
+var now=saudiNow(),md=String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");
+var index=seasons.findIndex(function(s){return activeAt(s,md)}),current=seasons[index];
+$("today").textContent="اليوم · "+now.toLocaleDateString("ar-SA",{timeZone:"Asia/Riyadh",weekday:"long",year:"numeric",month:"long",day:"numeric"});
+$("currentName").textContent=current.name;
+$("currentDates").textContent="من "+fmtDate(current.start)+" إلى "+fmtDate(current.end)+" (تقريباً)";
+$("currentDescription").textContent=current.description;
+var end=parts(current.end),endDate=new Date(now.getFullYear(),end[0]-1,end[1]);if(endDate<new Date(now.getFullYear(),now.getMonth(),now.getDate()))endDate.setFullYear(endDate.getFullYear()+1);
+$("remaining").textContent=Math.max(0,Math.ceil((endDate-new Date(now.getFullYear(),now.getMonth(),now.getDate()))/86400000));
+function render(filter){$("seasons").innerHTML=seasons.filter(function(s){return filter==="all"||s.group===filter}).map(function(s){var active=s===current;return '<article class="season'+(active?' active':'')+'"><div class="season-top"><h3>'+s.name+'</h3>'+(active?'<span class="tag">الموسم الحالي</span>':'<span class="dates">'+fmtDate(s.start)+' – '+fmtDate(s.end)+'</span>')+'</div><p>'+s.description+'</p><div class="stars">المنازل المرتبطة: '+s.stars.join(" · ")+'</div><small>التواريخ تقريبية ضمن التقويم المعروض</small></article>'}).join("")}
+render("all");
+document.querySelectorAll("[data-filter]").forEach(function(button){button.addEventListener("click",function(){document.querySelectorAll("[data-filter]").forEach(function(b){b.setAttribute("aria-pressed",String(b===button))});render(button.dataset.filter)})});
+})();
+</script>
+</body>
+</html>
