@@ -120,7 +120,7 @@ test('registry separates active, research and planned services', () => {
   const registry = require('../src/platform/registry/registry.js');
   assert.ok(registry.getServices(services, { statuses: ['active'] }).some(item => item.id === 'weather'));
   assert.ok(registry.getServices(services, { statuses: ['research'] }).some(item => item.id === 'precipitation'));
-  assert.ok(registry.getServices(services, { statuses: ['planned'] }).some(item => item.id === 'air-quality'));
+  assert.ok(registry.getServices(services, { statuses: ['active'] }).some(item => item.id === 'air-quality'));
 });
 
 test('provider registry does not treat unapproved sources as ready for public display', () => {
@@ -128,8 +128,10 @@ test('provider registry does not treat unapproved sources as ready for public di
   const registry = require('../src/platform/registry/registry.js');
   const ncm = providers.providers.find(item => item.id === 'ncm');
   const openMeteo = providers.providers.find(item => item.id === 'open-meteo');
+  const openMeteoAir = providers.providers.find(item => item.id === 'open-meteo-air-quality');
   assert.equal(registry.isProviderEligibleForPublicDisplay(ncm), false);
   assert.equal(registry.isProviderEligibleForPublicDisplay(openMeteo), true);
+  assert.equal(registry.isProviderEligibleForPublicDisplay(openMeteoAir), true);
 });
 
 test('registry rejects unknown provider references', () => {
