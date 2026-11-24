@@ -87,6 +87,7 @@ function loadLayer(){
 }
 async function refreshAvailability(){
  var key=$("layer").value,requestId=++availabilityRequestId;
+ renderRequestId++;
  clearImage();availablePeriods=[];$("imageDate").disabled=true;
  setStatus("جارٍ الاستعلام من NASA GIBS عن تواريخ الصور المتاحة للطبقة المختارة…");
  try{
