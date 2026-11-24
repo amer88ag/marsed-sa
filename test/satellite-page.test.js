@@ -16,11 +16,11 @@ test("satellite page exposes date and layer controls with Saudi coverage", () =>
 
 test("satellite viewer loads the dedicated service before its controller", () => {
   assert.ok(page.indexOf('src="../src/services/satellite/nasa-gibs.js"') < page.indexOf("(function(){"));
-  assert.match(page, /NasaGibsSatellite\\.buildTileUrl/);
+  assert.match(page, /NasaGibsSatellite\.buildTileUrl/);
 });
 
 test("inline satellite page script parses without syntax errors", () => {
-  const scripts = [...page.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)]
+  const scripts = [...page.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
     .map(match => match[1].trim()).filter(Boolean);
   assert.equal(scripts.length, 1);
   for (const script of scripts) new vm.Script(script, { filename: "satellite/index.html" });
