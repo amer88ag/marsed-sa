@@ -4,66 +4,107 @@
   if (root) root.OrchardWeather = api;
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
-  const DAILY_FIELDS = "temperature_2m_min,temperature_2m_max,precipitation_sum,precipitation_probability_max,et0_fao_evapotranspiration";\n  const ARCHIVE_FIELDS = "temperature_2m_min,temperature_2m_max,precipitation_sum";
+
+  const DAILY_FIELDS = "temperature_2m_min,temperature_2m_max,precipitation_sum,precipitation_probability_max,et0_fao_evapotranspiration";
+  const ARCHIVE_FIELDS = "temperature_2m_min,temperature_2m_max,precipitation_sum";
+
   function validLocation(location) {
-    return !!location && Number.isFinite(Number(location.lat)) && Number.isFinite(Number(location.lon)) &&
+    return !!location &&
+      Number.isFinite(Number(location.lat)) &&
+      Number.isFinite(Number(location.lon)) &&
       Number(location.lat) >= -90 && Number(location.lat) <= 90 &&
       Number(location.lon) >= -180 && Number(location.lon) <= 180;
   }
+
   function buildForecastUrl(location) {
     if (!validLocation(location)) throw new TypeError("Valid orchard latitude and longitude are required");
     const q = new URLSearchParams({
-      latitude: String(Number(location.lat)), longitude: String(Number(location.lon)),
-      daily: DAILY_FIELDS, hourly: "soil_moisture_0_to_7cm,soil_temperature_0_to_7cm",
-      forecast_days: "7", timezone: "Asia/Riyadh"
+      latitude: String(Number(location.lat)),
+      longitude: String(Number(location.lon)),
+      daily: DAILY_FIELDS,
+      hourly: "soil_moisture_0_to_7cm,soil_temperature_0_to_7cm",
+      forecast_days: "7",
+      timezone: "Asia/Riyadh"
     });
     return "https://api.open-meteo.com/v1/forecast?" + q.toString();
   }
+
   function shiftDate(dateText, days) {
+    if (typeof dateText !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(dateText) || !Number.isInteger(days)) {
+      throw new TypeError("A valid ISO date and integer day offset are required");
+    }
     const date = new Date(dateText + "T12:00:00Z");
-    if (!Number.isFinite(date.getTime())) throw new TypeError("Invalid ISO date");
+    if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== dateText) {
+      throw new TypeError("Invalid ISO date");
+    }
     date.setUTCDate(date.getUTCDate() + days);
     return date.toISOString().slice(0, 10);
   }
-  function saudiToday() {\n    const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Riyadh", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date()).reduce(function (out, part) { if (part.type !== "literal") out[part.type] = part.value; return out; }, {});\n    return parts.year + "-" + parts.month + "-" + parts.day;\n  }\n  function buildArchiveUrl(location, endDate) {
+
+  function saudiToday(now) {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Riyadh",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).formatToParts(now || new Date()).reduce(function (out, part) {
+      if (part.type !== "literal") out[part.type] = part.value;
+      return out;
+    }, {});
+    return parts.year + "-" + parts.month + "-" + parts.day;
+  }
+
+  function buildArchiveUrl(location, endDate) {
     if (!validLocation(location)) throw new TypeError("Valid orchard latitude and longitude are required");
     const end = endDate || saudiToday();
     const start = shiftDate(end, -7);
     const q = new URLSearchParams({
-      latitude: String(Number(location.lat)), longitude: String(Number(location.lon)),
-      start_date: start, end_date: shiftDate(end, -1), daily: ARCHIVE_FIELDS,
+      latitude: String(Number(location.lat)),
+      longitude: String(Number(location.lon)),
+      start_date: start,
+      end_date: shiftDate(end, -1),
+      daily: ARCHIVE_FIELDS,
       timezone: "Asia/Riyadh"
     });
     return "https://archive-api.open-meteo.com/v1/archive?" + q.toString();
   }
+
   function finiteOrNull(value) {
     if (value === null || value === undefined || value === "") return null;
     const n = Number(value);
     return Number.isFinite(n) ? n : null;
   }
+
   function normalizeDaily(payload) {
     if (!payload || !payload.daily || !Array.isArray(payload.daily.time)) {
       throw new TypeError("Weather response has no daily series");
     }
-    const d = payload.daily, dates = d.time;
-    const fields = ["temperature_2m_min", "temperature_2m_max", "precipitation_sum",
-      "precipitation_probability_max", "et0_fao_evapotranspiration"];
+    const daily = payload.daily;
+    const dates = daily.time;
+    const fields = [
+      "temperature_2m_min",
+      "temperature_2m_max",
+      "precipitation_sum",
+      "precipitation_probability_max",
+      "et0_fao_evapotranspiration"
+    ];
     fields.forEach(function (key) {
-      if (d[key] !== undefined && (!Array.isArray(d[key]) || d[key].length !== dates.length)) {
+      if (daily[key] !== undefined && (!Array.isArray(daily[key]) || daily[key].length !== dates.length)) {
         throw new TypeError("Daily field length mismatch: " + key);
       }
     });
-    return dates.map(function (date, i) {
+    return dates.map(function (date, index) {
       return {
         date: date,
-        min: finiteOrNull((d.temperature_2m_min || [])[i]),
-        max: finiteOrNull((d.temperature_2m_max || [])[i]),
-        precipitation: finiteOrNull((d.precipitation_sum || [])[i]),
-        precipitationProbability: finiteOrNull((d.precipitation_probability_max || [])[i]),
-        et0: finiteOrNull((d.et0_fao_evapotranspiration || [])[i])
+        min: finiteOrNull((daily.temperature_2m_min || [])[index]),
+        max: finiteOrNull((daily.temperature_2m_max || [])[index]),
+        precipitation: finiteOrNull((daily.precipitation_sum || [])[index]),
+        precipitationProbability: finiteOrNull((daily.precipitation_probability_max || [])[index]),
+        et0: finiteOrNull((daily.et0_fao_evapotranspiration || [])[index])
       };
     });
   }
+
   function classifyDay(day, stage) {
     const alerts = [];
     if (day.min !== null && day.min <= 0) {
@@ -84,10 +125,12 @@
     }
     return alerts;
   }
+
   function evaluate(days, stage) {
     return (Array.isArray(days) ? days : []).map(function (day) {
       return { day: day, alerts: classifyDay(day, stage || "") };
     });
   }
+
   return { buildForecastUrl, buildArchiveUrl, normalizeDaily, evaluate, shiftDate, validLocation, saudiToday };
 });
