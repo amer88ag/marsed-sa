@@ -4,7 +4,7 @@
   if (root) root.OrchardWeather = api;
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
-  const DAILY_FIELDS = "temperature_2m_min,temperature_2m_max,precipitation_sum,precipitation_probability_max,et0_fao_evapotranspiration";\n  const ARCHIVE_FIELDS = "temperature_2m_min,temperature_2m_max,precipitation_sum,et0_fao_evapotranspiration";
+  const DAILY_FIELDS = "temperature_2m_min,temperature_2m_max,precipitation_sum,precipitation_probability_max,et0_fao_evapotranspiration";\n  const ARCHIVE_FIELDS = "temperature_2m_min,temperature_2m_max,precipitation_sum";
   function validLocation(location) {
     return !!location && Number.isFinite(Number(location.lat)) && Number.isFinite(Number(location.lon)) &&
       Number(location.lat) >= -90 && Number(location.lat) <= 90 &&
