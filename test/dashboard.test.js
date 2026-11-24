@@ -728,3 +728,22 @@ test('road trip interface exposes optional Saudi-local planned departure time', 
   assert.match(html, /وقت الانطلاق:/);
   assert.match(html, /الوصول المتوقع:/);
 });
+
+
+test('national comparison is limited to the configured 13 cities and tolerates partial failures', () => {
+  assert.match(html, /مقارنة الطقس بين المدن السعودية/);
+  assert.match(html, /Object\.keys\(places\)\.map/);
+  assert.match(html, /Promise\.allSettled\(entries\)/);
+  assert.match(html, /تم جلب /);
+  assert.match(html, /ليست مقارنة شاملة/);
+  assert.match(html, /nationalComparisonRequestId/);
+  assert.match(html, /if\(requestId!==nationalComparisonRequestId\)return/);
+});
+
+test('daily forecast cards never substitute an older record when Saudi today is absent', () => {
+  assert.match(html, /var todayDate=new Date\(\)\.toLocaleDateString\("en-CA",\{timeZone:"Asia\/Riyadh"\}\)/);
+  assert.match(html, /var todayForecast=data\.daily\.find\(function\(row\)\{return row\.valid_date===todayDate\}\)\|\|null/);
+  assert.match(html, /id="tempMax"/);
+  assert.match(html, /id="tempMin"/);
+  assert.match(html, /id="rainChance"/);
+});
