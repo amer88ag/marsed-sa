@@ -38,3 +38,21 @@ test("satellite viewer links to the spatial tile diagnostic", () => {
   assert.match(page, /href="\.\/coverage\.html"/);
   assert.match(page, /latestAtOrBeforeToday/);
 });
+
+const coveragePage = fs.readFileSync("satellite/coverage.html", "utf8");
+
+test("coverage diagnostic exposes layer, date, run controls and explicit limits", () => {
+  for (const id of ["layer", "imageDate", "run", "results", "summary"]) {
+    assert.ok(coveragePage.includes('id="' + id + '"'), id);
+  }
+  assert.match(coveragePage, /NasaGibsCoverage\.checkPoint/);
+  assert.match(coveragePage, /لا يثبت ذلك أن الصورة تحتوي قيماً فضائية صالحة/);
+  assert.match(coveragePage, /z=7/);
+});
+
+test("coverage diagnostic inline script parses without syntax errors", () => {
+  const scripts = [...coveragePage.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
+    .map(match => match[1].trim()).filter(Boolean);
+  assert.equal(scripts.length, 1);
+  for (const script of scripts) new vm.Script(script, { filename: "satellite/coverage.html" });
+});
