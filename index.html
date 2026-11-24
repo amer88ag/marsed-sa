@@ -83,6 +83,25 @@
 <div class="panel-head"><h2>توقعات الأيام السبعة</h2><span>درجة الحرارة والمطر</span></div><div id="dailyForecast" class="daily">بانتظار البيانات</div>
 <div class="notice" id="quality">هذه القيم مستمدة من نموذج طقس، وليست قياسات مباشرة من محطة أرصاد. قد تختلف عن الرصد الأرضي.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · البيانات مرخصة وفق CC BY 4.0 مع الإسناد.</div>
 </section>
+</section>
+<section class="panel" id="air-quality">
+<div class="panel-head"><h2>جودة الهواء والغبار</h2><span>توقعات نموذج CAMS</span></div>
+<div class="weather-context">
+<div class="metric"><small>مؤشر جودة الهواء الأمريكي</small><strong id="airAqi">—</strong><em id="airAqiLabel">بانتظار البيانات</em></div>
+<div class="metric"><small>الجسيمات الدقيقة PM2.5</small><strong id="airPm25">—</strong><em>ميكروغرام/م³</em></div>
+<div class="metric"><small>الجسيمات PM10</small><strong id="airPm10">—</strong><em>ميكروغرام/م³</em></div>
+<div class="metric"><small>الغبار</small><strong id="airDust">—</strong><em>ميكروغرام/م³ · ناتج نموذج</em></div>
+<div class="metric"><small>الأوزون O₃</small><strong id="airOzone">—</strong><em>ميكروغرام/م³</em></div>
+<div class="metric"><small>ثاني أكسيد النيتروجين NO₂</small><strong id="airNo2">—</strong><em>ميكروغرام/م³</em></div>
+<div class="metric"><small>ثاني أكسيد الكبريت SO₂</small><strong id="airSo2">—</strong><em>ميكروغرام/م³</em></div>
+<div class="metric"><small>أول أكسيد الكربون CO</small><strong id="airCo">—</strong><em>ميكروغرام/م³</em></div>
+</div>
+<div class="panel-head"><h3>توقعات جودة الهواء الساعية</h3><button class="btn" id="refreshAir" type="button">تحديث الهواء</button></div>
+<div id="airHourly" class="weather-context hourly">بانتظار البيانات</div>
+<div class="notice" id="airQualityNote">البيانات تقديرات وتوقعات من نموذج CAMS Global عبر Open-Meteo، وليست قياسات محطات أرضية أو تنبيهات رسمية. مؤشر AQI المعروض هو المؤشر الأمريكي US AQI. القيم المفقودة تعرض كغير متاحة ولا تستبدل بأصفار.
+<a href="https://open-meteo.com/en/docs/air-quality-api" target="_blank" rel="noopener">توثيق جودة الهواء ومصدر البيانات</a> · Air quality data by Open-Meteo.com.</div>
+<div class="data-state" id="airUpdated">لم يتم تأكيد تحديث جودة الهواء بعد.</div>
+</section>
 <section class="panel">
 <div class="panel-head"><h2>الأمطار — 7 أيام سابقة و7 أيام قادمة</h2><span>ملم/يوم</span></div>
 <div class="chart-wrap"><svg id="rainChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مخطط كميات الأمطار اليومية"></svg><div class="chart-labels"><span>الأقدم</span><span>اليوم</span><span>الأحدث</span></div></div>
@@ -107,6 +126,8 @@
 <div class="foot">مرصد السعودية مشروع مستقل غير تابع للمركز الوطني للأرصاد أو NASA أو UCSB. لا تستخدم هذه اللوحة لاتخاذ قرارات السلامة أو الإخلاء أو الملاحة. في الحالات الطارئة اتبع تنبيهات الجهات الرسمية. © مرصد السعودية.</div>
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="src/providers/air-quality/open-meteo/adapter.js"></script>
+<script src="src/services/air-quality/service.js"></script>
 <script src="src/providers/weather/open-meteo/adapter.js"></script>
 <script src="src/providers/precipitation/chirps/adapter.js"></script>
 <script src="src/services/weather/service.js"></script>
@@ -127,6 +148,7 @@ function selectCity(key){
  activeKey=key;
  $("place").value=key;
  loadWeather();
+ loadAirQuality();
  renderChirps();
 }
 function initMap(){
@@ -372,6 +394,57 @@ async function loadChirps(){
   setText("chirpsState","تعذر تحميل ملف CHIRPS التجريبي: "+error.message);
  }
 }
+var airRequestId=0;
+function usAqiLabel(value){
+ if(value===null)return "غير متاح";
+ if(value<=50)return "جيد";
+ if(value<=100)return "متوسط";
+ if(value<=150)return "غير صحي للفئات الحساسة";
+ if(value<=200)return "غير صحي";
+ if(value<=300)return "غير صحي جداً";
+ return "خطير";
+}
+function clearAirQuality(){
+ ["airAqi","airPm25","airPm10","airDust","airOzone","airNo2","airSo2","airCo"].forEach(function(id){setText(id,"—")});
+ setText("airAqiLabel","بانتظار البيانات");
+ $("airHourly").textContent="بانتظار البيانات";
+ setText("airUpdated","لم يتم تأكيد تحديث جودة الهواء بعد.");
+}
+function renderAirQuality(data){
+ var c=data.current;
+ setText("airAqi",number(c.us_aqi,0));
+ setText("airAqiLabel",usAqiLabel(c.us_aqi));
+ setText("airPm25",number(c.pm2_5,1));
+ setText("airPm10",number(c.pm10,1));
+ setText("airDust",number(c.dust,1));
+ setText("airOzone",number(c.ozone,1));
+ setText("airNo2",number(c.nitrogen_dioxide,1));
+ setText("airSo2",number(c.sulphur_dioxide,1));
+ setText("airCo",number(c.carbon_monoxide,1));
+ var now=new Date();
+ var rows=(data.hourly||[]).filter(function(row){return row.valid_time&&new Date(row.valid_time).getTime()>=now.getTime()-60*60*1000}).slice(0,12);
+ if(!rows.length){$("airHourly").textContent="لا تتوفر توقعات ساعية في الاستجابة الحالية.";return}
+ $("airHourly").innerHTML=rows.map(function(row){
+  return '<div class="hour"><b>'+escapeHtml(row.valid_time.slice(11,16))+'</b><small>US AQI '+escapeHtml(number(row.us_aqi,0))+' · '+escapeHtml(usAqiLabel(row.us_aqi))+'</small><strong>PM2.5 '+escapeHtml(number(row.pm2_5,1))+'</strong><small>PM10 '+escapeHtml(number(row.pm10,1))+' ميكروغرام/م³</small><small>غبار '+escapeHtml(number(row.dust,1))+'</small><small>أوزون '+escapeHtml(number(row.ozone,1))+'</small></div>';
+ }).join("");
+ setText("airUpdated","آخر جلب: "+new Date(data.retrieved_at).toLocaleString("ar-SA",{timeZone:"Asia/Riyadh"})+" · نموذج CAMS Global · ليس قياس محطة.");
+}
+async function loadAirQuality(){
+ var requestId=++airRequestId,p=places[activeKey],key=activeKey;
+ $("refreshAir").disabled=true;clearAirQuality();
+ setText("airUpdated","جارٍ جلب توقعات جودة الهواء لمدينة "+p.name+"…");
+ try{
+  var data=await AirQualityService.fetchAirQuality({id:key,name:p.name,lat:p.lat,lon:p.lon});
+  if(requestId!==airRequestId||key!==activeKey)return;
+  renderAirQuality(data);
+ }catch(error){
+  if(requestId!==airRequestId||key!==activeKey)return;
+  clearAirQuality();
+  setText("airUpdated","تعذر جلب بيانات جودة الهواء. لا توجد بيانات بديلة أو أصفار مصطنعة. "+(error&&error.message?error.message:""));
+ }finally{
+  if(requestId===airRequestId)$("refreshAir").disabled=false;
+ }
+}
 var weatherRequestId=0;
 function clearWeatherDisplay(){
  ["temp","feels","rain","humidity","wind","condition","daylight","elevation","pressureMsl","surfacePressure","dewPoint","cloudCover","windGusts","windDirection","uvIndex","wetBulb","cape","freezingLevel","boundaryLayer","soilTemp","soilMoisture","wind80","wind100","solarRadiation","solarSplit","weatherInsight"].forEach(function(id){setText(id,"—")});
@@ -437,9 +510,10 @@ async function loadWeather(){
 }
 $("place").addEventListener("change",function(e){selectCity(e.target.value)});
 $("refresh").addEventListener("click",loadWeather);
+$("refreshAir").addEventListener("click",loadAirQuality);
 $("radarMode").addEventListener("change",function(e){radarMode=e.target.value;renderRadar()});
 $("refreshRadar").addEventListener("click",loadRadar);
-initMap();initTripControls();$("planTrip").addEventListener("click",planTrip);loadWeather();loadChirps();loadRadar();
+initMap();initTripControls();$("planTrip").addEventListener("click",planTrip);loadWeather();loadAirQuality();loadChirps();loadRadar();
 })();
 </script>
 </body></html>

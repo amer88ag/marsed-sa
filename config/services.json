@@ -43,13 +43,25 @@
       "id": "air-quality",
       "title": "جودة الهواء",
       "category": "environment",
-      "description": "خدمة مستقبلية تنتظر اعتماد مصدر البيانات وشروط العرض.",
-      "status": "planned",
-      "provider_ids": [],
+      "description": "توقعات جودة الهواء والغبار للمدن السعودية من نموذج CAMS Global.",
+      "status": "active",
+      "provider_ids": [
+        "open-meteo-air-quality"
+      ],
       "capabilities": [
-        "air_quality_index",
-        "pollutants"
-      ]
+        "us_air_quality_index",
+        "pm2_5",
+        "pm10",
+        "dust",
+        "ozone",
+        "nitrogen_dioxide",
+        "sulphur_dioxide",
+        "carbon_monoxide",
+        "hourly_forecast"
+      ],
+      "ui_entry": "index.html#air-quality",
+      "data_class": "atmospheric_model_forecast",
+      "safety_notice": "توقعات نموذجية وليست قياسات محطات أرضية أو تنبيهات رسمية؛ القيم المفقودة لا تعني صفراً."
     },
     {
       "id": "earthquakes",

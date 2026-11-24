@@ -108,6 +108,23 @@
       "rate_limit": "Maximum 1 request per second; avoid automated polling; public demo access can be withdrawn",
       "health_status": "not_monitored",
       "notes": "Prototype route geometry and modelled duration only. Not live traffic, road closure, incident, or official safety data; replace with a suitable provider before production."
+    },
+    {
+      "id": "open-meteo-air-quality",
+      "name": "Open-Meteo Air Quality API",
+      "official_url": "https://open-meteo.com/en/docs/air-quality-api",
+      "domain": "air-quality",
+      "products": [
+        "cams-global-air-quality"
+      ],
+      "auth_mode": "none",
+      "license_status": "approved_with_conditions",
+      "license": "CC BY 4.0 for data; free API tier is for non-commercial use subject to published limits",
+      "attribution": "Air quality data by Open-Meteo.com",
+      "coverage": "CAMS Global atmospheric composition forecast; nominal 45 km model resolution",
+      "rate_limit": "Published Open-Meteo API limits apply; verify current terms before production use",
+      "health_status": "not_monitored",
+      "notes": "Saudi city estimates and forecasts, not ground station observations. CAMS Global selected for geographic coverage; values may differ from local monitors."
     }
   ]
 }
