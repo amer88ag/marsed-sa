@@ -4,7 +4,7 @@
   if (root) root.OrchardWeather = api;
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
-  const DAILY_FIELDS = "temperature_2m_min,temperature_2m_max,precipitation_sum,precipitation_probability_max,et0_fao_evapotranspiration";
+  const DAILY_FIELDS = "temperature_2m_min,temperature_2m_max,precipitation_sum,precipitation_probability_max,et0_fao_evapotranspiration";\n  const ARCHIVE_FIELDS = "temperature_2m_min,temperature_2m_max,precipitation_sum,et0_fao_evapotranspiration";
   function validLocation(location) {
     return !!location && Number.isFinite(Number(location.lat)) && Number.isFinite(Number(location.lon)) &&
       Number(location.lat) >= -90 && Number(location.lat) <= 90 &&
@@ -27,11 +27,11 @@
   }
   function buildArchiveUrl(location, endDate) {
     if (!validLocation(location)) throw new TypeError("Valid orchard latitude and longitude are required");
-    const end = endDate || new Date().toISOString().slice(0, 10);
+    const end = endDate || new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Riyadh", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
     const start = shiftDate(end, -7);
     const q = new URLSearchParams({
       latitude: String(Number(location.lat)), longitude: String(Number(location.lon)),
-      start_date: start, end_date: shiftDate(end, -1), daily: DAILY_FIELDS,
+      start_date: start, end_date: shiftDate(end, -1), daily: ARCHIVE_FIELDS,
       timezone: "Asia/Riyadh"
     });
     return "https://archive-api.open-meteo.com/v1/archive?" + q.toString();
