@@ -222,6 +222,55 @@ test('dashboard links to the service management center', () => {
   assert.match(html, /مركز إدارة الخدمات والمصادر/);
 });
 
+test('air quality adapter requests CAMS Global pollutants and normalizes missing values safely', () => {
+  const adapter = require('../src/providers/air-quality/open-meteo/adapter.js');
+  const url = new URL(adapter.buildUrl({ id: 'riyadh', lat: 24.7, lon: 46.6 }));
+  assert.equal(url.hostname, 'air-quality-api.open-meteo.com');
+  assert.equal(url.searchParams.get('domains'), 'cams_global');
+  assert.equal(url.searchParams.get('forecast_days'), '5');
+  for (const field of ['us_aqi', 'pm2_5', 'pm10', 'dust', 'ozone', 'nitrogen_dioxide', 'sulphur_dioxide', 'carbon_monoxide']) {
+    assert.ok(url.searchParams.get('current').includes(field));
+    assert.ok(url.searchParams.get('hourly').includes(field));
+  }
+  const normalized = adapter.normalize({
+    current: { time: '2026-11-24T10:00', us_aqi: 72, pm2_5: 18.4, pm10: null, dust: 12, ozone: 90 },
+    hourly: { time: ['2026-11-24T10:00'], us_aqi: [72], pm2_5: [18.4], pm10: [null], dust: [12], ozone: [90] }
+  }, { id: 'riyadh', name: 'الرياض', lat: 24.7, lon: 46.6 }, '2026-11-24T07:00:00Z');
+  assert.equal(normalized.current.us_aqi, 72);
+  assert.equal(normalized.current.pm2_5, 18.4);
+  assert.equal(normalized.current.pm10, null);
+  assert.equal(normalized.hourly[0].dust, 12);
+  assert.equal(normalized.provenance.model, 'CAMS Global');
+  assert.equal(normalized.provenance.classification, 'model_forecast_not_station_observation');
+  assert.throws(() => adapter.normalize({
+    current: {}, hourly: { time: ['2026-11-24T10:00'], pm2_5: [] }
+  }, null), /hourly field length mismatch/);
+});
+
+test('air quality service fetches and normalizes provider data and surfaces HTTP failures', async () => {
+  const service = require('../src/services/air-quality/service.js');
+  const adapter = {
+    buildUrl: () => 'https://provider.test/air',
+    normalize: (payload, location, retrievedAt) => ({ value: payload.value, city: location.id, retrievedAt })
+  };
+  const result = await service.fetchAirQuality({ id: 'abha', lat: 18, lon: 42 }, {
+    adapter, retrievedAt: '2026-11-24T00:00:00Z',
+    fetch: async () => ({ ok: true, json: async () => ({ value: 42 }) })
+  });
+  assert.deepEqual(result, { value: 42, city: 'abha', retrievedAt: '2026-11-24T00:00:00Z' });
+  await assert.rejects(service.fetchAirQuality({ id: 'abha', lat: 18, lon: 42 }, {
+    adapter, fetch: async () => ({ ok: false, status: 503 })
+  }), /HTTP 503/);
+});
+
+test('air quality dashboard is separate from weather and clearly labels model forecasts', () => {
+  assert.match(html, /جودة الهواء والغبار/);
+  assert.match(html, /air-quality-api/);
+  assert.match(html, /نموذج CAMS/);
+  assert.match(html, /ليست قياسات محطات أرضية/);
+  assert.match(html, /refreshAir/);
+});
+
 test('weather service fetches through the provider adapter and returns normalized data', async () => {
   const service = require('../src/services/weather/service.js');
   const fakeAdapter = {
