@@ -34,6 +34,16 @@ test("satellite viewer preserves incomplete tile coverage and ignores stale laye
   assert.match(page, /currentTileErrors>0/);
 });
 
+test("satellite viewer documents verified candidate products without activating them", () => {
+  for (const label of ["VIIRS LST", "AIRS Dust Score", "GPM IMERG", "VIIRS NDVI"]) {
+    assert.ok(page.includes(label), label);
+  }
+  assert.match(page, /الطبقات المرشحة — غير مفعّلة بعد/);
+  assert.match(page, /لن تظهر هذه المنتجات كطبقات قابلة للاختيار/);
+  assert.match(page, /ليست درجة حرارة الهواء/);
+  assert.match(page, /ليس قياساً أرضياً لتركيز PM2\.5 أو PM10/);
+});
+
 test("satellite viewer links to the spatial tile diagnostic", () => {
   assert.match(page, /href="\.\/coverage\.html"/);
   assert.match(page, /latestAtOrBeforeToday/);
