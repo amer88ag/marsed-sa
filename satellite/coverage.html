@@ -20,7 +20,7 @@ button{background:var(--blue);color:white;border-color:var(--blue);cursor:pointe
 .summary{display:flex;gap:10px;flex-wrap:wrap;padding:0 14px 14px}.pill{background:#eef4f8;border-radius:9px;padding:8px 11px;font-size:12px}
 table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:right;padding:10px 12px;border-top:1px solid var(--line);white-space:nowrap}th{background:#f7f9fb;color:var(--muted);font-weight:600}
 .state-loaded{color:#147d45}.state-error,.state-timeout,.state-unsupported{color:#b42318}.small{color:var(--muted);font-size:11px}
-@media(max-width:650px){.table-wrap{overflow-x:auto}th,td{padding:9px 8px}}
+@media(max-width:650px){.controls{align-items:stretch}.controls label{min-width:100%}.controls button{width:100%;min-height:48px}.table-wrap{overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch}table{min-width:760px}th,td{padding:9px 8px}}
 </style>
 </head>
 <body>
@@ -37,7 +37,7 @@ table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:right;
 </select></label>
 <label>تاريخ الصورة<input id="imageDate" type="date" disabled></label>
 <button id="run" type="button" disabled>فحص المواقع الـ19</button>
-<button id="runAll" type="button">فحص الطبقات الأربع</button>
+<button id="runAll" type="button" aria-describedby="runAllHelp">فحص الطبقات الأربع</button>
 </div>
 <div id="status" class="status" aria-live="polite">جارٍ التحقق من نطاق التواريخ المتاحة…</div>
 <div class="summary" id="summary"></div>
@@ -46,7 +46,7 @@ table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:right;
 <section class="panel">
 <div class="table-wrap"><table>
 <thead><tr><th>الطبقة</th><th>التاريخ</th><th>الموقع</th><th>الإحداثيات</th><th>البلاطة z/x/y</th><th>معاينة البلاطة</th><th>نتيجة الطلب</th></tr></thead>
-<tbody id="results"><tr><td colspan="4" class="small">لم يبدأ الفحص بعد.</td></tr></tbody>
+<tbody id="results"><tr><td colspan="7" class="small">لم يبدأ الفحص بعد.</td></tr></tbody>
 </table></div>
 </section>
 <p class="small">المصدر: NASA Global Imagery Browse Services (GIBS). هذا الفحص لا يمثل رصداً أرضياً أو تحذيراً رسمياً.</p>
