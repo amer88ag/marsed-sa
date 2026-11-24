@@ -1,0 +1,102 @@
+name: Extract CHIRPS RNL Saudi historical city series
+
+on:
+  push:
+    branches: [feature/chirps-rnl-cog-history-main]
+    paths:
+      - ".github/workflows/chirps-rnl-history.yml"
+      - "scripts/chirps_rnl_cog_extract.py"
+      - "tests/test_chirps_rnl_cog_extract.py"
+  workflow_dispatch:
+    inputs:
+      start_date:
+        description: "Start date YYYY-MM-DD (CHIRPS v3 begins 1981-01-01)"
+        required: true
+        type: string
+      end_date:
+        description: "End date YYYY-MM-DD (maximum 366 days per run)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install COG/STAC reader
+        run: python -m pip install --disable-pip-version-check rasterio rustac
+      - name: Run local unit tests
+        run: python -m unittest discover -s tests -p "test_*.py" -v
+      - name: Extract requested historical window
+        env:
+          START_DATE: ${{ inputs.start_date || '2024-01-01' }}
+          END_DATE: ${{ github.event_name == 'push' && '2024-01-03' || inputs.end_date || '2024-12-31' }}
+        run: |
+          python scripts/chirps_rnl_cog_extract.py --start "$START_DATE" --end "$END_DATE" --output /tmp/chirps_rnl_history.json
+      - name: Validate archive and print city coverage summary
+        run: |
+          python - <<'PY'
+          import datetime as dt
+          import json
+          import math
+          from pathlib import Path
+
+          payload = json.loads(Path("/tmp/chirps_rnl_history.json").read_text(encoding="utf-8"))
+          assert payload["schema_version"] == 1
+          assert payload["units"] == "mm/day"
+          assert set(payload["series"]) == {"rnl"}
+          cities = payload["cities"]
+          records = payload["series"]["rnl"]
+          assert len(cities) == 13
+          assert set(records) == set(cities)
+
+          count = payload["date_range"]["days"]
+          start = dt.date.fromisoformat(payload["date_range"]["start"])
+          end = dt.date.fromisoformat(payload["date_range"]["end"])
+          expected_dates = [(start + dt.timedelta(days=i)).isoformat() for i in range(count)]
+          assert count == (end - start).days + 1
+          assert expected_dates[-1] == end.isoformat()
+
+          summary = []
+          for city, rows in records.items():
+              assert len(rows) == count, city
+              assert [row["date"] for row in rows] == expected_dates, city
+              values = [row["precipitation_mm"] for row in rows]
+              for value in values:
+                  assert value is None or (
+                      isinstance(value, (int, float)) and math.isfinite(value) and value >= 0
+                  ), (city, value)
+              valid = [value for value in values if value is not None]
+              assert valid, f"No valid pixels for {city}"
+              summary.append({
+                  "city": city,
+                  "valid_days": len(valid),
+                  "missing_days": count - len(valid),
+                  "total_mm": round(sum(valid), 2),
+                  "max_daily_mm": max(valid),
+                  "wet_days": sum(value > 0 for value in valid),
+              })
+
+          print(json.dumps({
+              "period": payload["date_range"],
+              "city_count": len(cities),
+              "product": "CHIRPS v3 DAILY RNL FINAL",
+              "coverage": summary,
+          }, ensure_ascii=False, indent=2))
+          PY
+      - name: Upload archive for review (does not publish or commit)
+        uses: actions/upload-artifact@v4
+        with:
+          name: chirps-rnl-sa-${{ github.run_id }}
+          path: /tmp/chirps_rnl_history.json
+          if-no-files-found: error
+          retention-days: 14
