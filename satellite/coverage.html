@@ -117,7 +117,11 @@ async function run(){
   var loaded=results.filter(function(r){return r.status==="loaded"}).length;
   status("انتهى الفحص: "+loaded+" من "+results.length+" بلاطة استجابت للتحميل. هذه نتيجة وصول شبكي عند z=7 وليست إثباتاً لامتلاء البلاطات بالبيانات.",loaded!==results.length);
  }catch(error){status("تعذر إكمال الفحص: "+error.message,true)}
- finally{busy=false;$("run").disabled=false}
+ finally{
+  busy=false;$("layer").disabled=false;
+  $("imageDate").disabled=!cachedPeriods.length;
+  $("run").disabled=!NasaGibsSatellite.isDateAvailable($("imageDate").value,cachedPeriods);
+ }
 }
 $("layer").addEventListener("change",refreshDates);
 $("imageDate").addEventListener("change",function(){$("run").disabled=!NasaGibsSatellite.isDateAvailable($("imageDate").value,cachedPeriods)});
