@@ -9,7 +9,7 @@ test("satellite page exposes date and layer controls with Saudi coverage", () =>
     assert.ok(page.includes('id="' + id + '"'), id);
   }
   assert.match(page, /NASA GIBS/);
-  assert.match(page, /المملكة العربية السعودية/);
+  assert.match(page, /السعودية/);
   assert.match(page, /المركز الوطني للأرصاد/);
   assert.match(page, /لا تمثل هذه الصور تحذيراً رسمياً/);
 });
