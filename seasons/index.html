@@ -17,6 +17,8 @@ main{max-width:1120px;margin:auto;padding:18px 14px 36px}.hero,.panel{background
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.season{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px;position:relative}.season.active{border:2px solid var(--blue);background:#f4f9fd}.season-top{display:flex;justify-content:space-between;gap:8px;align-items:center}.season h3{margin:0;font-size:17px}.dates{font-size:12px;color:var(--muted);white-space:nowrap}.season p{font-size:12px;line-height:1.8;color:#465768;margin:9px 0}.stars{font-size:11px;color:#245a7d;background:#eef6fc;border-radius:8px;padding:7px 9px}.season small{display:block;color:var(--muted);font-size:11px;margin-top:8px}.tag{font-size:10px;border-radius:30px;padding:4px 8px;background:#e7f3ec;color:#23623f}
 .note{margin:14px 0 0;padding:12px 13px;border-radius:11px;background:#fff7e8;color:#79500b;font-size:12px;line-height:1.9}.sources{padding:14px 16px;margin-top:14px}.sources h2{font-size:15px;margin:0 0 8px}.sources a{display:block;color:var(--blue);text-decoration:none;font-size:12px;margin:8px 0}.sources p{font-size:11px;color:var(--muted);line-height:1.8;margin:10px 0 0}
 @media(max-width:620px){main{padding:12px 10px 26px}.grid{grid-template-columns:1fr}.current h2{font-size:22px}}
+.seasonal-block{background:#fff;border:1px solid var(--line);border-radius:15px;padding:15px;margin:14px 0}.seasonal-block h2{font-size:18px;margin:0 0 8px}.seasonal-block>p{font-size:12px;color:var(--muted);line-height:1.8}.climate-grid,.crop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.climate-card,.crop-card{background:#f7f9fb;border:1px solid #e7edf2;border-radius:11px;padding:12px}.climate-card h3,.crop-card h3{font-size:15px;margin:0 0 6px}.climate-card p,.crop-card p{font-size:12px;line-height:1.8;color:#465768;margin:5px 0}.climate-card small,.crop-card small{font-size:11px;color:var(--muted)}.planner-controls{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}.planner-controls select{font:inherit;padding:10px;border:1px solid var(--line);border-radius:9px;background:white;min-width:145px}.crop-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.crop-card strong{font-size:12px;color:#235477}.source-label{display:inline-block;font-size:10px;color:#235477;background:#eaf3fa;border-radius:20px;padding:3px 7px;margin-top:7px}
+@media(max-width:620px){.climate-grid,.crop-grid{grid-template-columns:1fr}.seasonal-block{padding:12px}}
 </style>
 </head>
 <body>
@@ -27,12 +29,35 @@ main{max-width:1120px;margin:auto;padding:18px 14px 36px}.hero,.panel{background
 </section>
 <div class="filters" role="group" aria-label="تصفية المواسم حسب الفصل"><button data-filter="all" aria-pressed="true">كل المواسم</button><button data-filter="winter" aria-pressed="false">البرد والشتاء</button><button data-filter="spring" aria-pressed="false">الربيع والاعتدال</button><button data-filter="summer" aria-pressed="false">الحر والقيظ</button><button data-filter="autumn" aria-pressed="false">سهيل والوسم</button></div>
 <section class="grid" id="seasons"></section>
-<div class="note">تنبيه مهم: هذه تواريخ تقريبية لتقويم نجمي/شعبي متداول، وليست مواعيد رسمية ملزمة ولا توقعاً جوياً. تختلف بعض التقاويم في بداية الموسم ومدته وتقسيم العقارب وغيرها؛ كما تختلف آثار الموسم بين مناطق المملكة بسبب الموقع والارتفاع والتضاريس. يعرض المرصد الموسم الشعبي إلى جانب بيانات الطقس الفعلية عند ربطها، ولا يفترض أن وصف الموسم ينطبق على طقس كل مدينة.</div>
+<section class="seasonal-block">
+<h2>الفصول المناخية الأربعة</h2>
+<p>تقسيم مناخي ثابت بالأشهر لأغراض التنظيم والمتابعة، منفصل عن الأنواء الشعبية. بداية الفصول فلكياً تتغير سنوياً ببضعة أيام، أما الإحساس الفعلي بالفصل فيختلف بحسب المنطقة والارتفاع.</p>
+<div class="climate-grid">
+<article class="climate-card"><h3>❄️ الشتاء</h3><strong>ديسمبر – يناير – فبراير</strong><p>أبرد فترة في معظم المناطق الداخلية والشمالية، مع تفاوت كبير في المرتفعات والسواحل. متابعة الصقيع والرياح الباردة والأمطار.</p><small>فلكياً: من انقلاب ديسمبر إلى اعتدال مارس تقريباً.</small></article>
+<article class="climate-card"><h3>🌱 الربيع</h3><strong>مارس – أبريل – مايو</strong><p>فترة انتقال وارتفاع تدريجي للحرارة؛ تتفاوت فرص الأمطار والرياح النشطة والغبار من سنة لأخرى.</p><small>فلكياً: من اعتدال مارس إلى انقلاب يونيو تقريباً.</small></article>
+<article class="climate-card"><h3>☀️ الصيف</h3><strong>يونيو – يوليو – أغسطس</strong><p>الحرارة الأعلى غالباً في الداخل، مع رطوبة ساحلية ورياح موسمية وأمطار صيفية محلية على مرتفعات الجنوب الغربي.</p><small>فلكياً: من انقلاب يونيو إلى اعتدال سبتمبر تقريباً.</small></article>
+<article class="climate-card"><h3>🍂 الخريف</h3><strong>سبتمبر – أكتوبر – نوفمبر</strong><p>مرحلة انتقال وانخفاض تدريجي للحرارة، وتبدأ فرص الأمطار الموسمية في بعض المناطق وتتغير مع تقدم الموسم.</p><small>فلكياً: من اعتدال سبتمبر إلى انقلاب ديسمبر تقريباً.</small></article>
+</div>
+<p>ملاحظة: هذا التقسيم المناخي للأشهر لا يعني أن الطقس يلتزم بحدود الفصل. يعرض المرصد حالة الحرارة والأمطار الفعلية والتوقعات لكل مدينة بصورة مستقلة.</p>
+</section>
+<section class="seasonal-block">
+<h2>التقويم الزراعي: ماذا أزرع وماذا أخدم الآن؟</h2>
+<p>اختر المنطقة والشهر لعرض الأعمال الموسمية المناسبة. المواعيد أدناه نوافذ إرشادية مستندة إلى مفكرة وزارة البيئة والمياه والزراعة، الطبعة السابعة 2018–2019، وليست توصية حديثة موحدة لكل مزرعة.</p>
+<div class="planner-controls">
+<label>المنطقة <select id="farmRegion"><option value="central">الوسطى والقصيم والشرقية</option><option value="highland">عسير والباحة والطائف</option><option value="north">تبوك وحائل والجوف والشمالية</option><option value="coast">السواحل الدافئة وجازان</option></select></label>
+<label>الشهر <select id="farmMonth"></select></label>
+</div>
+<div id="farmAdvice" class="crop-grid" aria-live="polite"></div>
+<div class="note">لا تنفذ تقليماً جائراً أو تسميداً محدداً بالجرام اعتماداً على الشهر فقط. يراعى نوع الشجرة والصنف وعمرها ومرحلة البراعم ونتيجة تحليل التربة والماء. لا تُستخدم مبيدات أو جرعات علاجية من هذا التقويم دون تشخيص واتباع ملصق المنتج وإرشاد مختص.</div>
+</section>
+\n<div class="note">تنبيه مهم: هذه تواريخ تقريبية لتقويم نجمي/شعبي متداول، وليست مواعيد رسمية ملزمة ولا توقعاً جوياً. تختلف بعض التقاويم في بداية الموسم ومدته وتقسيم العقارب وغيرها؛ كما تختلف آثار الموسم بين مناطق المملكة بسبب الموقع والارتفاع والتضاريس. يعرض المرصد الموسم الشعبي إلى جانب بيانات الطقس الفعلية عند ربطها، ولا يفترض أن وصف الموسم ينطبق على طقس كل مدينة.</div>
 <section class="panel sources"><h2>المراجع والمنهج</h2>
 <a href="https://alojeiri.com/ar/season" target="_blank" rel="noopener">مركز صالح العجيري — تقويم المواسم ومنازلها</a>
 <a href="https://www.almisnid.com/almisnid/article-68.html" target="_blank" rel="noopener">أ.د. عبدالله المسند — السنة النجمية وتقسيم المواسم واختلاف الحسابات</a>
-<a href="https://www.mewa.gov.sa/ar/MediaCenter/PressReleases/PressFiles/20210607.pdf" target="_blank" rel="noopener">وزارة البيئة والمياه والزراعة — مدد المواسم في مادة منشورة ضمن الملف الصحفي</a>
-<p>اعتمد عرض التواريخ هنا تقويماً موسمياً شائعاً منشوراً لدى مركز صالح العجيري. قد تختلف بعض المصادر في التقسيم، ومنها مدة العقارب والمربعانية؛ لذلك لا تُدمج الاختلافات في تاريخ واحد على أنها حقيقة قطعية.</p>
+<a href="https://www.mewa.gov.sa/ar/InformationCenter/AwarenessCenter/AgricultureCalendar/Documents/agire3.pdf" target="_blank" rel="noopener">وزارة البيئة والمياه والزراعة — المفكرة الزراعية 1439–1440هـ (2018–2019)، تقاويم الخضروات وبساتين الفاكهة</a>
+<a href="https://saudipedia.com/زراعة-الفواكه-في-السعودية" target="_blank" rel="noopener">سعوديبيديا — زراعة الفواكه في السعودية ومواعيد بعض عمليات الغرس والحصاد</a>
+<a href="https://direct.ksu.edu.sa/entities/journalarticle/5d90b133-7b02-4665-ab13-493a7b214e29" target="_blank" rel="noopener">جامعة الملك سعود — دراسة اختلاف مواعيد زراعة الخضروات حسب المناطق</a>
+<p>التقويم الزراعي يستند جزئياً إلى مفكرة الوزارة الطبعة السابعة 2018–2019، وهي مرجع تاريخي إرشادي لا يثبت وحده صلاحية الموعد حالياً. بعض الجداول شهرية وعلى مستوى مناطق واسعة؛ لذلك يعرض المرصد نوافذ شهرية لا يوماً دقيقاً حين لا يدعم المصدر دقة أعلى. يجب تحديث التوصيات عند توفر إصدارات أحدث، وتحليلها بحسب الارتفاع والصنف والطقس المحلي.</p>
 </section>
 </main>
 <script>
@@ -70,6 +95,38 @@ $("remaining").textContent=Math.max(0,Math.ceil((endDate-new Date(now.getFullYea
 function render(filter){$("seasons").innerHTML=seasons.filter(function(s){return filter==="all"||s.group===filter}).map(function(s){var active=s===current;return '<article class="season'+(active?' active':'')+'"><div class="season-top"><h3>'+s.name+'</h3>'+(active?'<span class="tag">الموسم الحالي</span>':'<span class="dates">'+fmtDate(s.start)+' – '+fmtDate(s.end)+'</span>')+'</div><p>'+s.description+'</p><div class="stars">المنازل المرتبطة: '+s.stars.join(" · ")+'</div><small>التواريخ تقريبية ضمن التقويم المعروض</small></article>'}).join("")}
 render("all");
 document.querySelectorAll("[data-filter]").forEach(function(button){button.addEventListener("click",function(){document.querySelectorAll("[data-filter]").forEach(function(b){b.setAttribute("aria-pressed",String(b===button))});render(button.dataset.filter)})});
+
+var months=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+var monthSelect=document.getElementById("farmMonth");
+months.forEach(function(name,i){var option=document.createElement("option");option.value=String(i+1);option.textContent=name;monthSelect.appendChild(option)});
+monthSelect.value=String(now.getMonth()+1);
+var farmData=[
+{crop:"الطماطم والفلفل والباذنجان",months:[9,10,11,2,3],regions:["central","north","highland"],task:"بذر/شتل على دفعات بحسب الحرارة؛ المفكرة تذكر عروات مبكرة في أكتوبر ونوفمبر ومتأخرة في فبراير، وعروة شتوية في سبتمبر.",kind:"زراعة"},
+{crop:"الخس والكرنب والقرنبيط",months:[8,9,10,11],regions:["central","north","highland"],task:"بذر أو تجهيز شتلات الخضروات الشتوية. راقب درجات الحرارة واحمِ الشتلات من موجات البرد.",kind:"زراعة"},
+{crop:"السبانخ والجرجير والبقدونس والسلق",months:[8,9,10,11,12,1,2],regions:["central","north","highland"],task:"تزرع على عروات باردة؛ وتذكر المفكرة زراعة السبانخ والجرجير في الوسطى وعسير في نوافذ مختلفة.",kind:"زراعة"},
+{crop:"البازلاء والفول",months:[10,11,12,1],regions:["central","north","highland"],task:"زراعة العروة الشتوية؛ تتأثر المواعيد ببرودة المنطقة وتاريخ الصقيع.",kind:"زراعة"},
+{crop:"البصل والثوم",months:[8,9,10,11],regions:["central","north","highland","coast"],task:"نافذة زراعة الخضروات البصلية بحسب الصنف والمنطقة؛ راجع توفر الشتلات والتقاوي المعتمدة.",kind:"زراعة"},
+{crop:"الخيار والشمام والقاوون",months:[2,3,4,10,11],regions:["central","coast","highland"],task:"زراعة العروات الدافئة؛ يمكن التبكير في السواحل الدافئة. تجنب تعميم موعد واحد على المرتفعات.",kind:"زراعة"},
+{crop:"الكوسا والقرع العسلي",months:[3,4,8],regions:["central","coast","highland","north"],task:"تزرع في نوافذ الربيع وأواخر الصيف وفق حرارة الموقع؛ الكوسا لا تناسبها ذروة الصيف الحارة.",kind:"زراعة"},
+{crop:"البامية والملوخية واللوبيا",months:[1,2,3,4,7,8],regions:["central","coast","highland"],task:"محاصيل محبة للدفء؛ البامية لها عروات مبكرة ومتأخرة وخريفية في بعض المناطق، والملوخية أطول موسماً بالمناطق الدافئة.",kind:"زراعة"},
+{crop:"شتلات العنب",months:[1,2,3],regions:["central","highland","north"],task:"تذكر سعوديبيديا أن زراعة شتلات العنب تكون غالباً من نهاية يناير إلى نهاية فبراير، وقد تمتد إلى مارس في المناطق الأبرد.",kind:"غرس"},
+{crop:"العنب: التقليم الشتوي",months:[12,1,2],regions:["central","highland","north"],task:"تقليم شتوي حسب نظام التربية والصنف؛ تذكر المفكرة بدء التقليم في النصف الثاني من ديسمبر واستمراره في يناير. تُؤخذ عقل سليمة من خشب ناضج عند الإكثار.",kind:"تقليم"},
+{crop:"الأشجار المتساقطة الأوراق",months:[12,1],regions:["central","highland","north"],task:"تقليم السكون للأشجار التي تحتاجه قبل نشاط البراعم. الأنواع المبكرة الإزهار كالخوخ والمشمش يجب إنهاء تقليمها قبل بدء انتفاخ البراعم.",kind:"تقليم"},
+{crop:"الرمان",months:[12,1],regions:["central","highland"],task:"الخدمة الشتوية والتقليم الرئيسي قبل تفتح البراعم؛ مصدر الوزارة يذكر نهاية ديسمبر إلى نهاية يناير، مع تقليم متمم صيفاً عند الحاجة فقط.",kind:"تقليم"},
+{crop:"الحمضيات",months:[11,12,1],regions:["central","coast","highland"],task:"بعد جمع المحصول: إزالة الأفرع الجافة والمتشابكة والسرطانات. تجنب التقليم الشديد وقت الإزهار أو موجات الحر.",kind:"خدمة"},
+{crop:"الموز",months:[1,2,3,11,12],regions:["coast","highland"],task:"تجهيز الجور والغرس في المناطق الدافئة من يناير إلى مارس؛ إضافة المادة العضوية بحسب حالة التربة، مع حماية النباتات من البرد.",kind:"غرس"},
+{crop:"السدر",months:[3,4,6,7,8,9,10],regions:["central","highland","coast"],task:"تذكر المفكرة أن تطعيم السدر المحسن يكون من بداية مارس إلى نهاية أبريل، وتذكر تقليمه بعد الحصاد في بداية يونيو في سياقها الإرشادي.",kind:"تطعيم وخدمة"},
+{crop:"كل الأشجار المثمرة",months:[3,4,5,6,7,8],regions:["central","highland","north","coast"],task:"متابعة الري حسب رطوبة التربة والمرحلة الثمرية، وإزالة الأفرع الميتة فقط عند الحاجة، وحماية الثمار من لفحة الشمس. لا تنفذ تقليماً جائراً في الحر.",kind:"خدمة"},
+{crop:"كل الأشجار المثمرة",months:[9,10,11],regions:["central","highland","north","coast"],task:"تهيئة المشتل ومواعيد الغرس المناسبة مع اعتدال الجو، ومراقبة الآفات والحشائش، وإعداد برنامج الري الشتوي تدريجياً.",kind:"خدمة"}
+];
+var regionSelect=document.getElementById("farmRegion");
+function renderFarm(){
+ var m=Number(monthSelect.value),r=regionSelect.value;
+ var items=farmData.filter(function(x){return x.months.indexOf(m)!==-1&&x.regions.indexOf(r)!==-1});
+ document.getElementById("farmAdvice").innerHTML=items.length?items.map(function(x){return '<article class="crop-card"><strong>'+x.kind+'</strong><h3>'+x.crop+'</h3><p>'+x.task+'</p><small>نافذة شهرية إرشادية — يلزم التحقق من الصنف والارتفاع والطقس المحلي</small><span class="source-label">مفكرة الوزارة / مصادر سعودية منشورة</span></article>'}).join(""):'<article class="crop-card"><h3>لا توجد توصية شهرية مدرجة هنا</h3><p>هذا لا يعني أن الزراعة ممنوعة؛ بل لا نعرض موعداً غير موثق. راجع مهندساً زراعياً محلياً أو بيانات المحطة المناخية للموقع.</p></article>';
+}
+monthSelect.addEventListener("change",renderFarm);regionSelect.addEventListener("change",renderFarm);renderFarm();
+
 })();
 </script>
 </body>
