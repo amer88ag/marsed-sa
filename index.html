@@ -84,7 +84,7 @@
 <div class="notice" id="quality">هذه القيم مستمدة من نموذج طقس، وليست قياسات مباشرة من محطة أرصاد. قد تختلف عن الرصد الأرضي.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · البيانات مرخصة وفق CC BY 4.0 مع الإسناد.</div>
 </section>
 </section>
-<section class="panel">
+<section class="panel" id="air-quality">
 <div class="panel-head"><h2>جودة الهواء والغبار</h2><span>توقعات نموذج CAMS</span></div>
 <div class="weather-context">
 <div class="metric"><small>مؤشر جودة الهواء الأمريكي</small><strong id="airAqi">—</strong><em id="airAqiLabel">بانتظار البيانات</em></div>
@@ -98,7 +98,7 @@
 </div>
 <div class="panel-head"><h3>توقعات جودة الهواء الساعية</h3><button class="btn" id="refreshAir" type="button">تحديث الهواء</button></div>
 <div id="airHourly" class="weather-context hourly">بانتظار البيانات</div>
-<div class="notice" id="airQualityNote">البيانات تقديرات وتوقعات من نموذج CAMS Global عبر Open-Meteo، وليست قياسات محطات أرضية أو تنبيهات رسمية. مؤشر AQI المعروض هو المؤشر الأمريكي US AQI. لا تتوفر بيانات محلية موثقة؟ لا تستبدل القيم المفقودة بأصفار.
+<div class="notice" id="airQualityNote">البيانات تقديرات وتوقعات من نموذج CAMS Global عبر Open-Meteo، وليست قياسات محطات أرضية أو تنبيهات رسمية. مؤشر AQI المعروض هو المؤشر الأمريكي US AQI. القيم المفقودة تعرض كغير متاحة ولا تستبدل بأصفار.
 <a href="https://open-meteo.com/en/docs/air-quality-api" target="_blank" rel="noopener">توثيق جودة الهواء ومصدر البيانات</a> · Air quality data by Open-Meteo.com.</div>
 <div class="data-state" id="airUpdated">لم يتم تأكيد تحديث جودة الهواء بعد.</div>
 </section>
