@@ -56,7 +56,7 @@ table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:right;
 (function(){
 "use strict";
 var $=function(id){return document.getElementById(id)};
-var busy=false,cachedPeriods=[];
+var busy=false,cachedPeriods=[],availabilityRequestId=0;
 function status(message,error){$("status").textContent=message;$("status").classList.toggle("error",!!error)}
 function renderSummary(results){
  var loaded=results.filter(function(r){return r.status==="loaded"}).length;
@@ -79,10 +79,13 @@ function renderRows(results){
  });
 }
 async function refreshDates(){
+ if(busy)return;
+ var requestId=++availabilityRequestId,key=$("layer").value;
  $("run").disabled=true;$("imageDate").disabled=true;cachedPeriods=[];
  status("جارٍ طلب نطاق التواريخ من NASA GIBS للطبقة المحددة…");
  try{
-  var result=await NasaGibsSatellite.getAvailableDates($("layer").value);
+  var result=await NasaGibsSatellite.getAvailableDates(key);
+  if(requestId!==availabilityRequestId||key!==$("layer").value)return;
   var today=NasaGibsSatellite.saudiDate(new Date());
   var latestAtOrBeforeToday=result.periods.reduce(function(best,period){
    if(period.start>today)return best;
@@ -96,13 +99,16 @@ async function refreshDates(){
   $("imageDate").value=latestAtOrBeforeToday;
   $("imageDate").disabled=false;$("run").disabled=false;
   status("أحدث تاريخ متاح حتى اليوم وفق نطاق الخدمة: "+latestAtOrBeforeToday+". اختر تاريخاً ضمن الفترات المتاحة ثم ابدأ الفحص.");
- }catch(error){status("تعذر التحقق من نطاق التواريخ. قد يكون الاتصال أو CORS غير متاح من هذا المتصفح. "+error.message,true)}
+ }catch(error){
+  if(requestId!==availabilityRequestId||key!==$("layer").value)return;
+  status("تعذر التحقق من نطاق التواريخ. قد يكون الاتصال أو CORS غير متاح من هذا المتصفح. "+error.message,true)
+ }
 }
 async function run(){
  if(busy)return;
  var key=$("layer").value,date=$("imageDate").value;
  if(!NasaGibsSatellite.isDateAvailable(date,cachedPeriods)){status("التاريخ المختار غير متاح ضمن فترات هذه الطبقة. اختر تاريخاً آخر.",true);return}
- busy=true;$("run").disabled=true;status("جارٍ اختبار 19 موقعاً؛ قد يستغرق الفحص بعض الوقت…");
+ busy=true;$("run").disabled=true;$("layer").disabled=true;$("imageDate").disabled=true;status("جارٍ اختبار 19 موقعاً؛ قد يستغرق الفحص بعض الوقت…");
  try{
   var results=await Promise.all(NasaGibsCoverage.POINTS.map(function(point){
    return NasaGibsCoverage.checkPoint(key,date,point,NasaGibsSatellite,Image,12000);
