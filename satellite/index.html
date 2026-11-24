@@ -96,10 +96,16 @@ async function refreshAvailability(){
   availablePeriods=result.periods;
   var latest=result.latestDate,today=NasaGibsSatellite.saudiDate(new Date());
   if(!latest){setStatus("لم تُرجع الخدمة تاريخاً متاحاً لهذه الطبقة.",true);return}
-  $("imageDate").max=latest<today?latest:today;
+  var latestAtOrBeforeToday=availablePeriods.reduce(function(best,period){
+   if(period.start>today)return best;
+   var end=period.end<today?period.end:today;
+   return end>=period.start&&(!best||end>best)?end:best;
+  },null);
+  if(!latestAtOrBeforeToday){setStatus("لا توجد صورة متاحة لهذه الطبقة حتى تاريخ اليوم.",true);return}
+  $("imageDate").max=latestAtOrBeforeToday;
   $("imageDate").min=availablePeriods.reduce(function(first,p){return !first||p.start<first?p.start:first},null);
   var selected=$("imageDate").value;
-  $("imageDate").value=NasaGibsSatellite.isDateAvailable(selected,availablePeriods)&&selected<=today?selected:latest;
+  $("imageDate").value=NasaGibsSatellite.isDateAvailable(selected,availablePeriods)&&selected<=today?selected:latestAtOrBeforeToday;
   $("imageDate").disabled=false;
   loadLayer();
  }catch(error){
