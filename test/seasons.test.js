@@ -30,7 +30,7 @@ test('agricultural recommendations include crop, pruning, grafting and service t
 test('agricultural source age and uncertainty are disclosed', () => {
   assert.match(page, /2018–2019/);
   assert.match(page, /نافذة شهرية إرشادية/);
-  assert.match(page, /لا تعرض موعداً غير موثق/);
+  assert.match(page, /لا نعرض موعداً غير موثق/);
 });
 
 test('season and agricultural JavaScript parses without syntax errors', () => {
