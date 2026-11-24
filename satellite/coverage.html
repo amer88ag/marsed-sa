@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b46">
+<title>فحص تغطية بلاطات الأقمار | مرصد السعودية</title>
+<style>
+:root{--navy:#102b46;--blue:#1769aa;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}
+header{background:linear-gradient(120deg,#102b46,#174d76);color:white;padding:22px max(16px,calc((100% - 1100px)/2))}
+header h1{font-size:clamp(21px,3vw,29px);margin:0}header p{color:#d4e2ed;font-size:13px;line-height:1.8;margin:7px 0 0}
+main{max-width:1100px;margin:auto;padding:18px 14px 40px}.nav{margin-bottom:14px}.nav a{color:var(--blue);text-decoration:none;font-size:13px}
+.panel{background:white;border:1px solid var(--line);border-radius:14px;margin-bottom:14px;overflow:hidden}.controls{display:flex;gap:10px;align-items:end;flex-wrap:wrap;padding:14px}
+label{display:grid;gap:5px;color:var(--muted);font-size:12px;flex:1;min-width:160px}
+select,input,button{font:inherit;border:1px solid var(--line);border-radius:9px;padding:10px;background:white;color:var(--ink)}
+button{background:var(--blue);color:white;border-color:var(--blue);cursor:pointer}button:disabled{opacity:.5;cursor:wait}
+.status{padding:12px 14px;color:var(--muted);font-size:13px;line-height:1.8;border-top:1px solid var(--line)}.status.error{color:#b42318}
+.notice{margin:14px;padding:12px;border-radius:10px;background:#fff8e8;color:#7a4b00;font-size:12px;line-height:1.9}
+.summary{display:flex;gap:10px;flex-wrap:wrap;padding:0 14px 14px}.pill{background:#eef4f8;border-radius:9px;padding:8px 11px;font-size:12px}
+table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:right;padding:10px 12px;border-top:1px solid var(--line);white-space:nowrap}th{background:#f7f9fb;color:var(--muted);font-weight:600}
+.state-loaded{color:#147d45}.state-error,.state-timeout,.state-unsupported{color:#b42318}.small{color:var(--muted);font-size:11px}
+@media(max-width:650px){.table-wrap{overflow-x:auto}th,td{padding:9px 8px}}
+</style>
+</head>
+<body>
+<header><h1>فحص التغطية المكانية لصور الأقمار</h1><p>اختبار وصول بلاطات NASA GIBS إلى عينة من المواقع السعودية، مع تسجيل التاريخ والطبقة وإحداثيات البلاطة.</p></header>
+<main>
+<nav class="nav"><a href="./">العودة إلى عارض الأقمار ←</a></nav>
+<section class="panel">
+<div class="controls">
+<label>الطبقة الفضائية<select id="layer">
+<option value="viirsTrue">VIIRS Suomi NPP — ألوان طبيعية</option>
+<option value="modisTerraTrue">MODIS Terra — ألوان طبيعية</option>
+<option value="modisAquaTrue">MODIS Aqua — ألوان طبيعية</option>
+<option value="modisFalse">MODIS Terra — ألوان زائفة 7-2-1</option>
+</select></label>
+<label>تاريخ الصورة<input id="imageDate" type="date" disabled></label>
+<button id="run" type="button" disabled>فحص المواقع الـ19</button>
+</div>
+<div id="status" class="status" aria-live="polite">جارٍ التحقق من نطاق التواريخ المتاحة…</div>
+<div class="summary" id="summary"></div>
+<div class="notice"><b>حدود هذا الفحص:</b> نجاح تحميل البلاطة يعني أن خادم الصور أعاد صورة قابلة للتحميل عند مستوى التكبير المختبر (z=7). لا يثبت ذلك أن الصورة تحتوي قيماً فضائية صالحة أو أن كامل المنطقة المحيطة مغطاة؛ قد تكون البلاطة فارغة أو جزئية. الفحص عينة تشخيصية وليس شهادة تغطية وطنية أو تحققاً علمياً من المنتج.</div>
+</section>
+<section class="panel">
+<div class="table-wrap"><table>
+<thead><tr><th>الموقع</th><th>الإحداثيات</th><th>البلاطة z/x/y</th><th>نتيجة الطلب</th></tr></thead>
+<tbody id="results"><tr><td colspan="4" class="small">لم يبدأ الفحص بعد.</td></tr></tbody>
+</table></div>
+</section>
+<p class="small">المصدر: NASA Global Imagery Browse Services (GIBS). هذا الفحص لا يمثل رصداً أرضياً أو تحذيراً رسمياً.</p>
+</main>
+<script src="../src/services/satellite/nasa-gibs.js"></script>
+<script src="../src/services/satellite/nasa-gibs-coverage.js"></script>
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id)};
+var busy=false,cachedPeriods=[];
+function status(message,error){$("status").textContent=message;$("status").classList.toggle("error",!!error)}
+function renderSummary(results){
+ var loaded=results.filter(function(r){return r.status==="loaded"}).length;
+ var failed=results.length-loaded;
+ $("summary").innerHTML="";
+ [["نجاح تحميل البلاطة",loaded],["تعذر التحميل أو انتهت المهلة",failed],["عدد المواقع المختبرة",results.length]].forEach(function(item){
+  var span=document.createElement("span");span.className="pill";span.textContent=item[0]+": "+item[1];$("summary").appendChild(span);
+ });
+}
+function renderRows(results){
+ var body=$("results");body.innerHTML="";
+ results.forEach(function(result){
+  var tr=document.createElement("tr");
+  [result.name,result.lat.toFixed(4)+", "+result.lon.toFixed(4),"z"+result.z+" / "+result.x+" / "+result.y,result.status==="loaded"?"تم تحميل البلاطة":result.status==="timeout"?"انتهت المهلة":result.status==="unsupported"?"غير مدعوم":"فشل التحميل"].forEach(function(value,index){
+   var td=document.createElement("td");td.textContent=value;
+   if(index===3)td.className="state-"+result.status;
+   tr.appendChild(td);
+  });
+  body.appendChild(tr);
+ });
+}
+async function refreshDates(){
+ $("run").disabled=true;$("imageDate").disabled=true;cachedPeriods=[];
+ status("جارٍ طلب نطاق التواريخ من NASA GIBS للطبقة المحددة…");
+ try{
+  var result=await NasaGibsSatellite.getAvailableDates($("layer").value);
+  var today=NasaGibsSatellite.saudiDate(new Date());
+  var latestAtOrBeforeToday=result.periods.reduce(function(best,period){
+   if(period.start>today)return best;
+   var end=period.end<today?period.end:today;
+   return end>=period.start&&(!best||end>best)?end:best;
+  },null);
+  if(!latestAtOrBeforeToday)throw new Error("لا توجد فترة متاحة حتى تاريخ اليوم");
+  cachedPeriods=result.periods;
+  $("imageDate").min=result.periods.reduce(function(first,p){return !first||p.start<first?p.start:first},null);
+  $("imageDate").max=latestAtOrBeforeToday;
+  $("imageDate").value=latestAtOrBeforeToday;
+  $("imageDate").disabled=false;$("run").disabled=false;
+  status("أحدث تاريخ متاح حتى اليوم وفق نطاق الخدمة: "+latestAtOrBeforeToday+". اختر تاريخاً ضمن الفترات المتاحة ثم ابدأ الفحص.");
+ }catch(error){status("تعذر التحقق من نطاق التواريخ. قد يكون الاتصال أو CORS غير متاح من هذا المتصفح. "+error.message,true)}
+}
+async function run(){
+ if(busy)return;
+ var key=$("layer").value,date=$("imageDate").value;
+ if(!NasaGibsSatellite.isDateAvailable(date,cachedPeriods)){status("التاريخ المختار غير متاح ضمن فترات هذه الطبقة. اختر تاريخاً آخر.",true);return}
+ busy=true;$("run").disabled=true;status("جارٍ اختبار 19 موقعاً؛ قد يستغرق الفحص بعض الوقت…");
+ try{
+  var results=await Promise.all(NasaGibsCoverage.POINTS.map(function(point){
+   return NasaGibsCoverage.checkPoint(key,date,point,NasaGibsSatellite,Image,12000);
+  }));
+  renderRows(results);renderSummary(results);
+  var loaded=results.filter(function(r){return r.status==="loaded"}).length;
+  status("انتهى الفحص: "+loaded+" من "+results.length+" بلاطة استجابت للتحميل. هذه نتيجة وصول شبكي عند z=7 وليست إثباتاً لامتلاء البلاطات بالبيانات.",loaded!==results.length);
+ }catch(error){status("تعذر إكمال الفحص: "+error.message,true)}
+ finally{busy=false;$("run").disabled=false}
+}
+$("layer").addEventListener("change",refreshDates);
+$("imageDate").addEventListener("change",function(){$("run").disabled=!NasaGibsSatellite.isDateAvailable($("imageDate").value,cachedPeriods)});
+$("run").addEventListener("click",run);
+refreshDates();
+})();
+</script>
+</body>
+</html>
