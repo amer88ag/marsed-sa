@@ -12,7 +12,7 @@
     modisFalse: { id: "MODIS_Terra_CorrectedReflectance_Bands721", title: "MODIS Terra — ألوان زائفة 7-2-1", resolution: "GoogleMapsCompatible_Level9", format: "jpg", period: "يومي", note: "تركيب نطاقات طيفية لإبراز خصائص السطح؛ لا يُفسر كصورة ألوان طبيعية." }
   });
   function validDate(value) {
-    return typeof value === "string" && /^\\d{4}-\\d{2}-\\d{2}$/.test(value) &&
+    return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) &&
       !Number.isNaN(Date.parse(value + "T00:00:00Z")) &&
       new Date(value + "T00:00:00Z").toISOString().slice(0, 10) === value;
   }
