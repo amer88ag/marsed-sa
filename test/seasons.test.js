@@ -46,3 +46,22 @@ test('orchard calendar covers the farm fruit trees with source-aware caveats', (
   assert.match(page, /لا نضع تاريخاً ثابتاً/);
   assert.match(page, /أبها ليست درجة مناخية واحدة/);
 });
+
+test('2026 astronomical season instants are converted to Saudi local time', () => {
+  assert.match(page, /20 مارس 2026/);
+  assert.match(page, /5:46 مساءً/);
+  assert.match(page, /21 يونيو 2026/);
+  assert.match(page, /11:24 صباحاً/);
+  assert.match(page, /23 سبتمبر 2026/);
+  assert.match(page, /3:05 صباحاً/);
+  assert.match(page, /21 ديسمبر 2026/);
+  assert.match(page, /11:50 مساءً/);
+  assert.match(page, /UTC\+3/);
+  assert.match(page, /USNO/);
+});
+
+test('Saudi current date uses explicit Riyadh timezone parts, not device timezone parsing', () => {
+  assert.match(page, /function saudiNow\(\)\{var p=new Intl\.DateTimeFormat/);
+  assert.match(page, /timeZone:"Asia\/Riyadh"/);
+  assert.doesNotMatch(page, /toLocaleString\("en-US",\{timeZone:"Asia\/Riyadh"\}\)/);
+});
