@@ -48,6 +48,9 @@ test("coverage diagnostic exposes layer, date, run controls and explicit limits"
   assert.match(coveragePage, /NasaGibsCoverage\.checkPoint/);
   assert.match(coveragePage, /لا يثبت ذلك أن الصورة تحتوي قيماً فضائية صالحة/);
   assert.match(coveragePage, /z=7/);
+  assert.match(coveragePage, /availabilityRequestId=0/);
+  assert.match(coveragePage, /requestId!==availabilityRequestId/);
+  assert.match(coveragePage, /\$\("layer"\)\.disabled=true/);
 });
 
 test("coverage diagnostic inline script parses without syntax errors", () => {
