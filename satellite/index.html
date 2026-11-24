@@ -64,48 +64,69 @@
 <script>
 (function(){
 "use strict";
-var map=null,layer=null,activeKey="viirsTrue";
+var map=null,layer=null,activeKey="viirsTrue",availablePeriods=[],availabilityRequestId=0;
 function $(id){return document.getElementById(id)}
 function setStatus(message,isError){$("imageStatus").textContent=message;$("imageStatus").classList.toggle("error",!!isError)}
-function setDefaultDate(){
- var today=NasaGibsSatellite.saudiDate(new Date());
- $("imageDate").value=NasaGibsSatellite.shiftDate(today,-1);
- $("imageDate").max=today;
-}
+function clearImage(){if(layer&&map){map.removeLayer(layer);layer=null}}
 function loadLayer(){
  if(!map||!window.L)return;
  var key=$("layer").value,date=$("imageDate").value;
  if(!NasaGibsSatellite.validDate(date)){setStatus("اختر تاريخاً صحيحاً للصورة.",true);return}
- if(date>$("imageDate").max){setStatus("لا يمكن اختيار تاريخ مستقبلي.",true);return}
+ if(!NasaGibsSatellite.isDateAvailable(date,availablePeriods)){setStatus("لا توجد بيانات موثقة لهذا التاريخ في الطبقة المختارة. اختر تاريخاً متاحاً.",true);return}
  var meta=NasaGibsSatellite.getLayer(key);
- if(layer)map.removeLayer(layer);
+ clearImage();
  layer=L.tileLayer(NasaGibsSatellite.buildTileUrl(key,date),{
   minZoom:2,maxZoom:10,maxNativeZoom:9,opacity:1,
   attribution:'Imagery © <a href="https://www.earthdata.nasa.gov/">NASA Earthdata</a> / <a href="https://gibs.earthdata.nasa.gov/">GIBS</a>'
  });
- layer.on("tileerror",function(){setStatus("بعض مربعات الصورة غير متاحة لهذا التاريخ أو الطبقة. جرّب يوماً آخر أو طبقة أخرى.",true)});
- layer.on("load",function(){setStatus(meta.title+" · التاريخ: "+date+" · "+meta.note+" · المصدر: NASA GIBS")});
+ layer.on("tileerror",function(){setStatus("تعذر تحميل بعض مربعات الصورة. قد توجد فجوات تغطية مكانية رغم أن التاريخ ضمن نطاق المنتج.",true)});
+ layer.on("load",function(){setStatus(meta.title+" · تاريخ المنتج: "+date+" · آخر تاريخ متاح حسب الخدمة: "+NasaGibsSatellite.latestAvailableDate(availablePeriods)+" · "+meta.note+" · المصدر: NASA GIBS")});
  layer.addTo(map);activeKey=key;
  setStatus("جارٍ تحميل "+meta.title+" بتاريخ "+date+"…");
 }
+async function refreshAvailability(){
+ var key=$("layer").value,requestId=++availabilityRequestId;
+ clearImage();availablePeriods=[];$("imageDate").disabled=true;
+ setStatus("جارٍ الاستعلام من NASA GIBS عن تواريخ الصور المتاحة للطبقة المختارة…");
+ try{
+  var result=await NasaGibsSatellite.getAvailableDates(key);
+  if(requestId!==availabilityRequestId)return;
+  availablePeriods=result.periods;
+  var latest=result.latestDate,today=NasaGibsSatellite.saudiDate(new Date());
+  if(!latest){setStatus("لم تُرجع الخدمة تاريخاً متاحاً لهذه الطبقة.",true);return}
+  $("imageDate").max=latest<today?latest:today;
+  $("imageDate").min=availablePeriods.reduce(function(first,p){return !first||p.start<first?p.start:first},null);
+  var selected=$("imageDate").value;
+  $("imageDate").value=NasaGibsSatellite.isDateAvailable(selected,availablePeriods)&&selected<=today?selected:latest;
+  $("imageDate").disabled=false;
+  loadLayer();
+ }catch(error){
+  if(requestId!==availabilityRequestId)return;
+  $("imageDate").disabled=true;
+  setStatus("تعذر التحقق من تواريخ الصور من NASA GIBS. لم نستخدم تاريخاً افتراضياً حتى لا نعرض تاريخاً غير مؤكد. تحقق من الاتصال أو أعد المحاولة. ("+error.message+")",true);
+ }
+}
 function moveDate(offset){
  var date=$("imageDate").value;
- if(!NasaGibsSatellite.validDate(date))return;
- var next=NasaGibsSatellite.shiftDate(date,offset);
- if(next>$("imageDate").max){setStatus("لا تتوفر صور مستقبلية.",true);return}
- $("imageDate").value=next;loadLayer();
+ if(!NasaGibsSatellite.validDate(date)||!availablePeriods.length)return;
+ var candidate=date;
+ for(var i=0;i<3700;i++){
+  candidate=NasaGibsSatellite.shiftDate(candidate,offset);
+  if(candidate<$("imageDate").min||candidate>$("imageDate").max){setStatus("لا يوجد تاريخ متاح إضافي في هذا الاتجاه.",true);return}
+  if(NasaGibsSatellite.isDateAvailable(candidate,availablePeriods)){$("imageDate").value=candidate;loadLayer();return}
+ }
+ setStatus("لم نعثر على تاريخ متاح قريب ضمن نطاق البحث.",true);
 }
 function init(){
- setDefaultDate();
  if(!window.L){setStatus("تعذر تحميل مكتبة الخريطة. تحقق من الاتصال.",true);return}
  map=L.map("satMap",{scrollWheelZoom:true,minZoom:2,maxZoom:10}).setView([23.8,45.2],5);
  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
- loadLayer();
- $("layer").addEventListener("change",loadLayer);
+ $("layer").addEventListener("change",refreshAvailability);
  $("imageDate").addEventListener("change",loadLayer);
- $("refreshImage").addEventListener("click",loadLayer);
+ $("refreshImage").addEventListener("click",refreshAvailability);
  $("previousDay").addEventListener("click",function(){moveDate(-1)});
  $("nextDay").addEventListener("click",function(){moveDate(1)});
+ refreshAvailability();
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
