@@ -25,3 +25,11 @@ test("inline satellite page script parses without syntax errors", () => {
   assert.equal(scripts.length, 1);
   for (const script of scripts) new vm.Script(script, { filename: "satellite/index.html" });
 });
+
+test("satellite viewer preserves incomplete tile coverage and ignores stale layer events", () => {
+  assert.match(page, /renderRequestId=0/);
+  assert.match(page, /if\(renderId!==renderRequestId\)return/);
+  assert.match(page, /currentTileErrors\+\+/);
+  assert.match(page, /تغطية غير مكتملة/);
+  assert.match(page, /currentTileErrors>0/);
+});
