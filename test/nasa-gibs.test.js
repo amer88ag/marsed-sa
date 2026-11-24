@@ -91,7 +91,8 @@ test("probe URL replaces all Web Mercator placeholders for the selected layer an
   const point = Coverage.POINTS.find(item => item.id === "abha");
   const request = Coverage.buildProbeUrl("viirsTrue", "2026-11-24", point, Satellite);
   assert.match(request.url, /VIIRS_SNPP_CorrectedReflectance_TrueColor/);
-  assert.match(request.url, /\\/2026-11-24\\/GoogleMapsCompatible_Level9\\/7\\/\\d+\\/\\d+\\.jpg$/);
+  assert.ok(request.url.includes("/2026-11-24/GoogleMapsCompatible_Level9/7/"));
+  assert.match(request.url, /\\/\\d+\\/\\d+\\.jpg$/);
   assert.equal(request.tile.z, 7);
   assert.ok(!/[{][xyz][}]/.test(request.url));
   assert.throws(() => Coverage.buildProbeUrl("unknown", "2026-11-24", point, Satellite), /Unsupported/);
