@@ -121,7 +121,8 @@ var seasons=[
 {name:"سهيل",start:"08-24",end:"10-15",group:"autumn",description:"طلوع سهيل علامة موسمية مشهورة لبداية تحول تدريجي؛ لا يعني انكسار الحر فوراً في جميع مناطق المملكة.",stars:["الطرفة","الجبهة","الزبرة","الصرفة"]},
 {name:"الوسم",start:"10-16",end:"12-06",group:"autumn",description:"موسم مشهور بارتباطه بأمطار نافعة للإنبات والكمأة في الموروث الزراعي، لكن تحقق المطر ومكانه يعتمدان على الحالة الجوية الفعلية.",stars:["العواء","السماك","الغفر","الزبانا"]}
 ];
-function $(id){return document.getElementById(id)}\nfunction parts(md){return md.split("-").map(Number)}
+function $(id){return document.getElementById(id)}
+function parts(md){return md.split("-").map(Number)}
 function ordinal(md,year){var p=parts(md);return Math.floor((Date.UTC(year,p[0]-1,p[1])-Date.UTC(year,0,1))/86400000)}
 function fmtDate(md){var p=parts(md);return String(p[1]).padStart(2,"0")+"/"+String(p[0]).padStart(2,"0")}
 function activeAt(s,md){var x=parts(md),v=x[0]*100+x[1],a=parts(s.start),b=parts(s.end),lo=a[0]*100+a[1],hi=b[0]*100+b[1];return lo<=hi?(v>=lo&&v<=hi):(v>=lo||v<=hi)}
