@@ -25,9 +25,9 @@
     date.setUTCDate(date.getUTCDate() + days);
     return date.toISOString().slice(0, 10);
   }
-  function buildArchiveUrl(location, endDate) {
+  function saudiToday() {\n    const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Riyadh", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date()).reduce(function (out, part) { if (part.type !== "literal") out[part.type] = part.value; return out; }, {});\n    return parts.year + "-" + parts.month + "-" + parts.day;\n  }\n  function buildArchiveUrl(location, endDate) {
     if (!validLocation(location)) throw new TypeError("Valid orchard latitude and longitude are required");
-    const end = endDate || new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Riyadh", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    const end = endDate || saudiToday();
     const start = shiftDate(end, -7);
     const q = new URLSearchParams({
       latitude: String(Number(location.lat)), longitude: String(Number(location.lon)),
@@ -89,5 +89,5 @@
       return { day: day, alerts: classifyDay(day, stage || "") };
     });
   }
-  return { buildForecastUrl, buildArchiveUrl, normalizeDaily, evaluate, shiftDate, validLocation };
+  return { buildForecastUrl, buildArchiveUrl, normalizeDaily, evaluate, shiftDate, validLocation, saudiToday };
 });
