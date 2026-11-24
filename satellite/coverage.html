@@ -37,6 +37,7 @@ table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:right;
 </select></label>
 <label>تاريخ الصورة<input id="imageDate" type="date" disabled></label>
 <button id="run" type="button" disabled>فحص المواقع الـ19</button>
+<button id="runAll" type="button">فحص الطبقات الأربع</button>
 </div>
 <div id="status" class="status" aria-live="polite">جارٍ التحقق من نطاق التواريخ المتاحة…</div>
 <div class="summary" id="summary"></div>
@@ -44,7 +45,7 @@ table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:right;
 </section>
 <section class="panel">
 <div class="table-wrap"><table>
-<thead><tr><th>الموقع</th><th>الإحداثيات</th><th>البلاطة z/x/y</th><th>معاينة البلاطة</th><th>نتيجة الطلب</th></tr></thead>
+<thead><tr><th>الطبقة</th><th>التاريخ</th><th>الموقع</th><th>الإحداثيات</th><th>البلاطة z/x/y</th><th>معاينة البلاطة</th><th>نتيجة الطلب</th></tr></thead>
 <tbody id="results"><tr><td colspan="4" class="small">لم يبدأ الفحص بعد.</td></tr></tbody>
 </table></div>
 </section>
@@ -66,11 +67,11 @@ function renderSummary(results){
   var span=document.createElement("span");span.className="pill";span.textContent=item[0]+": "+item[1];$("summary").appendChild(span);
  });
 }
-function renderRows(results){
- var body=$("results");body.innerHTML="";
+function renderRows(results,layerTitle,date,append){
+ var body=$("results");if(!append)body.innerHTML="";
  results.forEach(function(result){
   var tr=document.createElement("tr");
-  [result.name,result.lat.toFixed(4)+", "+result.lon.toFixed(4),"z"+result.z+" / "+result.x+" / "+result.y].forEach(function(value){
+  [layerTitle,date,result.name,result.lat.toFixed(4)+", "+result.lon.toFixed(4),"z"+result.z+" / "+result.x+" / "+result.y].forEach(function(value){
    var td=document.createElement("td");td.textContent=value;tr.appendChild(td);
   });
   var previewCell=document.createElement("td");
@@ -119,6 +120,42 @@ async function refreshDates(){
   status("تعذر التحقق من نطاق التواريخ. قد يكون الاتصال أو CORS غير متاح من هذا المتصفح. "+error.message,true)
  }
 }
+async function runAllLayers(){
+ if(busy)return;
+ var keys=["viirsTrue","modisTerraTrue","modisAquaTrue","modisFalse"];
+ busy=true;$("run").disabled=true;$("runAll").disabled=true;$("layer").disabled=true;$("imageDate").disabled=true;
+ $("results").innerHTML="";$("summary").innerHTML="";
+ var allResults=[],today=NasaGibsSatellite.saudiDate(new Date());
+ try{
+  for(var index=0;index<keys.length;index++){
+   var key=keys[index],meta=NasaGibsSatellite.getLayer(key);
+   status("جارٍ التحقق من تاريخ "+meta.title+" ("+(index+1)+"/4)…");
+   var availability=await NasaGibsSatellite.getAvailableDates(key);
+   var date=availability.periods.reduce(function(best,period){
+    if(period.start>today)return best;
+    var end=period.end<today?period.end:today;
+    return end>=period.start&&(!best||end>best)?end:best;
+   },null);
+   if(!date){status("لا يوجد تاريخ متاح حتى اليوم للطبقة: "+meta.title,true);continue}
+   status("جارٍ فحص "+meta.title+" بتاريخ "+date+" ("+(index+1)+"/4)…");
+   var results=await Promise.all(NasaGibsCoverage.POINTS.map(function(point){
+    return NasaGibsCoverage.checkPoint(key,date,point,NasaGibsSatellite,Image,12000);
+   }));
+   renderRows(results,meta.title,date,true);
+   allResults=allResults.concat(results);
+   var loaded=results.filter(function(result){return result.status==="loaded"}).length;
+   var pill=document.createElement("span");pill.className="pill";
+   pill.textContent=meta.title+": "+loaded+"/"+results.length+" بلاطة محمّلة";
+   $("summary").appendChild(pill);
+  }
+  var loadedTotal=allResults.filter(function(result){return result.status==="loaded"}).length;
+  status("اكتمل فحص الطبقات المتاحة: "+loadedTotal+" من "+allResults.length+" طلب بلاطة نجح. النتائج عينة وصول شبكي وليست إثباتاً لمحتوى علمي أو تغطية وطنية.");
+ }catch(error){status("توقف فحص الطبقات: "+error.message,true)}
+ finally{
+  busy=false;$("runAll").disabled=false;$("layer").disabled=false;
+  refreshDates();
+ }
+}
 async function run(){
  if(busy)return;
  var key=$("layer").value,date=$("imageDate").value;
@@ -128,7 +165,7 @@ async function run(){
   var results=await Promise.all(NasaGibsCoverage.POINTS.map(function(point){
    return NasaGibsCoverage.checkPoint(key,date,point,NasaGibsSatellite,Image,12000);
   }));
-  renderRows(results);renderSummary(results);
+  renderRows(results,NasaGibsSatellite.getLayer(key).title,date,false);renderSummary(results);
   var loaded=results.filter(function(r){return r.status==="loaded"}).length;
   status("انتهى الفحص: "+loaded+" من "+results.length+" بلاطة استجابت للتحميل. هذه نتيجة وصول شبكي عند z=7 وليست إثباتاً لامتلاء البلاطات بالبيانات.",loaded!==results.length);
  }catch(error){status("تعذر إكمال الفحص: "+error.message,true)}
@@ -141,6 +178,7 @@ async function run(){
 $("layer").addEventListener("change",refreshDates);
 $("imageDate").addEventListener("change",function(){$("run").disabled=!NasaGibsSatellite.isDateAvailable($("imageDate").value,cachedPeriods)});
 $("run").addEventListener("click",run);
+$("runAll").addEventListener("click",runAllLayers);
 refreshDates();
 })();
 </script>
