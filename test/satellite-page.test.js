@@ -33,3 +33,8 @@ test("satellite viewer preserves incomplete tile coverage and ignores stale laye
   assert.match(page, /تغطية غير مكتملة/);
   assert.match(page, /currentTileErrors>0/);
 });
+
+test("satellite viewer links to the spatial tile diagnostic", () => {
+  assert.match(page, /href="\.\/coverage\.html"/);
+  assert.match(page, /latestAtOrBeforeToday/);
+});
