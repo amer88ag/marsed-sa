@@ -63,6 +63,9 @@ test("coverage diagnostic exposes layer, date, run controls and explicit limits"
   assert.match(coveragePage, /\$\("layer"\)\.disabled=true/);
   assert.match(coveragePage, /finally\{[\s\S]*?\$\("layer"\)\.disabled=false/);
   assert.match(coveragePage, /\$\("run"\)\.disabled=!NasaGibsSatellite\.isDateAvailable/);
+  assert.match(coveragePage, /<th>معاينة البلاطة<\/th>/);
+  assert.match(coveragePage, /preview\.src=result\.url/);
+  assert.match(coveragePage, /معاينة بلاطة/);
 });
 
 test("coverage diagnostic inline script parses without syntax errors", () => {
