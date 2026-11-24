@@ -12,7 +12,9 @@ test("NASA GIBS tile URLs use the documented Web Mercator tile matrix", () => {
 test("supported layers have distinct identifiers and explicit descriptions", () => {
   const ids = Object.values(Satellite.LAYERS).map(layer => layer.id);
   assert.equal(new Set(ids).size, ids.length);
-  assert.ok(Satellite.getLayer("modisFalse").note.includes("ألوان طبيعية") === false);
+  const falseColor = Satellite.getLayer("modisFalse");
+  assert.match(falseColor.title, /ألوان زائفة/);
+  assert.match(falseColor.note, /لا يُفسر كصورة/);
   assert.throws(() => Satellite.getLayer("not-a-layer"), /Unsupported/);
 });
 
