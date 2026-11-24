@@ -29,3 +29,41 @@ test("Saudi date formatting uses the Riyadh time zone", () => {
   const instant = new Date("2026-11-23T21:30:00.000Z");
   assert.equal(Satellite.saudiDate(instant), "2026-11-24");
 });
+
+test("NASA GIBS DescribeDomains requests are scoped to the selected layer and tile matrix", () => {
+  const url = new URL(Satellite.describeDomainsUrl("viirsTrue"));
+  assert.equal(url.searchParams.get("REQUEST"), "DescribeDomains");
+  assert.equal(url.searchParams.get("LAYER"), Satellite.getLayer("viirsTrue").id);
+  assert.equal(url.searchParams.get("TILEMATRIXSET"), "GoogleMapsCompatible_Level9");
+  assert.throws(() => Satellite.describeDomainsUrl("unknown"), /Unsupported/);
+});
+
+test("NASA GIBS time domains preserve gaps and identify the latest available date", () => {
+  const xml = '<DimensionDomain><Domain>2026-11-18/2026-11-20/P1D,2026-11-22/2026-11-23/P1D</Domain></DimensionDomain>';
+  const periods = Satellite.parseAvailablePeriods(xml);
+  assert.equal(periods.length, 2);
+  assert.equal(Satellite.latestAvailableDate(periods), "2026-11-23");
+  assert.equal(Satellite.isDateAvailable("2026-11-19", periods), true);
+  assert.equal(Satellite.isDateAvailable("2026-11-21", periods), false);
+  assert.equal(Satellite.isDateAvailable("2026-11-24", periods), false);
+});
+
+test("NASA GIBS availability fetch returns actual periods and rejects failed responses", async () => {
+  const xml = '<DimensionDomain><Domain>2026-11-21/2026-11-23/P1D</Domain></DimensionDomain>';
+  const fetchMock = async (url, options) => {
+    assert.match(url, /REQUEST=DescribeDomains/);
+    assert.equal(options.headers.Accept, "application/xml, text/xml");
+    return { ok: true, text: async () => xml };
+  };
+  const result = await Satellite.getAvailableDates("modisTerraTrue", fetchMock);
+  assert.equal(result.latestDate, "2026-11-23");
+  assert.equal(result.periods.length, 1);
+  await assert.rejects(
+    Satellite.getAvailableDates("modisTerraTrue", async () => ({ ok: false, text: async () => "" })),
+    /availability request failed/
+  );
+  await assert.rejects(
+    Satellite.getAvailableDates("modisTerraTrue", async () => ({ ok: true, text: async () => "<broken/>" })),
+    /readable time domain/
+  );
+});
