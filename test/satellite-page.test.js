@@ -66,6 +66,9 @@ test("coverage diagnostic exposes layer, date, run controls and explicit limits"
   assert.match(coveragePage, /<th>معاينة البلاطة<\/th>/);
   assert.match(coveragePage, /preview\.src=result\.url/);
   assert.match(coveragePage, /معاينة بلاطة/);
+  assert.match(coveragePage, /id="runAll"/);
+  assert.match(coveragePage, /async function runAllLayers/);
+  assert.match(coveragePage, /modisTerraTrue.*modisAquaTrue.*modisFalse/);
 });
 
 test("coverage diagnostic inline script parses without syntax errors", () => {
