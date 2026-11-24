@@ -290,7 +290,7 @@ test('weather refresh clears stale values and rejects out-of-order city response
   assert.ok(html.includes('var requestId=++weatherRequestId;'));
   assert.ok(html.includes('if(requestId!==weatherRequestId||requestedKey!==activeKey)return;'));
   assert.ok(html.includes('function clearWeatherDisplay()'));
-  assert.ok(html.includes('["temp","feels","rain","humidity","wind","condition","daylight","elevation","pressureMsl","surfacePressure","dewPoint","cloudCover","windGusts","windDirection","uvIndex","wetBulb","cape","freezingLevel","boundaryLayer","soilTemp","soilMoisture","wind80","wind100","solarRadiation","solarSplit","weatherInsight"].forEach'));
+  assert.ok(html.includes('["temp","feels","rain","humidity","wind","tempMax","tempMin","rainChance","condition","daylight","elevation","pressureMsl","surfacePressure","dewPoint","cloudCover","windGusts","windDirection","uvIndex","wetBulb","cape","freezingLevel","boundaryLayer","soilTemp","soilMoisture","wind80","wind100","solarRadiation","solarSplit","weatherInsight"].forEach'));
   assert.ok(html.includes('if(requestId===weatherRequestId)$("refresh").disabled=false;'));
 });
 
@@ -344,14 +344,14 @@ function createDashboardHarness() {
 
 test('weather UI keeps the newest city response when requests resolve out of order', async () => {
   const harness = createDashboardHarness();
-  assert.equal(harness.requests.length, 1, 'initial Riyadh request starts');
+  assert.equal(harness.requests.length, 14, 'initial Riyadh request and 13-city comparison start');
   const changeCity = harness.listeners['place:change'];
   assert.equal(typeof changeCity, 'function');
 
   changeCity({ target: { value: 'abha' } });
-  assert.equal(harness.requests.length, 2, 'Abha request starts after city selection');
+  assert.equal(harness.requests.length, 15, 'Abha request starts after city selection');
 
-  harness.requests[1].resolve({
+  harness.requests[14].resolve({
     measurements: [
       { name: 'temperature', value: 19 },
       { name: 'apparent_temperature', value: 18 },
@@ -361,7 +361,7 @@ test('weather UI keeps the newest city response when requests resolve out of ord
     ],
     daily: [{ valid_date: '2026-11-22', precipitation: 1.2 }]
   });
-  await harness.requests[1].promise;
+  await harness.requests[14].promise;
   await new Promise(resolve => setImmediate(resolve));
 
   assert.equal(harness.elements.get('placeName').textContent, 'أبها');
