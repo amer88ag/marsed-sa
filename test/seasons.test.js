@@ -65,3 +65,16 @@ test('Saudi current date uses explicit Riyadh timezone parts, not device timezon
   assert.match(page, /timeZone:"Asia\/Riyadh"/);
   assert.doesNotMatch(page, /toLocaleString\("en-US",\{timeZone:"Asia\/Riyadh"\}\)/);
 });
+
+test('orchard profile assistant exposes elevation, tree, stage and observed temperature inputs', () => {
+  for (const id of ['farmElevation','farmTree','farmStage','farmMinTemp','farmProfileResult']) assert.ok(page.includes('id="'+id+'"'), id);
+  for (const tree of ['grape','pomegranate','fig','pear','peach','apricot','mulberry','citrus']) assert.ok(page.includes(tree+':{'), tree);
+  for (const stage of ['dormant','bud','flower','set','growth','harvest','postharvest']) assert.ok(page.includes(stage+':"'), stage);
+  assert.match(page, /لا نحول هذا الرقم وحده إلى موعد زراعي/);
+  assert.match(page, /تعامل معها كقراءة رصدية فقط/);
+});
+
+test('season page defines its DOM lookup helper before first use', () => {
+  assert.match(page, /function \$\(id\)\{return document\.getElementById\(id\)\}/);
+  assert.ok(page.indexOf('function $(id)') < page.indexOf('$("today")'));
+});
