@@ -8,7 +8,7 @@ const page = fs.readFileSync('elevation/index.html', 'utf8');
 test('elevation explorer is a standalone Arabic RTL route', () => {
   assert.match(page, /<html lang="ar" dir="rtl">/);
   assert.match(page, /قياس الارتفاع عن سطح البحر/);
-  assert.match(page, /href="\.\.\/">);
+  assert.ok(page.includes('href="../'));
 });
 
 test('elevation explorer uses Open-Meteo Elevation API with Copernicus attribution', () => {
