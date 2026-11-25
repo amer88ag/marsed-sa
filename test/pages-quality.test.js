@@ -130,6 +130,32 @@ test("trip: each route point shows model terrain elevation, or «غير متاح
   assert.match(html, /ليس مسحاً ميدانياً/);
 });
 
+test("trip: route elevation summary gives min, max and mean of the points that have a value", async () => {
+  const elev = [612, null, 1200, 900, 15, 300, 450, 20, 5];
+  const page = dashboardHarness({
+    route: async () => route,
+    routeWeather: async points => points.map((point, i) => ({ location_id: point.id, elevation_m: elev[i] === undefined ? null : elev[i], hourly: null, error: "x" }))
+  });
+  await page.$("planTrip").fire("click");
+  await flush();
+  const html = page.$("tripOutput").innerHTML;
+  const m = html.match(/ارتفاع الطريق عبر (\d+) من (\d+) نقاط: الأدنى (\d+) م · الأعلى (\d+) م · المتوسط (\d+) م/);
+  assert.ok(m, html.slice(-600));
+  const total = Number(m[2]), used = elev.slice(0, total).filter(v => v !== null);
+  assert.equal(Number(m[1]), used.length);
+  assert.equal(Number(m[3]), Math.min(...used));
+  assert.equal(Number(m[4]), Math.max(...used));
+  assert.equal(Number(m[5]), Math.round(used.reduce((a, b) => a + b, 0) / used.length));
+  assert.match(html, /لا تُعد صفراً/);
+});
+
+test("trip: no elevation at any point is stated, not shown as 0", async () => {
+  const page = dashboardHarness({ route: async () => route, routeWeather: async points => points.map(p => ({ location_id: p.id, elevation_m: null, hourly: null, error: "x" })) });
+  await page.$("planTrip").fire("click");
+  await flush();
+  assert.match(page.$("tripOutput").innerHTML, /ارتفاع الطريق: غير متاح لأي نقطة/);
+});
+
 test("no literal \\n artefacts are rendered in pages", () => {
   for (const file of ["index.html", "seasons/index.html", "elevation/index.html", "satellite/index.html", "satellite/coverage.html", "admin/index.html"]) {
     assert.doesNotMatch(fs.readFileSync(file, "utf8"), /\\n</, file);

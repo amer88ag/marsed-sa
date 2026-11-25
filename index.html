@@ -16,6 +16,7 @@
 .data-state-badge{font-size:12px;margin-top:4px;color:#3a4a5c}.data-state-badge[data-state="cached"],.data-state-badge[data-state="stale"],.data-state-badge[data-state="partial"]{color:#8a5700}.data-state-badge[data-state="unavailable"],.data-state-badge[data-state="source_error"]{color:#b42318}
 .compare-tools{display:flex;gap:8px;align-items:center;margin:8px 0;font-size:13px}.compare-tools select{font:inherit;padding:6px 8px;border-radius:8px;border:1px solid #d6dee6}.compare-wrap{overflow-x:auto;max-width:100%}.compare{width:100%;border-collapse:collapse;font-size:13px}.compare th,.compare td{padding:7px 6px;border-bottom:1px solid #e6ecf1;text-align:start;white-space:nowrap}.compare th{font-size:12px;color:#4c5b6b;font-weight:600}
 .chirps-regions{margin-top:8px;font-size:13px}.chirps-regions summary{cursor:pointer;color:#20577a}
+.scroll-hint{display:none;font-size:12px;color:#4c5b6b;margin:6px 0}@media (max-width:640px){.scroll-hint{display:block}}
 </style>
 </head>
 <body>
@@ -100,12 +101,13 @@
 <section class="panel" id="compare">
 <div class="panel-head"><h2>مقارنة الطقس بين المدن</h2><span>ناتج نموذج · نفس وقت الصلاحية</span></div>
 <div class="compare-tools"><label for="compareSort">ترتيب حسب</label><select id="compareSort"><option value="registry">ترتيب المدن</option><option value="temperature">الحرارة الآن</option><option value="max">العظمى اليوم</option><option value="precip">هطول اليوم المتوقع</option><option value="elevation">ارتفاع التضاريس</option></select></div>
-<div class="compare-wrap"><table class="compare"><thead><tr><th>المدينة</th><th>الحرارة °م</th><th>العظمى/الصغرى °م</th><th>الرطوبة %</th><th>هطول اليوم المتوقع ملم (احتمال)</th><th>الرياح/الهبات كم/س</th><th>ضغط مستوى البحر hPa</th><th>ارتفاع التضاريس م</th></tr></thead><tbody id="compareBody"><tr><td colspan="8">لم يتم جلب البيانات بعد.</td></tr></tbody></table></div>
+<div class="scroll-hint">الجدول أعرض من الشاشة: مرّره أفقياً لرؤية بقية الأعمدة.</div><div class="compare-wrap"><table class="compare"><thead><tr><th>المدينة</th><th>الحرارة °م</th><th>العظمى/الصغرى °م</th><th>الرطوبة %</th><th>هطول اليوم المتوقع ملم (احتمال)</th><th>الرياح/الهبات كم/س</th><th>ضغط مستوى البحر hPa</th><th>ارتفاع التضاريس م</th></tr></thead><tbody id="compareBody"><tr><td colspan="8">لم يتم جلب البيانات بعد.</td></tr></tbody></table></div>
 <div class="data-state" id="compareNote">القيم من طلب واحد لنموذج Open-Meteo لكل المدن؛ ليست رصد محطات. «—» تعني قيمة غير متاحة ولا تُعد صفراً. ارتفاع التضاريس من نموذج 90 م عند نقطة المدينة. الضغط مختزل إلى مستوى سطح البحر لتصح المقارنة بين المدن.</div>
 </section>
 <section class="panel" id="chirps">
 <div class="panel-head"><h2>الأمطار التاريخية — CHIRPS v3</h2><span>ملم/يوم</span></div>
-<div class="chart-wrap"><svg id="chirpsChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مقارنة أمطار CHIRPS SAT وRNL اليومية عند إحداثيات المدينة"></svg><div class="chart-labels"><span>■ SAT — أزرق</span><span>■ RNL — أخضر</span></div></div>
+<div class="chart-wrap"><svg id="chirpsChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مقارنة أمطار CHIRPS SAT وRNL اليومية عند إحداثيات المدينة"></svg><div class="chart-labels"><span>■ SAT — أزرق</span><span>■ RNL — أخضر</span><span>× قيمة مفقودة</span></div></div>
+<div id="chirpsChartCaption" class="data-meta" aria-live="polite">لم يتم جلبها بعد.</div>
 <div id="chirpsState" class="data-state">تعرض اللوحة عينة بحثية قصيرة محفوظة مع الموقع، وليست بيانات محدثة يومياً ولا تغطية وطنية.</div>
 <div id="chirpsAnalysis" class="data-meta" aria-live="polite"></div>
 <details class="chirps-regions"><summary>مقارنة المدن في نافذة العينة نفسها (SAT)</summary><div class="compare-wrap"><table class="compare"><thead><tr><th>المدينة</th><th>مجموع النافذة ملم</th><th>أيام ممطرة ≥1 ملم</th><th>أعلى يوم ملم</th><th>آخر تاريخ متاح</th></tr></thead><tbody id="chirpsRegions"><tr><td colspan="5">لم يتم جلبها بعد.</td></tr></tbody></table></div></details>
@@ -136,6 +138,7 @@
 <script src="src/services/weather/service.js"></script>
 <script src="src/services/precipitation/service.js"></script>
 <script src="src/services/precipitation/aggregate.js"></script>
+<script src="src/services/precipitation/chirps-chart.js"></script>
 <script src="src/providers/routing/osrm/adapter.js"></script>
 <script src="src/services/routing/service.js"></script>
 <script src="src/services/routing/itinerary.js"></script>
@@ -192,6 +195,18 @@ function clearTripMap(){
 }
 // Great-circle distance (haversine, mean Earth radius 6371 km). Used only as a labelled fallback.
 function greatCircleKm(a,b){var r=Math.PI/180,dLat=(b.lat-a.lat)*r,dLon=(b.lon-a.lon)*r,h=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dLon/2)*Math.sin(dLon/2);return 2*6371*Math.asin(Math.min(1,Math.sqrt(h)))}
+// Min / max / mean terrain elevation over the sampled route points (not a continuous profile).
+function elevationSummary(rows){
+ var v=rows.map(function(r){return r.elevation}).filter(function(x){return x!==null&&x!==undefined&&isFinite(x)});
+ if(!v.length)return {count:0,total:rows.length};
+ var sum=v.reduce(function(a,b){return a+b},0);
+ return {count:v.length,total:rows.length,min:Math.min.apply(null,v),max:Math.max.apply(null,v),mean:sum/v.length};
+}
+function elevationSummaryText(rows){
+ var s=elevationSummary(rows);
+ if(!s.count)return "ارتفاع الطريق: غير متاح لأي نقطة.";
+ return "ارتفاع الطريق عبر "+s.count+" من "+s.total+" نقاط: الأدنى "+number(s.min,0)+" م · الأعلى "+number(s.max,0)+" م · المتوسط "+number(s.mean,0)+" م. محسوب من نقاط متباعدة على المسار، فقد تقع قمة أو منخفض بينها."+(s.count<s.total?" النقاط دون ارتفاع مستبعدة ولا تُعد صفراً.":"");
+}
 async function planTrip(){
  var originKey=$("tripOrigin").value,destinationKey=$("tripDestination").value;
  if(!places[originKey]||!places[destinationKey]||originKey===destinationKey){
@@ -244,12 +259,13 @@ async function planTrip(){
    map.fitBounds(tripLine.getBounds(),{padding:[24,24]});
   }
   var table='<div class="trip-summary"><b>'+escapeHtml(origin.name)+' ← '+escapeHtml(destination.name)+'</b><br>المسافة: '+number(totalKm,1)+' كم · زمن القيادة التقديري: '+formatDuration(route.duration_s)+'<br>نقاط الطقس: '+rows.length+' · وقت الانطلاق: '+itinerary.departure.toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})+' بتوقيت السعودية. الوصول المتوقع: '+itinerary.arrival.toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})+' بتوقيت السعودية.</div>';
-  table+='<table class="trip-table"><thead><tr><th>النقطة</th><th>المسافة</th><th>وقت الوصول</th><th>الحرارة</th><th>احتمال المطر</th><th>الرياح</th><th>ارتفاع التضاريس</th></tr></thead><tbody>';
+  table+='<div class="scroll-hint">الجدول أعرض من الشاشة: مرّره أفقياً لرؤية الرياح والارتفاع.</div><table class="trip-table"><thead><tr><th>النقطة</th><th>المسافة</th><th>وقت الوصول</th><th>الحرارة</th><th>احتمال المطر</th><th>الرياح</th><th>ارتفاع التضاريس</th></tr></thead><tbody>';
   table+=rows.map(function(row){
    var f=row.forecast;
    return '<tr><td>'+escapeHtml(row.point.name)+'</td><td>'+number(row.point.distance_km,1)+' كم</td><td>'+row.eta.toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})+'</td><td>'+(f&&f.temperature!==null?number(f.temperature,0)+'°م':'غير متاح')+'</td><td>'+(f&&f.precipitation_probability!==null?Math.round(f.precipitation_probability)+'٪':'غير متاح')+'</td><td>'+(f&&f.wind_speed!==null?number(f.wind_speed,0)+' كم/س':'غير متاح')+'</td><td>'+(row.elevation===null?'غير متاح':number(row.elevation,0)+' م')+'</td></tr>';
   }).join("");
   table+='</tbody></table><div class="data-meta">ارتفاع التضاريس لكل نقطة من نموذج ارتفاع رقمي بدقة 90 م يستخدمه Open-Meteo، وليس مسحاً ميدانياً للطريق.</div>';
+  table+='<div class="data-meta" id="tripElevationSummary">'+escapeHtml(elevationSummaryText(rows))+'</div>';
   $("tripOutput").innerHTML=table;
   setText("tripStatus","تم حساب المسار وجلب ملخص الطقس للنقاط المتاحة. زمن القيادة تقدير من OSRM وليس زمن مرور حياً، ولا تتوفر بيانات ازدحام أو حوادث أو إغلاقات."+(unavailable?" · لا يتوفر توقع ساعي مطابق لوقت الوصول في "+unavailable+" نقطة؛ عُرضت «غير متاح» بدلاً من تقدير مختلق.":"")+(unverifiedPoints?" · لم يتم التحقق من وحدات بعض القيم في "+unverifiedPoints+" نقطة؛ تُعرض كما وردت دون حكم.":""));
  }catch(error){
@@ -424,7 +440,7 @@ function renderWeatherData(data){
  setText("pressureMsl",number(measurement("pressure_msl"),1));
  setText("surfacePressure",number(measurement("surface_pressure"),1));
  setText("dewPoint",number(measurement("dew_point"),1));
- setText("cloudCover",measurement("cloud_cover")===null?"—":number(measurement("cloud_cover"),0)+"٪");
+ setText("cloudCover",number(measurement("cloud_cover"),0));
  setText("visibility",measurement("visibility")===null?"—":number(measurement("visibility")/1000,1));
  setText("windGusts",number(measurement("wind_gusts"),0));
  setText("windDirection",windDirectionLabel(measurement("wind_direction")));
@@ -482,24 +498,12 @@ function drawChart(labels,values){
  svg.innerHTML=parts.join("");
 } 
 function drawChirpsChart(satRecords,rnlRecords){
- var svg=$("chirpsChart");
- if(!satRecords||!satRecords.length){svg.innerHTML="";return}
- var sat=satRecords.map(function(row){return row.precipitation_mm===null?null:Number(row.precipitation_mm)});
- var rnl=(rnlRecords||[]).map(function(row){return row.precipitation_mm===null?null:Number(row.precipitation_mm)});
- var valid=sat.concat(rnl).filter(function(v){return Number.isFinite(v)});
- if(!valid.length){svg.innerHTML="";return}
- var w=600,h=180,left=38,right=12,top=12,bottom=24,plotH=h-top-bottom,plotW=w-left-right;
- var max=Math.max(1,...valid);max=Math.ceil(max/5)*5;if(max===0)max=1;
- var parts=['<line x1="'+left+'" y1="'+(top+plotH)+'" x2="'+(w-right)+'" y2="'+(top+plotH)+'" stroke="#d9e2ea"/>'];
- [0,.5,1].forEach(function(f){var y=top+plotH*(1-f);parts.push('<line x1="'+left+'" y1="'+y+'" x2="'+(w-right)+'" y2="'+y+'" stroke="#edf1f5"/><text x="'+(left-7)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="#7b8794">'+(max*f).toFixed(0)+'</text>')});
- var step=plotW/satRecords.length,barW=Math.max(2,Math.min(10,step*.28)),gap=2;
- satRecords.forEach(function(row,i){
-  var center=left+i*step+step/2;
-  var a=sat[i],b=rnl[i];
-  if(a!==null&&Number.isFinite(a)){var bh=Math.max(0,Math.min(plotH,a/max*plotH));var x=center-gap/2-barW;var y=top+plotH-bh;parts.push('<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="2" fill="#1769aa"><title>SAT · '+row.date+': '+number(a,2)+' ملم/يوم</title></rect>')}
-  if(b!==null&&Number.isFinite(b)){var bh2=Math.max(0,Math.min(plotH,b/max*plotH));var x2=center+gap/2;var y2=top+plotH-bh2;parts.push('<rect x="'+x2.toFixed(1)+'" y="'+y2.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+bh2.toFixed(1)+'" rx="2" fill="#23865b"><title>RNL · '+row.date+': '+number(b,2)+' ملم/يوم</title></rect>')}
- });
- svg.innerHTML=parts.join("");
+ // Built by ChirpsChart: aligned by date, zero = visible baseline mark, missing = grey ×.
+ var result=ChirpsChart.build(satRecords,rnlRecords);
+ $("chirpsChart").innerHTML=result.svg;
+ $("chirpsChart").setAttribute("data-status",result.status);
+ setText("chirpsChartCaption",ChirpsChart.caption(result));
+ return result;
 }
 function renderChirps(){
  if(!chirpsDataset||!chirpsDataset.series){setText("chirpsState","تعذر تحميل ملف عينة CHIRPS المحفوظ في هذا الإصدار. تحقق من الاتصال، ثم أعد تحميل الصفحة. ");return}
@@ -507,10 +511,10 @@ function renderChirps(){
  try{
   satNormalized=PrecipitationService.getCitySeries(chirpsDataset,activeKey,"sat");
   rnlNormalized=PrecipitationService.getCitySeries(chirpsDataset,activeKey,"rnl");
- }catch(error){$("chirpsChart").innerHTML="";setText("chirpsState","لا توجد سلسلة CHIRPS صالحة لهذه المدينة في ملف العينة الحالي ("+error.message+"). لم تُعرض قيم بديلة.");return}
+ }catch(error){$("chirpsChart").innerHTML="";setText("chirpsChartCaption","لا يُرسم مخطط: لا توجد سلسلة صالحة لهذه المدينة.");setText("chirpsState","لا توجد سلسلة CHIRPS صالحة لهذه المدينة في ملف العينة الحالي ("+error.message+"). لم تُعرض قيم بديلة.");return}
  var satRecords=satNormalized.observations.map(function(row){return {date:row.valid_date,precipitation_mm:row.value}});
  var rnlRecords=rnlNormalized.observations.map(function(row){return {date:row.valid_date,precipitation_mm:row.value}});
- if(!satRecords.length&&!rnlRecords.length){$("chirpsChart").innerHTML="";setText("chirpsState","لا توجد سجلات لهذه المدينة في ملف البيانات الحالي.");return}
+ if(!satRecords.length&&!rnlRecords.length){$("chirpsChart").innerHTML="";setText("chirpsChartCaption","لا يُرسم مخطط: لا توجد سجلات.");setText("chirpsState","لا توجد سجلات لهذه المدينة في ملف البيانات الحالي.");return}
  drawChirpsChart(satRecords,rnlRecords);
  var satCount=satRecords.filter(function(row){return row.precipitation_mm!==null}).length;
  var rnlCount=rnlRecords.filter(function(row){return row.precipitation_mm!==null}).length;
@@ -527,7 +531,7 @@ function renderChirpsAnalysis(observations){
   var lines=["نافذة العينة (SAT): "+RainAggregate.describePeriod(span)+"؛ آخر تاريخ بقيمة: "+(span.last_valid_date||"لا يوجد")+"."];
   RainAggregate.byMonth(observations).forEach(function(m){lines.push("الشهر "+RainAggregate.describePeriod(m)+".")});
   RainAggregate.byYear(observations).forEach(function(y){lines.push("السنة "+RainAggregate.describePeriod(y)+".")});
-  var spellText=function(x,name){return x?name+" "+x.days+" يوم ("+x.start+" – "+x.end+")":name+": لا يوجد"};
+  var spellText=function(x,name){return x?name+" "+RainAggregate.arDays(x.days)+" ("+x.start+" – "+x.end+")":name+": لا يوجد"};
   lines.push("أطول فترة "+spellText(sp.longest_dry,"جافة")+" · أطول فترة "+spellText(sp.longest_wet,"ممطرة")+" (يوم ممطر ≥1 ملم؛ اليوم المفقود يقطع الفترة ولا يُعد جافاً). قِصر العينة يجعل هذه الفترات وصفاً للعينة فقط لا مؤشراً مناخياً.");
   out.textContent=lines.join(" ");
   renderChirpsRegions();
@@ -550,6 +554,7 @@ async function loadChirps(){
   chirpsDataset=payload;
   renderChirps();
  }catch(error){
+  $("chirpsChart").innerHTML="";setText("chirpsChartCaption","لا يُرسم مخطط: تعذر تحميل ملف العينة.");
   setText("chirpsState","تعذر تحميل ملف CHIRPS التجريبي: "+error.message);
  }
 }

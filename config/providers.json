@@ -55,7 +55,7 @@
       "coverage": "Saudi Arabia; exact product coverage must be confirmed",
       "rate_limit": "Subject to NCM account and contract",
       "health_status": "not_connected",
-      "notes": "No credentials or production integration are configured."
+      "notes": "تكامل غير متاح حالياً: لا حساب ولا اعتماد API، ولا تُستخدم بيانات المركز ولا شعاره. هذا ليس شرطاً لتشغيل المرصد ولا لإطلاقه (قرار المالك 2026-11-26)، وبقية المصادر (Open-Meteo وNASA وCHIRPS) تعمل مستقلة عنه."
     },
     {
       "id": "nasa-imerg",
