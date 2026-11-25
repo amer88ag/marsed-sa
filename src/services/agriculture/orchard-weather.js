@@ -11,12 +11,21 @@
   const DAILY_FIELDS = "temperature_2m_min,temperature_2m_max,precipitation_sum,precipitation_probability_max,et0_fao_evapotranspiration";
   const ARCHIVE_FIELDS = "temperature_2m_min,temperature_2m_max,precipitation_sum";
 
+  // Reject coercible non-numbers (null, booleans, blank strings and arrays).
+  // Numeric strings from form controls remain supported.
+  function parseFiniteNumber(value) {
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    if (typeof value !== "string" || value.trim() === "" ||
+        !/^[+-]?(?:\\d+\\.?\\d*|\\.\\d+)(?:[eE][+-]?\\d+)?$/.test(value.trim())) return null;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : null;
+  }
+
   function validLocation(location) {
-    return !!location &&
-      Number.isFinite(Number(location.lat)) &&
-      Number.isFinite(Number(location.lon)) &&
-      Number(location.lat) >= -90 && Number(location.lat) <= 90 &&
-      Number(location.lon) >= -180 && Number(location.lon) <= 180;
+    if (!location) return false;
+    const lat = parseFiniteNumber(location.lat), lon = parseFiniteNumber(location.lon);
+    return lat !== null && lon !== null &&
+      lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
   }
 
   function buildForecastUrl(location) {
@@ -73,9 +82,13 @@
   }
 
   function finiteOrNull(value) {
-    if (value === null || value === undefined || value === "") return null;
-    const n = Number(value);
-    return Number.isFinite(n) ? n : null;
+    return parseFiniteNumber(value);
+  }
+
+  function validISODate(value) {
+    if (typeof value !== "string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) return false;
+    const date = new Date(value + "T12:00:00Z");
+    return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
   }
 
   const ROW_FIELDS = { min: "temperature_2m_min", max: "temperature_2m_max", precipitation: "precipitation_sum",
@@ -109,10 +122,17 @@
       "precipitation_probability_max",
       "et0_fao_evapotranspiration"
     ];
+    if (!dates.length) throw new TypeError("Daily series is empty");
     fields.forEach(function (key) {
       if (daily[key] !== undefined && (!Array.isArray(daily[key]) || daily[key].length !== dates.length)) {
         throw new TypeError("Daily field length mismatch: " + key);
       }
+    });
+    let previous = "";
+    dates.forEach(function (date) {
+      if (!validISODate(date)) throw new TypeError("Invalid daily ISO date: " + date);
+      if (previous && date <= previous) throw new TypeError("Daily dates must be unique and ascending");
+      previous = date;
     });
     return dates.map(function (date, index) {
       return {
