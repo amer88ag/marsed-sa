@@ -64,7 +64,7 @@ test("arrival time at route points is proportional to distance and clamped", () 
 });
 
 // ---- orchard service ---------------------------------------------------------
-const forecastPayload = { latitude: 18.2, longitude: 42.5, elevation: 2150, daily: { time: ["2026-11-25", "2026-11-26"], temperature_2m_min: [-1, null], temperature_2m_max: [20, 22], precipitation_sum: [0, null], precipitation_probability_max: [10, null], et0_fao_evapotranspiration: [6, null] } };
+const forecastPayload = { latitude: 18.2, longitude: 42.5, elevation: 2150, daily: { time: ["2026-11-26", "2026-11-27"], temperature_2m_min: [-1, null], temperature_2m_max: [20, 22], precipitation_sum: [0, null], precipitation_probability_max: [10, null], et0_fao_evapotranspiration: [6, null] } };
 const archivePayload = { latitude: 18.2, longitude: 42.5, elevation: 2150, daily: { time: ["2026-11-17", "2026-11-18"], temperature_2m_min: [5, null], temperature_2m_max: [21, null], precipitation_sum: [0, null] } };
 const routedFetch = handlers => async url => {
   const handler = url.includes("archive-api") ? handlers.archive : handlers.forecast;
@@ -111,7 +111,7 @@ test("orchard: each source can fail independently (HTTP, JSON, timeout)", async 
 
 test("orchard alerts explain basis, limits and source and never compute irrigation", () => {
   const verified = { min: "verified", max: "verified", precipitation: "verified", precipitationProbability: "verified", et0: "verified" };
-  const [day] = Orchard.evaluate([{ date: "2026-11-25", min: -1, max: 41, precipitation: 0, et0: 7, unit_status: verified }], "flower", "توقع نموذجي");
+  const [day] = Orchard.evaluate([{ date: "2026-11-26", min: -1, max: 41, precipitation: 0, et0: 7, unit_status: verified }], "flower", "توقع نموذجي");
   for (const alert of day.alerts) {
     assert.ok(alert.basis && alert.limits && alert.source === "توقع نموذجي", alert.type);
   }
@@ -175,7 +175,7 @@ test("7. orchard page ignores a stale response that arrives after a newer one", 
   page.$("orchardLat").value = "20.0";
   const secondClick = page.$("loadOrchardWeather").fire("click");
   assert.equal(signals[0].aborted, true, "previous request is cancelled");
-  const make = min => ({ forecast: { ok: true, rows: [{ date: "2026-11-25", min, max: 20, precipitation: 0, precipitationProbability: 0, et0: 1 }], source: null }, archive: { ok: false, error: new Error("x") } });
+  const make = min => ({ forecast: { ok: true, rows: [{ date: "2026-11-26", min, max: 20, precipitation: 0, precipitationProbability: 0, et0: 1 }], source: null }, archive: { ok: false, error: new Error("x") } });
   second.resolve(make(10));
   await secondClick; await flush();
   first.resolve(make(-5));
