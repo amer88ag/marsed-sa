@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0.0",
+  "country": "SA",
+  "policy": {
+    "unknown_values": "null",
+    "require_source_for_factual_ranges": true,
+    "prohibit_unsourced_calendar_dates": true,
+    "advisory_only": true
+  },
+  "categories": [
+    "fruit_tree",
+    "vegetable",
+    "field_crop",
+    "native_tree",
+    "wild_plant",
+    "ornamental",
+    "pasture"
+  ],
+  "regions": [
+    {
+      "id": "north",
+      "name_ar": "الشمال"
+    },
+    {
+      "id": "central",
+      "name_ar": "الوسطى"
+    },
+    {
+      "id": "east",
+      "name_ar": "الشرقية"
+    },
+    {
+      "id": "west",
+      "name_ar": "الغربية"
+    },
+    {
+      "id": "southwest_highlands",
+      "name_ar": "المرتفعات الجنوبية الغربية"
+    },
+    {
+      "id": "southwest_tihama",
+      "name_ar": "تهامة الجنوبية الغربية"
+    },
+    {
+      "id": "south",
+      "name_ar": "الجنوب"
+    },
+    {
+      "id": "northwest",
+      "name_ar": "الشمال الغربي"
+    }
+  ],
+  "plants": []
+}
