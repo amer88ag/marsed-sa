@@ -33,6 +33,11 @@ test("daily normalization preserves null and rejects mismatched arrays", () => {
   assert.throws(() => OrchardWeather.normalizeDaily({daily:{time:["a","b"],temperature_2m_min:[1]}}), /length mismatch/);
 });
 
+test("daily normalization rejects date-only payloads without weather measurements", () => {
+  assert.throws(() => OrchardWeather.normalizeDaily({daily:{time:["2026-11-24"]}}), /no core weather fields/);
+  assert.throws(() => OrchardWeather.normalizeDaily({daily:{time:["2026-11-24"],temperature_2m_min:"10"}}), /no core weather fields/);
+});
+
 test("daily normalization rejects invalid, duplicate and unordered dates", () => {
   const make = time => ({daily:{time,temperature_2m_min:time.map(() => 10)}});
   assert.throws(() => OrchardWeather.normalizeDaily(make([])), /empty/);
