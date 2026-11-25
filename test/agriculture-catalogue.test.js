@@ -37,6 +37,16 @@ test("factual ranges require matching source references", () => {
   assert.match(Catalogue.validateRecord(record).errors.join(" "), /elevation_m facts require/);
 });
 
+test("regional distribution and harvest windows require matching sources", () => {
+  const record = plant();
+  record.administrative_regions = ["عسير"];
+  record.distribution_source_ids = [];
+  record.harvest_windows = [{ type: "production", start_month: 7, end_month: 12, source_ids: [] }];
+  const errors = Catalogue.validateRecord(record).errors.join(" ");
+  assert.match(errors, /distribution_source_ids/);
+  assert.match(errors, /harvest window 0 requires matching source_ids/);
+});
+
 test("invalid source metadata and operation references are rejected", () => {
   const record = plant();
   record.sources[0].url = "http://example.gov.sa/guide";
