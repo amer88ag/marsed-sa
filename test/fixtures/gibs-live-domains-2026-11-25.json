@@ -1,6 +1,9 @@
 {
+  "kind": "static snapshot — NOT a live or self-refreshing test",
   "captured_on": "2026-11-25",
+  "source": "NASA GIBS WMTS DescribeDomains, https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/wmts.cgi (TILEMATRIXSET=GoogleMapsCompatible_Level9)",
   "method": "WebFetch of GIBS DescribeDomains (TILEMATRIXSET=GoogleMapsCompatible_Level9). The tool returns a model summary quoting the <Domain> text, not raw bytes; MODIS Terra was returned in three quoted segments joined here without changes. MODIS Terra Bands 7-2-1 was not quoted in full (size 10) and is therefore not included.",
+  "update_procedure": "Manual only; no automated or verified update script exists. Re-request DescribeDomains for each layer, replace the domain strings and size values, change captured_on, and re-run the tests. Expected values in test/gibs-live-domains.test.js (latest dates, gap dates) must then be reviewed by hand.",
   "layers": {
     "VIIRS_SNPP_CorrectedReflectance_TrueColor": {
       "size": 8,

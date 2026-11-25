@@ -44,27 +44,88 @@ test("new services are research-stage, not silently activated", () => {
   assert.deepEqual(services.services.filter(s => s.status === "active").map(s => s.id), ["weather"]);
 });
 
-// Data hosts used at runtime or by tooling → provider ids. Library/doc hosts are listed separately.
+// Scan scope (documented in tools/browser-smoke/README.md):
+//   production code : src/**, scripts/**, the six pages
+//   test tooling    : tools/**  (test-only hosts allowed here and ONLY here)
+//   not scanned     : test/** and test-support/** — they use made-up hosts
+//                     (x.test, w.test…) as fetch doubles and never reach the network.
+const PRODUCTION_FILES = () => walk("src", []).concat(walk("scripts", []), PAGES);
+const TOOL_FILES = () => walk("tools", []);
+
+// Data hosts → provider ids in config/providers.json.
 const DATA_HOSTS = {
   "api.open-meteo.com": "open-meteo", "archive-api.open-meteo.com": "open-meteo",
   "gibs.earthdata.nasa.gov": "nasa-gibs", "router.project-osrm.org": "osrm-demo",
   "tile.openstreetmap.org": "openstreetmap", "data.chc.ucsb.edu": "chirps-v3"
 };
-const NON_DATA_HOSTS = new Set(["unpkg.com", "open-meteo.com", "www.openstreetmap.org", "www.chc.ucsb.edu", "api-doc.ncm.gov.sa",
-  "www.naturalearthdata.com", "gpm.nasa.gov", "github.com", "www.earthdata.nasa.gov", "project-osrm.org", "nasa-gibs.github.io",
-  "doi.org", "www.mewa.gov.sa", "saudipedia.com", "geosa.gov.sa", "geoportal.sa", "direct.ksu.edu.sa", "www.almisnid.com",
-  "alojeiri.com", "aa.usno.navy.mil"]);
+// Hosts that are not data sources. Every entry needs a reason, must actually occur
+// in the scanned files (no stale entries), and may not overlap DATA_HOSTS.
+const NON_DATA_HOSTS = {
+  "unpkg.com": "Leaflet library CDN (code, not data)",
+  "open-meteo.com": "attribution / documentation link",
+  "www.openstreetmap.org": "attribution link (copyright page)",
+  "www.chc.ucsb.edu": "CHIRPS documentation link",
+  "api-doc.ncm.gov.sa": "NCM API documentation link (no integration)",
+  "www.naturalearthdata.com": "Natural Earth attribution link",
+  "gpm.nasa.gov": "IMERG documentation link (not integrated)",
+  "github.com": "documentation links",
+  "www.earthdata.nasa.gov": "NASA attribution link",
+  "project-osrm.org": "OSRM project link",
+  "nasa-gibs.github.io": "GIBS documentation link",
+  "doi.org": "CHIRPS citation DOI",
+  "www.mewa.gov.sa": "reference link in the seasons page",
+  "saudipedia.com": "reference link in the seasons page",
+  "geosa.gov.sa": "GEOSA terms link (no data used)",
+  "geoportal.sa": "GEOSA portal link (no data used)",
+  "direct.ksu.edu.sa": "reference link in the seasons page",
+  "www.almisnid.com": "reference link in the seasons page",
+  "alojeiri.com": "reference link in the seasons page",
+  "aa.usno.navy.mil": "astronomical reference link in the seasons page"
+};
+// Test-only hosts: local servers and placeholders used by tools/browser-smoke.
+const TOOL_ONLY_HOSTS = {
+  "127.0.0.1": "local cross-origin servers for the real-CORS test",
+  "local.test": "intercepted pseudo-origin for the browser smoke test",
+  "tiles.example.org": "placeholder origin in cors-probe.js (requests intercepted)"
+};
 
-test("every external host in the code is a registered data provider or a documented link", () => {
-  const files = walk("src", []).concat(walk("scripts", []), PAGES);
-  const hosts = new Set();
-  for (const file of files) for (const m of fs.readFileSync(file, "utf8").matchAll(/https?:\/\/([a-zA-Z0-9.-]+)/g)) hosts.add(m[1]);
+function hostsIn(files) {
+  const hosts = new Map();
+  for (const file of files) for (const m of fs.readFileSync(file, "utf8").matchAll(/https?:\/\/([a-zA-Z0-9.-]+)/g)) {
+    if (!hosts.has(m[1])) hosts.set(m[1], new Set());
+    hosts.get(m[1]).add(file);
+  }
+  return hosts;
+}
+
+test("every external host in production code is a registered data provider or a documented link", () => {
   const ids = new Set(providers.providers.map(p => p.id));
-  for (const host of hosts) {
-    if (NON_DATA_HOSTS.has(host)) continue;
-    assert.ok(DATA_HOSTS[host], "unregistered external host: " + host);
+  for (const [host, files] of hostsIn(PRODUCTION_FILES())) {
+    assert.ok(!TOOL_ONLY_HOSTS[host], "test-only host in production code: " + host + " in " + [...files].join(", "));
+    if (NON_DATA_HOSTS[host]) continue;
+    assert.ok(DATA_HOSTS[host], "unregistered external host: " + host + " in " + [...files].join(", "));
     assert.ok(ids.has(DATA_HOSTS[host]), host + " → " + DATA_HOSTS[host] + " is in providers.json");
   }
+});
+
+test("test tooling may use local test hosts, but real hosts in tools/ follow the same rules", () => {
+  const ids = new Set(providers.providers.map(p => p.id));
+  for (const [host, files] of hostsIn(TOOL_FILES())) {
+    if (TOOL_ONLY_HOSTS[host] || NON_DATA_HOSTS[host]) continue;
+    assert.ok(DATA_HOSTS[host] && ids.has(DATA_HOSTS[host]), "unregistered host in tools/: " + host + " in " + [...files].join(", "));
+  }
+});
+
+test("host allowlists cannot be used to bypass the check", () => {
+  const production = hostsIn(PRODUCTION_FILES()), tools = hostsIn(TOOL_FILES());
+  for (const [list, name, scanned] of [[NON_DATA_HOSTS, "NON_DATA_HOSTS", production], [TOOL_ONLY_HOSTS, "TOOL_ONLY_HOSTS", tools]]) {
+    for (const [host, reason] of Object.entries(list)) {
+      assert.ok(typeof reason === "string" && reason.trim().length >= 8, name + "." + host + " needs a documented reason");
+      assert.ok(!DATA_HOSTS[host], name + "." + host + " overlaps a data host");
+      assert.ok(scanned.has(host), name + "." + host + " is not used in the scanned files (stale entry)");
+    }
+  }
+  for (const host of Object.keys(TOOL_ONLY_HOSTS)) assert.ok(!NON_DATA_HOSTS[host], host + " listed twice");
 });
 
 test("each page shows the attribution its providers require", () => {

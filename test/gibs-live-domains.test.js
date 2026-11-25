@@ -1,5 +1,8 @@
 "use strict";
-// Real GIBS time domains captured on 2026-11-25 (see fixture for method and limits).
+// STATIC SNAPSHOT of real GIBS time domains captured once on 2026-11-25 (see the
+// fixture for source, method and the manual update procedure). These tests replay
+// that snapshot offline; they are not live checks and do not refresh themselves.
+// The file name keeps "live" only because it names where the data came from.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const Gibs = require("../src/services/satellite/nasa-gibs.js");
@@ -7,7 +10,7 @@ const F = require("../src/platform/quality/freshness.js");
 const fixture = require("./fixtures/gibs-live-domains-2026-11-25.json");
 const periods = id => Gibs.parseAvailablePeriods("<Domain>" + fixture.layers[id].domain + "</Domain>");
 
-test("real domains parse into the advertised number of periods, gaps included", () => {
+test("snapshot 2026-11-25: domains parse into the advertised number of periods, gaps included", () => {
   for (const [id, layer] of Object.entries(fixture.layers)) assert.equal(periods(id).length, layer.size, id);
   const viirs = periods("VIIRS_SNPP_CorrectedReflectance_TrueColor");
   assert.equal(Gibs.isDateAvailable("2022-08-01", viirs), false, "real gap 2022-07-28..2022-08-09");
@@ -15,13 +18,13 @@ test("real domains parse into the advertised number of periods, gaps included", 
   assert.equal(Gibs.adjacentAvailableDate("2026-04-28", viirs, 1), "2026-04-30");
 });
 
-test("VIIRS SNPP real latest date is 2026-11-02, shown with its true age", () => {
+test("snapshot 2026-11-25: VIIRS SNPP latest date 2026-11-02 is shown with its true age", () => {
   const viirs = periods("VIIRS_SNPP_CorrectedReflectance_TrueColor");
   assert.equal(Gibs.latestAvailableOnOrBefore(viirs, "2026-11-25"), "2026-11-02");
   assert.equal(F.satelliteProduct("2026-11-02", new Date("2026-11-25T12:00:00Z")).age_days_utc, 23);
 });
 
-test("MODIS Aqua lists a future date; the UTC cap never selects a day that has not started in UTC", () => {
+test("snapshot 2026-11-25: MODIS Aqua listed a future date; the UTC cap never selects a day not yet started in UTC", () => {
   const aqua = periods("MODIS_Aqua_CorrectedReflectance_TrueColor");
   assert.equal(Gibs.latestAvailableDate(aqua), "2026-11-26", "domain end is in the future");
   // 00:30 Saudi on 26 Nov = 21:30 UTC on 25 Nov.
