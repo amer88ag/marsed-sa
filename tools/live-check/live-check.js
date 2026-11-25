@@ -97,6 +97,17 @@ async function runChecks(options) {
     return verdict(problems, "elevation " + value + " m");
   });
 
+  await check("OM5", "Open-Meteo city overview batch (comparison table): units and per-city elevation", async () => {
+    const points = [{ id: "riyadh", lat: riyadh.lat, lon: riyadh.lon }, { id: "jeddah", lat: jeddah.lat, lon: jeddah.lon }];
+    const p = await get(Adapter.buildOverviewBatchUrl(points));
+    const list = Array.isArray(p) ? p : [p];
+    const problems = [];
+    if (list.length !== 2) problems.push("expected 2 locations, got " + list.length);
+    list.forEach((item, i) => unitReport(item, ["current", "daily"]).forEach(x => problems.push(points[i].id + ": " + x)));
+    list.forEach((item, i) => { if (!Number.isFinite(item && item.elevation)) problems.push(points[i].id + ": no elevation"); });
+    return verdict(problems, list.map((item, i) => points[i].id + " elevation " + (item && item.elevation) + " m, MSL " + (item && item.current && item.current.pressure_msl) + " hPa").join("; "));
+  });
+
   await check("OM4", "Open-Meteo route batch covers the 48 h window", async () => {
     const points = [{ id: "a", lat: riyadh.lat, lon: riyadh.lon }, { id: "b", lat: jeddah.lat, lon: jeddah.lon }];
     const p = await get(Adapter.buildRouteWeatherBatchUrl(points, { forecastDays: Itinerary.requiredForecastDays(now) }));

@@ -44,6 +44,10 @@ function world(overrides) {
     const u = new URL(url);
     if (u.hostname === "api.open-meteo.com" && u.pathname === "/v1/elevation") return response(200, { elevation: [612] });
     if (u.hostname === "api.open-meteo.com") {
+      if (u.searchParams.get("latitude").includes(",") && u.searchParams.get("current")) {
+        const one = forecastPayload(url); delete one.hourly; delete one.hourly_units;
+        return response(200, [one, one]);
+      }
       if (u.searchParams.get("latitude").includes(",")) {
         const hr = requested(url, "hourly");
         const one = { utc_offset_seconds: 10800, hourly_units: unitsFor(hr), hourly: hourly(hr, "2026-11-25T00:00:00Z", 24 * 4) };
@@ -70,7 +74,7 @@ function world(overrides) {
 test("a healthy world is fully verified (exit 0)", async () => {
   const report = await Live.runChecks({ fetch: world(), now: NOW });
   assert.deepEqual(report.results.filter(r => r.status !== "verified").map(r => r.id + ": " + r.evidence + " " + (r.problems || []).join("; ")), []);
-  assert.equal(report.summary.total, 11);
+  assert.equal(report.summary.total, 12);
   assert.equal(report.exitCode, 0);
   assert.match(Live.render(report), /RESULT: ALL VERIFIED/);
   assert.match(report.results.find(r => r.id === "GB-modisAquaTrue").evidence, /selected 2026-11-25 \(UTC cap 2026-11-25\)/, "future domain end not selected");
