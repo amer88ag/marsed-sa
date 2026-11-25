@@ -123,6 +123,10 @@
       "et0_fao_evapotranspiration"
     ];
     if (!dates.length) throw new TypeError("Daily series is empty");
+    const coreFields = ["temperature_2m_min", "temperature_2m_max", "precipitation_sum"];
+    if (!coreFields.some(function (key) { return Array.isArray(daily[key]); })) {
+      throw new TypeError("Daily series has no core weather fields");
+    }
     fields.forEach(function (key) {
       if (daily[key] !== undefined && (!Array.isArray(daily[key]) || daily[key].length !== dates.length)) {
         throw new TypeError("Daily field length mismatch: " + key);
