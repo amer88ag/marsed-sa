@@ -124,14 +124,16 @@ check("G10", "Required documents exist; every provider id is named in DATA_SOURC
 });
 
 const EXTERNAL = [
-  "NCM written opinion on classification and regulatory requirements (docs/MASTER_PRODUCT_PLAN.md §11)",
   "Live verification of Open-Meteo and CHIRPS: run tools/live-check/live-check.js from a connected machine (unreachable from the development environment)",
   "Owner decision: the 4 city coordinates that differ from Natural Earth (riyadh, makkah, najran, sakaka)",
   "Owner decision: the 7-day margin on the CHIRPS final release cycle",
   "Owner decision: activating the research-stage services",
-  "Replace the OSRM demo server before any public launch",
+  "Owner decision: keep the OSRM demo server (non-commercial, max 1 req/s, no uptime guarantee) or move to a self-hosted free engine (docs/OWNER_DECISIONS.md §4)",
   "GitHub CI on the final version (not run in this phase)"
 ];
+
+// Owner-accepted, not a gate (docs/OWNER_DECISIONS.md §5): NCM permission is not a project or launch condition.
+const OWNER_ACCEPTED = ["NCM permission: not required by owner decision 2026-11-26; NCM data and logo are not used and no exemption is claimed"];
 
 const NOT_PROVEN = [
   "that nothing was pushed (G3 reads a local ref only; GitHub is not queried)",
@@ -148,6 +150,8 @@ const lines = ["Release gate — " + new Date().toISOString() + " — HEAD " + g
 results.forEach(r => lines.push((r.pass ? "PASS " : "FAIL ") + r.id + "  " + r.title + "\n       " + r.evidence));
 lines.push("", "OPEN external gates (not counted as passed):");
 EXTERNAL.forEach(item => lines.push("  - " + item));
+lines.push("", "Owner-accepted (not a gate):");
+OWNER_ACCEPTED.forEach(item => lines.push("  - " + item));
 lines.push("", "This gate does NOT prove:");
 NOT_PROVEN.forEach(item => lines.push("  - " + item));
 lines.push("", "LOCAL ENGINEERING GATE: " + (passed ? "PASSED" : "FAILED"));
