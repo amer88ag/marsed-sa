@@ -1,6 +1,7 @@
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
 const Catalogue = require("../src/services/agriculture/plant-catalogue.js");
 
 const source = { id: "ministry-guide", title: "دليل إرشادي تجريبي للاختبار", publisher: "جهة موثوقة", url: "https://example.gov.sa/guide" };
@@ -17,6 +18,16 @@ const plant = () => ({
   },
   operations: [{ type: "pruning", source_ids: ["ministry-guide"] }],
   sources: [{ ...source }]
+});
+
+test("published Saudi seed catalogue contains only valid source-backed records", () => {
+  const catalogue = JSON.parse(fs.readFileSync("data/agriculture/plants.json", "utf8"));
+  assert.equal(catalogue.schema_version, "1.0.0");
+  assert.ok(catalogue.plants.length >= 3);
+  for (const record of catalogue.plants) {
+    const result = Catalogue.validateRecord(record);
+    assert.equal(result.valid, true, record.id + ": " + result.errors.join("; "));
+  }
 });
 
 test("plant record requires Arabic and scientific names and a supported category", () => {
