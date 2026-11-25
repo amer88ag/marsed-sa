@@ -111,8 +111,8 @@
     const hasWithin = assessed.includes("within");
     const allKnown = assessed.length === RANGE_FIELDS.length;
     return {
-      status: hasOutside ? "outside" : (allKnown && hasWithin ? "within" : "unknown"),
-      confidence: hasOutside && allKnown ? "limited" : (allKnown ? "moderate" : "insufficient"),
+      status: allKnown ? (hasOutside ? "outside" : "within") : "unknown",
+      confidence: allKnown ? (hasOutside ? "limited" : "moderate") : "insufficient",
       checks: checks,
       note: "مقارنة أولية للعوامل الموثقة فقط؛ لا تمثل ضمان نجاح الزراعة ولا تغني عن تحليل التربة والمياه والصنف المحلي."
     };
