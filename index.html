@@ -55,7 +55,7 @@
 <div class="metrics">
 <div class="metric"><small>الحرارة الآن</small><strong id="temp">—</strong><em>°م · نموذج جوي</em></div>
 <div class="metric"><small>الحرارة المحسوسة</small><strong id="feels">—</strong><em>°م · تقدير النموذج</em></div>
-<div class="metric"><small>الهطول الحالي</small><strong id="rain">—</strong><em>ملم · نموذج جوي</em></div>
+<div class="metric"><small id="rainLabel">الهطول خلال الفترة الحالية</small><strong id="rain">—</strong><em>ملم · نموذج جوي</em></div>
 <div class="metric"><small>الرطوبة النسبية</small><strong id="humidity">—</strong><em>%</em></div>
 <div class="metric"><small>سرعة الرياح</small><strong id="wind">—</strong><em>كم/ساعة</em></div>
 <div class="metric"><small>حالة الطقس</small><strong id="condition" style="font-size:17px">—</strong><em id="daylight">—</em></div>
@@ -67,7 +67,7 @@
 <div class="metric"><small>الضغط عند سطح الموقع</small><strong id="surfacePressure">—</strong><em>هكتوباسكال (hPa)</em></div>
 <div class="metric"><small>درجة الندى</small><strong id="dewPoint">—</strong><em>°م · مؤشر الرطوبة والتكاثف</em></div>
 <div class="metric"><small>الغطاء السحابي</small><strong id="cloudCover">—</strong><em>% من السماء</em></div>
-<div class="metric"><small>هبات الرياح</small><strong id="windGusts">—</strong><em>كم/ساعة · أقصى هبة متوقعة</em></div>
+<div class="metric"><small>هبات الرياح</small><strong id="windGusts">—</strong><em>كم/ساعة · أقصى هبة خلال الفترة الحالية (نموذج)</em></div>
 <div class="metric"><small>اتجاه الرياح</small><strong id="windDirection" style="font-size:20px">—</strong><em>اتجاه قادم منه الهواء</em></div>
 <div class="metric"><small>مؤشر الأشعة فوق البنفسجية</small><strong id="uvIndex">—</strong><em>أقصى قيمة متوقعة اليوم</em></div>
 <div class="metric"><small>حرارة البصيلة الرطبة</small><strong id="wetBulb">—</strong><em>°م · مؤشر يجمع الحرارة والرطوبة</em></div>
@@ -87,14 +87,14 @@
 <div class="notice" id="quality">هذه القيم مستمدة من نموذج طقس، وليست قياسات مباشرة من محطة أرصاد. قد تختلف عن الرصد الأرضي.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · البيانات مرخصة وفق CC BY 4.0 مع الإسناد.</div>
 </section>
 <section class="panel">
-<div class="panel-head"><h2>الأمطار — 7 أيام سابقة و7 أيام قادمة</h2><span>ملم/يوم</span></div>
-<div class="chart-wrap"><svg id="rainChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مخطط كميات الأمطار اليومية"></svg><div class="chart-labels"><span>الأقدم</span><span>اليوم</span><span>الأحدث</span></div></div>
+<div class="panel-head"><h2>الأمطار المتوقعة — الأيام السبعة القادمة (توقع نموذجي)</h2><span>ملم/يوم</span></div>
+<div class="chart-wrap"><svg id="rainChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مخطط كميات الأمطار اليومية"></svg><div class="chart-labels"><span>اليوم</span><span>←</span><span>بعد 6 أيام</span></div></div>
 <div id="chartCaption" class="loading">يظهر المخطط بعد تحميل البيانات.</div>
 </section>
 <section class="panel">
 <div class="panel-head"><h2>الأمطار التاريخية — CHIRPS v3</h2><span>ملم/يوم</span></div>
 <div class="chart-wrap"><svg id="chirpsChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مقارنة أمطار CHIRPS SAT وRNL اليومية عند إحداثيات المدينة"></svg><div class="chart-labels"><span>■ SAT — أزرق</span><span>■ RNL — أخضر</span></div></div>
-<div id="chirpsState" class="data-state">تعرض اللوحة العينة البحثية المحفوظة في المستودع. لتحديثها، شغّل مهمة Build CHIRPS city time series من تبويب Actions على فرع التطوير؛ التحديث لا ينشر تلقائياً إلى main.</div>
+<div id="chirpsState" class="data-state">تعرض اللوحة عينة بحثية قصيرة محفوظة مع الموقع، وليست بيانات محدثة يومياً ولا تغطية وطنية.</div>
 <div id="chirpsMeta" class="data-meta">العينة: أقرب خلية شبكية إلى إحداثيات المدينة، وليست متوسط أمطار كامل النطاق البلدي.</div>
 </section>
 </div>
@@ -111,6 +111,7 @@
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="src/platform/http/client.js"></script>
+<script src="src/platform/time/saudi-time.js"></script>
 <script src="src/platform/geo/cities.js"></script>
 <script src="src/platform/geo/map-frame.js"></script>
 <script src="src/providers/weather/open-meteo/adapter.js"></script>
@@ -245,7 +246,7 @@ function radarPopup(key,item){
  var p=places[key];
  if(!item)return "<b>"+escapeHtml(p.name)+"</b><br>بيانات النموذج غير متاحة حالياً";
  return "<b>"+escapeHtml(p.name)+"</b><br>الحرارة: "+(item.current.temperature===null?"غير متاح":number(item.current.temperature,1)+"°م")+
-  "<br>الهطول الحالي: "+(item.current.precipitation===null?"غير متاح":number(item.current.precipitation,1)+" ملم")+
+  "<br>الهطول خلال آخر "+(item.valid_interval_seconds?Math.round(item.valid_interval_seconds/60):15)+" دقيقة: "+(item.current.precipitation===null?"غير متاح":number(item.current.precipitation,1)+" ملم")+
   "<br>المتوقع اليوم: "+(item.today.precipitation===null?"غير متاح":number(item.today.precipitation,1)+" ملم")+
   "<br>احتمال المطر: "+(item.today.precipitation_probability_max===null?"غير متاح":Math.round(item.today.precipitation_probability_max)+"٪")+
   "<br><small>نموذج Open-Meteo · ليس رصداً أرضياً أو تنبيهاً رسمياً</small>";
@@ -273,7 +274,11 @@ async function loadRadar(){
   if(requestId!==radarRequestId)return;
   radarData={};
   results.forEach(function(result){if(result.data)radarData[result.location_id]=result.data;});
-  if(Object.keys(radarData).length)radarUpdatedAt=new Date().toLocaleString("ar-SA",{timeZone:"Asia/Riyadh"});
+  if(Object.keys(radarData).length){
+   var firstValid=Object.keys(radarData).map(function(key){return radarData[key].valid_time}).filter(Boolean).sort().pop();
+   var radarFresh=SaudiTime.freshness(firstValid,new Date(),90);
+   radarUpdatedAt="صلاحية "+(SaudiTime.saudiClock(SaudiTime.parseSaudiLocal(firstValid))||"غير معروفة")+" بتوقيت السعودية ("+SaudiTime.ageText(radarFresh.age_minutes)+")"+(radarFresh.status==="stale"?" ⚠️ قديمة":"")+" · جُلبت "+SaudiTime.saudiClock(new Date());
+  }
   renderRadar();
   var failed=keys.length-Object.keys(radarData).length;
   if(failed)setText("radarMeta",$("radarMeta").textContent+" · بيانات غير متاحة لـ "+failed+" مدينة؛ لا تُستبدل القيم المفقودة بأصفار.");
@@ -314,9 +319,31 @@ function practicalInsight(data){
  if(!parts.length)parts.push("لا تتوفر بيانات كافية لتكوين ملخص عملي موثوق الآن؛ راجع تفاصيل التوقعات ومصدرها.");
  return parts.join(" ")+" هذا تفسير مبسط لمخرجات نموذج جوي وليس تنبيهاً رسمياً أو بديلاً عن تعليمات الجهات المختصة.";
 }
+// Valid time and age of the data, not only the fetch time. The "current" values are
+// model output for an interval; they are stale if older than 90 minutes.
+function dataTimeText(data,now){
+ var valid=data&&data.valid_time?SaudiTime.parseSaudiLocal(data.valid_time):null;
+ var fresh=SaudiTime.freshness(valid,now,90);
+ var parts=[];
+ parts.push(valid?"صلاحية البيانات: "+SaudiTime.saudiDate(valid)+" "+SaudiTime.saudiClock(valid)+" بتوقيت السعودية ("+SaudiTime.ageText(fresh.age_minutes)+")":"وقت صلاحية البيانات غير متاح");
+ if(fresh.status==="stale")parts.push("⚠️ البيانات أقدم من المتوقع");
+ if(fresh.status==="future")parts.push("⚠️ وقت الصلاحية في المستقبل؛ تحقق من ساعة الجهاز");
+ if(data&&typeof data.utc_offset_seconds==="number"&&data.utc_offset_seconds!==10800)parts.push("⚠️ الخدمة أعادت أوقاتاً بإزاحة غير توقيت السعودية");
+ parts.push("النوع: ناتج نموذج وليس رصد محطة");
+ if(data&&data.quality&&data.quality.unit_mismatches&&data.quality.unit_mismatches.length)parts.push("حُجبت "+data.quality.unit_mismatches.length+" قيمة لاختلاف الوحدة المعلنة");
+ parts.push("آخر جلب: "+SaudiTime.saudiClock(now));
+ return parts.join(" · ");
+}
+// Age of the newest day in the stored CHIRPS sample. The sample is historical, never "current".
+function chirpsAgeText(dataset,now){
+ var end=dataset&&dataset.date_range&&dataset.date_range.end;
+ if(!end)return " · تاريخ آخر يوم غير معروف";
+ var days=SaudiTime.daysBetween(end,SaudiTime.saudiDate(now));
+ return days===null?" · تاريخ آخر يوم غير صالح":" · آخر يوم في العينة ("+end+") "+SaudiTime.ageText(days*1440)+" (عينة تاريخية وليست بيانات حديثة)";
+}
 function renderHourly(rows){
  var target=$("hourlyForecast"),now=new Date();
- var upcoming=(rows||[]).filter(function(row){return row.valid_time&&new Date(row.valid_time).getTime()>=now.getTime()-60*60*1000}).slice(0,12);
+ var upcoming=(rows||[]).filter(function(row){var t=row.valid_time&&SaudiTime.parseSaudiLocal(row.valid_time);return t&&t.getTime()>=now.getTime()-60*60*1000}).slice(0,12);
  if(!upcoming.length){target.textContent="لا تتوفر توقعات ساعية في الاستجابة الحالية.";return}
  target.innerHTML=upcoming.map(function(row){
   var hour=row.valid_time.slice(11,16),rain=row.precipitation_probability===null?"—":Math.round(row.precipitation_probability)+"٪";
@@ -327,7 +354,9 @@ function renderDaily(rows){
  var target=$("dailyForecast"),dayNames=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
  if(!rows||!rows.length){target.textContent="لا تتوفر توقعات يومية في الاستجابة الحالية.";return}
  target.innerHTML=rows.slice(0,7).map(function(row,index){
-  var date=new Date(row.valid_date+"T12:00:00+03:00"),label=index===0?"اليوم":dayNames[date.getDay()];
+  // Weekday and "today/tomorrow" are computed on the Saudi calendar, not the viewer's time zone.
+  var offset=SaudiTime.daysBetween(SaudiTime.saudiDate(new Date()),row.valid_date),weekday=SaudiTime.saudiWeekday(row.valid_date);
+  var label=offset===0?"اليوم":offset===1?"غداً":(weekday===null?row.valid_date:dayNames[weekday]);
   var chance=row.precipitation_probability_max===null?"—":Math.round(row.precipitation_probability_max)+"٪";
   return '<div class="day"><b>'+escapeHtml(label)+'</b><small>'+escapeHtml(row.valid_date)+'</small><strong>'+escapeHtml(weatherDescription(row.weather_code))+'</strong><span>'+escapeHtml(number(row.temperature_max,0))+'° / '+escapeHtml(number(row.temperature_min,0))+'°</span><small>احتمال المطر '+escapeHtml(chance)+'</small><small>كمية متوقعة '+escapeHtml(number(row.precipitation,1))+' ملم</small><small>مؤشر UV '+escapeHtml(number(row.uv_index_max,1))+'</small><small>التبخر المرجعي ET₀ '+escapeHtml(number(row.et0_fao_evapotranspiration,1))+' ملم/يوم</small></div>';
  }).join("");
@@ -362,7 +391,7 @@ function drawChirpsChart(satRecords,rnlRecords){
  svg.innerHTML=parts.join("");
 }
 function renderChirps(){
- if(!chirpsDataset||!chirpsDataset.series){setText("chirpsState","تعذر تحميل ملف عينة CHIRPS المحفوظ في هذا الإصدار. تحقق من الاتصال، ثم أعد تحميل الصفحة. تحديث العينة يتم عبر مهمة البحث على فرع التطوير ولا ينشر تلقائياً إلى main.");return}
+ if(!chirpsDataset||!chirpsDataset.series){setText("chirpsState","تعذر تحميل ملف عينة CHIRPS المحفوظ في هذا الإصدار. تحقق من الاتصال، ثم أعد تحميل الصفحة. ");return}
  var satNormalized,rnlNormalized;
  try{
   satNormalized=PrecipitationService.getCitySeries(chirpsDataset,activeKey,"sat");
@@ -374,7 +403,7 @@ function renderChirps(){
  drawChirpsChart(satRecords,rnlRecords);
  var satCount=satRecords.filter(function(row){return row.precipitation_mm!==null}).length;
  var rnlCount=rnlRecords.filter(function(row){return row.precipitation_mm!==null}).length;
- setText("chirpsState","SAT: "+satCount+"/"+satRecords.length+" يوماً · RNL: "+rnlCount+"/"+rnlRecords.length+" يوماً متاحاً عند نقطة المدينة · الفترة: "+(chirpsDataset.date_range?chirpsDataset.date_range.start+" إلى "+chirpsDataset.date_range.end:"غير محددة")+".");
+ setText("chirpsState","SAT: "+satCount+"/"+satRecords.length+" يوماً · RNL: "+rnlCount+"/"+rnlRecords.length+" يوماً متاحاً عند نقطة المدينة · الفترة: "+(chirpsDataset.date_range?chirpsDataset.date_range.start+" إلى "+chirpsDataset.date_range.end:"غير محددة")+chirpsAgeText(chirpsDataset,new Date())+" · النوع: تقدير من الأقمار الصناعية والمحطات وليس رصداً مباشراً.");
  setText("chirpsMeta","SAT يستخدم IMERG Late V07 · RNL يستخدم ERA5 · الوحدة: ملم/يوم · تاريخ إنشاء العينة: "+(chirpsDataset.generated_at_utc||"غير متوفر")+" · التواريخ تسميات تفكيك يومي، وليست نافذة رصد موحدة.");
 }
 async function loadChirps(){
@@ -410,6 +439,7 @@ async function loadWeather(){
   setText("temp",number(measurement("temperature"),1));
   setText("feels",number(measurement("apparent_temperature"),1));
   setText("rain",number(measurement("precipitation"),1));
+  setText("rainLabel",data.valid_interval_seconds?"الهطول خلال آخر "+Math.round(data.valid_interval_seconds/60)+" دقيقة":"الهطول خلال الفترة الحالية");
   setText("humidity",number(measurement("relative_humidity"),0));
   setText("wind",number(measurement("wind_speed"),0));
   setText("elevation",number(data.location&&data.location.elevation_m,0));
@@ -435,11 +465,11 @@ async function loadWeather(){
   setText("weatherInsight",practicalInsight(data));
   renderHourly(data.hourly); renderDaily(data.daily);
   drawChart(data.daily.map(function(row){return row.valid_date}),data.daily.map(function(row){return row.precipitation}));
-  setText("chartCaption","المصدر: Open-Meteo ("+data.daily.length+" يوماً). القيم التاريخية/المستقبلية نموذجية وليست قياسات محطة.");
+  setText("chartCaption","توقع نموذجي من Open-Meteo لمجموع الهطول لكل يوم تقويمي سعودي ("+data.daily.length+" أيام، من "+(data.daily[0]?data.daily[0].valid_date:"—")+"). الأيام دون قيمة تُترك فارغة ولا تُرسم صفراً. لا يقارن مباشرة بتقدير CHIRPS.");
   setText("loading","تم تحميل بيانات النموذج بنجاح.");
-  setText("updated","آخر جلب: "+new Date().toLocaleString("ar-SA",{timeZone:"Asia/Riyadh"}));
+  setText("updated",dataTimeText(data,new Date()));
   setText("connection","● متصل");
-  $("quality").innerHTML='تنبيه منهجي: البيانات الحالية والتاريخية والتوقعات مستمدة من نماذج الطقس لدى Open-Meteo، لا تمثل هذه القيم رصداً مباشراً أو تنبيهاً رسمياً من المركز الوطني للأرصاد. الارتفاع تقدير تضاريسي من Copernicus DEM GLO-90 بدقة 90م، وليس قياساً مساحياً. الضغط عند مستوى سطح البحر أنسب لمقارنة الطقس بين المواقع، بينما ضغط سطح الموقع يتأثر بالارتفاع.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · <a href="https://open-meteo.com/en/docs/elevation-api" target="_blank" rel="noopener">Copernicus DEM GLO-90 elevation</a> · الإسناد وفق CC BY 4.0.';
+  $("quality").innerHTML='تنبيه منهجي: القيم الحالية (فترة 15 دقيقة) والتوقعات مستمدة من نماذج الطقس لدى Open-Meteo، لا تمثل هذه القيم رصداً مباشراً أو تنبيهاً رسمياً من المركز الوطني للأرصاد. الارتفاع تقدير تضاريسي من Copernicus DEM GLO-90 بدقة 90م، وليس قياساً مساحياً. الضغط عند مستوى سطح البحر أنسب لمقارنة الطقس بين المواقع، بينما ضغط سطح الموقع يتأثر بالارتفاع.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · <a href="https://open-meteo.com/en/docs/elevation-api" target="_blank" rel="noopener">Copernicus DEM GLO-90 elevation</a> · الإسناد وفق CC BY 4.0.';
  }catch(error){
   if(requestId!==weatherRequestId||requestedKey!==activeKey)return;
   clearWeatherDisplay();

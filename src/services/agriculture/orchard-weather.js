@@ -161,7 +161,10 @@
       attribution: "Weather data by Open-Meteo.com",
       grid_latitude: finiteOrNull(payload && payload.latitude),
       grid_longitude: finiteOrNull(payload && payload.longitude),
+      // Open-Meteo returns the 90 m DEM elevation used for statistical downscaling
+      // at the requested coordinates (not the average grid-cell height).
       model_elevation_m: finiteOrNull(payload && payload.elevation),
+      elevation_meaning: "ارتفاع نموذج تضاريس 90 م عند الإحداثيات، صُحّحت له قيم النموذج إحصائياً",
       date_start: dates.length ? dates[0] : null,
       date_end: dates.length ? dates[dates.length - 1] : null,
       retrieved_at: retrievedAt || new Date().toISOString(),
@@ -175,15 +178,15 @@
   // derives a planting/pruning date from elevation.
   function elevationContext(farmElevation, modelElevation) {
     const farm = finiteOrNull(farmElevation), model = finiteOrNull(modelElevation);
-    if (farm === null && model === null) return { available: false, text: "لا يتوفر ارتفاع المزرعة ولا ارتفاع نقطة النموذج." };
-    if (farm === null) return { available: true, farm_m: null, model_m: model, difference_m: null, text: "ارتفاع نقطة شبكة النموذج نحو " + Math.round(model) + " م. أدخل ارتفاع المزرعة للمقارنة." };
-    if (model === null) return { available: true, farm_m: farm, model_m: null, difference_m: null, text: "ارتفاع المزرعة المُدخل " + Math.round(farm) + " م؛ لم تُرجع الخدمة ارتفاع نقطة النموذج." };
+    if (farm === null && model === null) return { available: false, text: "لا يتوفر ارتفاع المزرعة ولا الارتفاع المستخدم في تصحيح النموذج." };
+    if (farm === null) return { available: true, farm_m: null, model_m: model, difference_m: null, text: "صُحّحت قيم النموذج إحصائياً لارتفاع " + Math.round(model) + " م (نموذج تضاريس 90 م عند الإحداثيات). أدخل ارتفاع المزرعة للمقارنة." };
+    if (model === null) return { available: true, farm_m: farm, model_m: null, difference_m: null, text: "ارتفاع المزرعة المُدخل " + Math.round(farm) + " م؛ لم تُرجع الخدمة الارتفاع المستخدم في تصحيح النموذج." };
     const diff = farm - model;
     const significant = Math.abs(diff) >= 100;
     return {
       available: true, farm_m: farm, model_m: model, difference_m: Math.round(diff), significant: significant,
-      text: "ارتفاع المزرعة المُدخل " + Math.round(farm) + " م وارتفاع نقطة النموذج نحو " + Math.round(model) + " م (فرق " + Math.round(diff) + " م)." +
-        (significant ? " الفرق كبير؛ قد تختلف الحرارة الفعلية في المزرعة عن قيم النموذج، فاعتمد قراءة محلية قبل أي قرار." : " الفرق محدود، لكن القيم تبقى نموذجية.") +
+      text: "ارتفاع المزرعة المُدخل " + Math.round(farm) + " م، والارتفاع الذي صُحّحت له قيم النموذج " + Math.round(model) + " م (نموذج تضاريس 90 م؛ فرق " + Math.round(diff) + " م)." +
+        (significant ? " الفرق كبير: قد تكون الإحداثيات أو الارتفاع المُدخل غير متطابقين، أو أن المزرعة على منحدر حاد؛ قد تختلف الحرارة الفعلية، فاعتمد قراءة محلية قبل أي قرار." : " الفرق محدود، لكن القيم تبقى نموذجية.") +
         " لا يُستنتج من الارتفاع وحده موعد زراعي."
     };
   }

@@ -90,7 +90,8 @@
       throw new TypeError("Open-Meteo route weather response length mismatch");
     }
     return payload.map((item, index) => {
-      const hourly = item && item.hourly;
+      const mismatches = [];
+      const hourly = guardBlock(item && item.hourly, item && item.hourly_units, HOURLY_UNITS, mismatches, "hourly");
       if (!hourly || !Array.isArray(hourly.time)) {
         return { location_id: locations[index].id, hourly: null, error: "Hourly forecast unavailable" };
       }
@@ -115,6 +116,7 @@
           hourly: rows,
           retrieved_at: retrievedAt || new Date().toISOString(),
           provider_id: "open-meteo",
+          unit_mismatches: mismatches,
           error: null
         };
       } catch (error) {
@@ -126,11 +128,15 @@
     if (!payload || !payload.current || !payload.daily || !Array.isArray(payload.daily.time) || !payload.daily.time.length) {
       throw new TypeError("Open-Meteo overview response is incomplete");
     }
-    const current = payload.current, daily = payload.daily;
+    const mismatches = [];
+    const current = guardBlock(payload.current, payload.current_units, { temperature_2m: "°C", precipitation: "mm", rain: "mm", showers: "mm", wind_speed_10m: "km/h" }, mismatches, "current");
+    const daily = guardBlock(payload.daily, payload.daily_units, DAILY_UNITS, mismatches, "daily");
     return {
       provider_id: "open-meteo",
       retrieved_at: retrievedAt || new Date().toISOString(),
       valid_time: current.time || null,
+      valid_interval_seconds: numericOrNull(current.interval, "current.interval"),
+      quality: { unit_mismatches: mismatches },
       location: { id: location.id, name: location.name, latitude: location.lat, longitude: location.lon, elevation_m: numericOrNull(payload.elevation, "elevation") },
       current: {
         temperature: numericOrNull(current.temperature_2m, "temperature_2m"),
@@ -165,11 +171,45 @@
     if (!Number.isFinite(number)) throw new TypeError("Invalid numeric field: " + field);
     return number;
   }
+  // Units the observatory labels in its UI. If the provider declares a different
+  // unit in *_units, the value is withheld (null) and the mismatch is reported,
+  // so a number is never shown under the wrong unit.
+  const UNIT_CANON = { "°c": "°C", "km/h": "km/h", "mm": "mm", "%": "%", "hpa": "hPa", "°": "°", "w/m²": "W/m²", "w/m2": "W/m²",
+    "m³/m³": "m³/m³", "m3/m3": "m³/m³", "j/kg": "J/kg", "m": "m", "": "" };
+  function canonUnit(unit) {
+    const key = String(unit).trim().toLowerCase();
+    return Object.prototype.hasOwnProperty.call(UNIT_CANON, key) ? UNIT_CANON[key] : String(unit).trim();
+  }
+  function unitOk(units, key, expected, mismatches, scope) {
+    if (!units || units[key] === undefined || units[key] === null || expected === undefined) return true;
+    if (canonUnit(units[key]) === canonUnit(expected)) return true;
+    mismatches.push({ scope: scope, field: key, expected: expected, declared: units[key] });
+    return false;
+  }
+  const DAILY_UNITS = { precipitation_sum: "mm", precipitation_probability_max: "%", temperature_2m_max: "°C", temperature_2m_min: "°C",
+    uv_index_max: "", et0_fao_evapotranspiration: "mm" };
+  const HOURLY_UNITS = { temperature_2m: "°C", apparent_temperature: "°C", dew_point_2m: "°C", relative_humidity_2m: "%",
+    precipitation_probability: "%", precipitation: "mm", wind_speed_10m: "km/h", wind_direction_10m: "°", wind_gusts_10m: "km/h",
+    cloud_cover: "%", pressure_msl: "hPa", surface_pressure: "hPa", visibility: "m", shortwave_radiation: "W/m²",
+    wet_bulb_temperature_2m: "°C", soil_moisture_0_to_7cm: "m³/m³", wind_speed_80m: "km/h", wind_speed_100m: "km/h", wind_speed_120m: "km/h" };
+  // Returns a copy of a column-oriented block with unit-mismatched columns nulled.
+  function guardBlock(block, units, expectations, mismatches, scope) {
+    if (!block) return block;
+    const copy = Object.assign({}, block);
+    Object.keys(expectations).forEach(function (key) {
+      if (copy[key] !== undefined && !unitOk(units, key, expectations[key], mismatches, scope)) {
+        copy[key] = Array.isArray(copy[key]) ? copy[key].map(function () { return null; }) : null;
+      }
+    });
+    return copy;
+  }
+
   function normalizeCurrent(payload, location, retrievedAt) {
     if (!payload || !payload.current || !payload.daily) {
       throw new TypeError("Open-Meteo response is missing current or daily data");
     }
     const current = payload.current;
+    const mismatches = [];
     const measurements = [
       ["temperature", "temperature_2m", "°C"],
       ["apparent_temperature", "apparent_temperature", "°C"],
@@ -195,8 +235,11 @@
       ["cloud_cover", "cloud_cover", "%"],
       ["pressure_msl", "pressure_msl", "hPa"],
       ["surface_pressure", "surface_pressure", "hPa"]
-    ].map(([name, key, unit]) => ({ name, value: numericOrNull(current[key], key), unit }));
-    const daily = payload.daily;
+    ].map(([name, key, unit]) => ({
+      name, unit,
+      value: unitOk(payload.current_units, key, unit, mismatches, "current") ? numericOrNull(current[key], key) : null
+    }));
+    const daily = guardBlock(payload.daily, payload.daily_units, DAILY_UNITS, mismatches, "daily");
     const dailyTimes = Array.isArray(daily.time) ? daily.time : [];
     const dailyFields = ["weather_code", "precipitation_sum", "precipitation_probability_max", "temperature_2m_max", "temperature_2m_min", "sunrise", "sunset", "uv_index_max", "et0_fao_evapotranspiration"];
     for (const key of dailyFields) {
@@ -204,7 +247,7 @@
         throw new TypeError("Daily field length mismatch: " + key);
       }
     }
-    const hourly = payload.hourly || {};
+    const hourly = guardBlock(payload.hourly || {}, payload.hourly_units, HOURLY_UNITS, mismatches, "hourly");
     const hourlyTimes = Array.isArray(hourly.time) ? hourly.time : [];
     const hourlyFields = ["temperature_2m", "apparent_temperature", "dew_point_2m", "relative_humidity_2m", "precipitation_probability", "precipitation", "weather_code", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "cloud_cover", "pressure_msl", "surface_pressure", "visibility", "uv_index", "shortwave_radiation", "wet_bulb_temperature_2m", "cape", "freezing_level_height", "boundary_layer_height", "evapotranspiration", "soil_temperature_0_to_7cm", "soil_temperature_7_to_28cm", "soil_temperature_28_to_100cm", "soil_temperature_100_to_255cm", "soil_moisture_0_to_7cm", "soil_moisture_7_to_28cm", "soil_moisture_28_to_100cm", "soil_moisture_100_to_255cm", "wind_speed_80m", "wind_speed_100m", "wind_speed_120m", "wind_direction_80m", "wind_direction_100m", "wind_direction_120m", "direct_radiation", "diffuse_radiation"];
     for (const key of hourlyFields) {
@@ -271,6 +314,12 @@
       product_id: "forecast-api",
       retrieved_at: retrievedAt || new Date().toISOString(),
       valid_time: current.time || null,
+      // Length of the period the "current" values describe (Open-Meteo: 900 s).
+      valid_interval_seconds: numericOrNull(current.interval, "current.interval"),
+      time_zone: payload.timezone || null,
+      // Local time strings are parsed as UTC+03:00; record what the provider used.
+      utc_offset_seconds: numericOrNull(payload.utc_offset_seconds, "utc_offset_seconds"),
+      quality: { unit_mismatches: mismatches },
       current_weather_code: numericOrNull(current.weather_code, "current.weather_code"),
       is_day: current.is_day === 1 || current.is_day === true ? true : current.is_day === 0 || current.is_day === false ? false : null,
       location: location ? { id: location.id || null, name: location.name || null, latitude: location.lat, longitude: location.lon, elevation_m: numericOrNull(payload.elevation, "elevation") } : null,
