@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_type": "services",
-  "updated_at": "2026-11-25",
+  "updated_at": "2026-11-26",
   "services": [
     {
       "id": "weather",
@@ -191,9 +191,9 @@
     },
     {
       "id": "seasons-orchard",
-      "title": "المواسم ومساعد البستان",
+      "title": "المواسم والزراعة والنباتات",
       "category": "agriculture",
-      "description": "تقويم المواسم الإرشادي ومؤشرات متابعة البستان من التوقع وإعادة التحليل.",
+      "description": "تقويم الفصول والأنواء، وتقويم المحاصيل والأشجار، وربط طقس الموقع بالتوقعات وإعادة التحليل؛ يجري توسيع موسوعة النباتات والملاءمة الجغرافية على مراحل.",
       "status": "research",
       "ui_entry": "seasons/index.html",
       "provider_ids": [
@@ -201,11 +201,14 @@
       ],
       "capabilities": [
         "seasonal_calendar",
+        "crop_calendar",
         "orchard_forecast_indicators",
-        "orchard_reanalysis"
+        "orchard_reanalysis",
+        "plant_profiles_planned",
+        "regional_crop_suitability_planned"
       ],
       "data_class": "model_output",
-      "safety_notice": "مؤشرات متابعة وليست إنذارات صقيع ولا حسابات ري."
+      "safety_notice": "المواعيد إرشادية بحسب المصادر والمنطقة والصنف؛ مؤشرات الطقس نموذجية وليست قياسات مزرعة أو أوامر ري أو إنذارات صقيع."
     }
   ]
 }
