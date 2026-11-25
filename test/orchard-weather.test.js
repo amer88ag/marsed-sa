@@ -12,6 +12,17 @@ test("forecast and archive URLs validate coordinates and use Saudi local time", 
   assert.equal(archive.searchParams.get("end_date"), "2026-11-23");
 });
 
+test("coordinate validation rejects blank, null and boolean coercions", () => {
+  for (const location of [
+    {lat:"",lon:42}, {lat:null,lon:42}, {lat:false,lon:42},
+    {lat:true,lon:42}, {lat:18,lon:" "}, {lat:[],lon:42}
+  ]) {
+    assert.equal(OrchardWeather.validLocation(location), false);
+    assert.throws(() => OrchardWeather.buildForecastUrl(location), /Valid orchard/);
+  }
+  assert.equal(OrchardWeather.validLocation({lat:"18.2",lon:"42.5"}), true);
+});
+
 test("daily normalization preserves null and rejects mismatched arrays", () => {
   const rows = OrchardWeather.normalizeDaily({daily:{
     time:["2026-11-24"], temperature_2m_min:[null], temperature_2m_max:[34],
@@ -20,6 +31,14 @@ test("daily normalization preserves null and rejects mismatched arrays", () => {
   assert.equal(rows[0].min, null);
   assert.equal(rows[0].precipitation, 0);
   assert.throws(() => OrchardWeather.normalizeDaily({daily:{time:["a","b"],temperature_2m_min:[1]}}), /length mismatch/);
+});
+
+test("daily normalization rejects invalid, duplicate and unordered dates", () => {
+  const make = time => ({daily:{time,temperature_2m_min:time.map(() => 10)}});
+  assert.throws(() => OrchardWeather.normalizeDaily(make([])), /empty/);
+  assert.throws(() => OrchardWeather.normalizeDaily(make(["2026-02-30"])), /Invalid daily ISO date/);
+  assert.throws(() => OrchardWeather.normalizeDaily(make(["2026-11-25","2026-11-24"])), /unique and ascending/);
+  assert.throws(() => OrchardWeather.normalizeDaily(make(["2026-11-24","2026-11-24"])), /unique and ascending/);
 });
 
 test("risk rules distinguish cold, heat and modeled water-balance signals", () => {
