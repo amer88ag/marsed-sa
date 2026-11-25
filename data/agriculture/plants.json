@@ -50,5 +50,196 @@
       "name_ar": "الشمال الغربي"
     }
   ],
-  "plants": []
+  "plants": [
+    {
+      "id": "pomegranate",
+      "names": {
+        "ar": "الرمان",
+        "scientific": "Punica granatum L."
+      },
+      "category": "fruit_tree",
+      "regions": [],
+      "administrative_regions": [
+        "عسير",
+        "مكة المكرمة",
+        "تبوك",
+        "القصيم",
+        "الباحة"
+      ],
+      "distribution_source_ids": [
+        "mewa-pomegranate-production-2026"
+      ],
+      "varieties_reported": [
+        "الطائفي",
+        "الحجازي",
+        "الوندرفول",
+        "الإيفر سويت"
+      ],
+      "harvest_windows": [
+        {
+          "type": "production",
+          "start_month": 7,
+          "end_month": 12,
+          "label_ar": "موسم إنتاج منشور في تقرير الوزارة لعام 2020؛ يختلف حسب المنطقة والصنف",
+          "source_ids": [
+            "mewa-pomegranate-season-2020"
+          ]
+        }
+      ],
+      "requirements": {
+        "temperature_c": null,
+        "elevation_m": null,
+        "annual_rainfall_mm": null,
+        "soil_ph": null
+      },
+      "sources": [
+        {
+          "id": "kew-punica-granatum",
+          "title": "Punica granatum L. — Plants of the World Online",
+          "publisher": "Royal Botanic Gardens, Kew",
+          "url": "https://powo.science.kew.org/taxon/554129-1",
+          "accessed_at": "2026-11-26"
+        },
+        {
+          "id": "mewa-pomegranate-production-2026",
+          "title": "إنتاج الرمان في السعودية وجهود دعم الاستدامة الزراعية",
+          "publisher": "وزارة البيئة والمياه والزراعة",
+          "url": "https://www.mewa.gov.sa/ar/MediaCenter/News/Pages/saudi-pomegranate-production-season.aspx",
+          "accessed_at": "2026-11-26"
+        },
+        {
+          "id": "mewa-pomegranate-season-2020",
+          "title": "البيئة: 30.1 ألف طن إنتاج المملكة من فاكهة الرمان",
+          "publisher": "وزارة البيئة والمياه والزراعة",
+          "url": "https://www.mewa.gov.sa/ar/MediaCenter/News/Pages/News4782020.aspx",
+          "accessed_at": "2026-11-26"
+        }
+      ],
+      "notes_ar": [
+        "مناطق الإنتاج والأصناف المذكورة من الوزارة؛ لا تعني أن كل صنف ملائم لكل موقع داخل المنطقة.",
+        "نافذة يوليو–ديسمبر هي موسم إنتاج منشور في تقرير 2020، وليست موعد غرس أو تقليم."
+      ]
+    },
+    {
+      "id": "fig",
+      "names": {
+        "ar": "التين",
+        "scientific": "Ficus carica L."
+      },
+      "category": "fruit_tree",
+      "regions": [],
+      "administrative_regions": [
+        "الرياض",
+        "الشرقية",
+        "القصيم",
+        "الباحة",
+        "عسير",
+        "الجوف",
+        "المدينة المنورة",
+        "تبوك",
+        "حائل",
+        "مكة المكرمة",
+        "نجران",
+        "جازان",
+        "الحدود الشمالية"
+      ],
+      "distribution_source_ids": [
+        "mewa-fig-season-2020"
+      ],
+      "varieties_reported": [
+        "التين المدني",
+        "برون تركي",
+        "التين البلدي",
+        "التين الوزيري",
+        "تين كادوتا",
+        "وايت كنج"
+      ],
+      "harvest_windows": [
+        {
+          "type": "production",
+          "start_month": 2,
+          "end_month": 11,
+          "label_ar": "موسم إنتاج منشور في تقرير الوزارة لعام 2020؛ يختلف حسب المنطقة والصنف",
+          "source_ids": [
+            "mewa-fig-season-2020"
+          ]
+        }
+      ],
+      "requirements": {
+        "temperature_c": null,
+        "elevation_m": null,
+        "annual_rainfall_mm": null,
+        "soil_ph": null
+      },
+      "sources": [
+        {
+          "id": "kew-ficus-carica",
+          "title": "Ficus carica L. — Plants of the World Online",
+          "publisher": "Royal Botanic Gardens, Kew",
+          "url": "https://powo.science.kew.org/taxon/852556-1",
+          "accessed_at": "2026-11-26"
+        },
+        {
+          "id": "mewa-fig-season-2020",
+          "title": "البيئة: المملكة تنتج 26.66 ألف طن من فاكهة التين",
+          "publisher": "وزارة البيئة والمياه والزراعة",
+          "url": "https://www.mewa.gov.sa/ar/MediaCenter/News/Pages/News4752020.aspx",
+          "accessed_at": "2026-11-26"
+        }
+      ],
+      "notes_ar": [
+        "قائمة المناطق والأصناف وموسم الإنتاج من تقرير الوزارة لعام 2020؛ يلزم تحديثها بمراجع أحدث قبل استخدامها كتقويم زراعي."
+      ]
+    },
+    {
+      "id": "grape",
+      "names": {
+        "ar": "العنب",
+        "scientific": "Vitis vinifera L."
+      },
+      "category": "fruit_tree",
+      "regions": [],
+      "administrative_regions": [
+        "القصيم",
+        "تبوك",
+        "الجوف",
+        "المدينة المنورة",
+        "مكة المكرمة",
+        "الباحة",
+        "عسير",
+        "حائل",
+        "الرياض",
+        "نجران",
+        "الحدود الشمالية"
+      ],
+      "distribution_source_ids": [
+        "mewa-grape-regions-2025"
+      ],
+      "requirements": {
+        "temperature_c": null,
+        "elevation_m": null,
+        "annual_rainfall_mm": null,
+        "soil_ph": null
+      },
+      "sources": [
+        {
+          "id": "kew-vitis-vinifera",
+          "title": "Vitis vinifera L. — Plants of the World Online",
+          "publisher": "Royal Botanic Gardens, Kew",
+          "url": "https://powo.science.kew.org/taxon/30478388-2",
+          "accessed_at": "2026-11-26"
+        },
+        {
+          "id": "mewa-grape-regions-2025",
+          "title": "البيئة تؤكد أهمية التوسع في زراعة المحاصيل الواعدة باستخدام المياه المجددة",
+          "publisher": "وزارة البيئة والمياه والزراعة",
+          "url": "https://www.mewa.gov.sa/ar/MediaCenter/News/Pages/news8372020.aspx",
+          "accessed_at": "2026-11-26"
+        }
+      ],
+      "notes_ar": [
+        "المناطق مأخوذة من تقرير الوزارة؛ لا يتضمن هذا السجل حتى الآن نافذة حصاد أو توصيات غرس وتقليم."
+      ]
+    }
+  ]
 }
