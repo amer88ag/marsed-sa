@@ -325,13 +325,19 @@ function practicalInsight(data){
 function dataTimeText(data,now){
  var valid=data&&data.valid_time?SaudiTime.parseSaudiLocal(data.valid_time):null;
  var fresh=FreshnessPolicy.currentWeather(valid,now);
+ var offsetMismatch=!!(data&&typeof data.utc_offset_seconds==="number"&&data.utc_offset_seconds!==10800);
+ // An age is shown only when it can be trusted: known valid time, Saudi offset, not in the future.
+ var ageTrusted=valid&&!offsetMismatch&&fresh.status!=="future"&&fresh.status!=="unknown";
  var parts=[];
- parts.push(valid?"صلاحية البيانات: "+SaudiTime.saudiDate(valid)+" "+SaudiTime.saudiClock(valid)+" بتوقيت السعودية ("+SaudiTime.ageText(fresh.age_minutes)+")":"وقت صلاحية البيانات غير متاح");
- if(fresh.status==="stale")parts.push("⚠️ البيانات أقدم من "+FreshnessPolicy.POLICY.current_weather.max_age_minutes+" دقيقة (حد تشغيلي قابل للمراجعة)");
- if(fresh.status==="future")parts.push("⚠️ وقت الصلاحية في المستقبل؛ تحقق من ساعة الجهاز");
- if(data&&typeof data.utc_offset_seconds==="number"&&data.utc_offset_seconds!==10800)parts.push("⚠️ الخدمة أعادت أوقاتاً بإزاحة غير توقيت السعودية");
+ if(!valid)parts.push("وقت صلاحية البيانات غير متاح؛ لا يمكن حساب عمرها");
+ else parts.push("صلاحية البيانات: "+data.valid_time.replace("T"," ")+(offsetMismatch?" (بالإزاحة التي أعادتها الخدمة)":" بتوقيت السعودية")+(ageTrusted?" ("+SaudiTime.ageText(fresh.age_minutes)+")":""));
+ if(ageTrusted&&fresh.status==="stale")parts.push("⚠️ البيانات أقدم من "+FreshnessPolicy.POLICY.current_weather.max_age_minutes+" دقيقة (حد تشغيلي قابل للمراجعة)");
+ if(valid&&!offsetMismatch&&fresh.status==="future")parts.push("⚠️ وقت الصلاحية في المستقبل؛ لم يُحسب عمر للبيانات — تحقق من ساعة الجهاز");
+ if(offsetMismatch)parts.push("⚠️ الخدمة أعادت أوقاتاً بإزاحة غير توقيت السعودية؛ لم يُحسب عمر البيانات");
  parts.push("النوع: ناتج نموذج وليس رصد محطة");
- if(data&&data.quality&&data.quality.unit_mismatches&&data.quality.unit_mismatches.length)parts.push("حُجبت "+data.quality.unit_mismatches.length+" قيمة لاختلاف الوحدة المعلنة");
+ var q=data&&data.quality;
+ if(q&&q.unit_mismatches&&q.unit_mismatches.length)parts.push("حُجبت "+q.unit_mismatches.length+" قيمة لاختلاف الوحدة المعلنة");
+ if(q&&q.unverified_units&&q.unverified_units.length)parts.push("لم يتم التحقق من وحدة "+q.unverified_units.length+" حقلاً (لم تعلنها الخدمة)");
  parts.push("آخر جلب: "+SaudiTime.saudiClock(now));
  return parts.join(" · ");
 }
