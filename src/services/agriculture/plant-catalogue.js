@@ -62,6 +62,23 @@
         errors.push(field + " facts require matching source_ids");
       }
     });
+    if (record.administrative_regions !== undefined) {
+      if (!Array.isArray(record.administrative_regions)) errors.push("administrative_regions must be an array");
+      if (Array.isArray(record.administrative_regions) && record.administrative_regions.length &&
+          (!Array.isArray(record.distribution_source_ids) || !record.distribution_source_ids.length ||
+           record.distribution_source_ids.some(id => !sourceIds.has(id)))) {
+        errors.push("administrative region claims require matching distribution_source_ids");
+      }
+    }
+    if (record.harvest_windows !== undefined && !Array.isArray(record.harvest_windows)) errors.push("harvest_windows must be an array");
+    (Array.isArray(record.harvest_windows) ? record.harvest_windows : []).forEach((window, index) => {
+      if (!isObject(window) || !Number.isInteger(window.start_month) || window.start_month < 1 || window.start_month > 12 ||
+          !Number.isInteger(window.end_month) || window.end_month < 1 || window.end_month > 12) {
+        errors.push("harvest window " + index + " requires valid calendar months");
+      }
+      if (!isObject(window) || !Array.isArray(window.source_ids) || !window.source_ids.length ||
+          window.source_ids.some(id => !sourceIds.has(id))) errors.push("harvest window " + index + " requires matching source_ids");
+    });
     if (record.operations !== undefined && !Array.isArray(record.operations)) errors.push("operations must be an array");
     (Array.isArray(record.operations) ? record.operations : []).forEach((operation, index) => {
       if (!isObject(operation) || typeof operation.type !== "string" || !operation.type.trim()) errors.push("operation " + index + " requires a type");
