@@ -276,7 +276,8 @@ async function loadOrchardWeather(){
   var location={lat:lat,lon:lon},stage=$("farmStage").value;
   var data=await OrchardWeather.fetchOrchardData(location,{signal:orchardAbort?orchardAbort.signal:undefined,timeoutMs:15000});
   if(requestId!==orchardRequestId)return;
-  var cacheId=lat.toFixed(3)+","+lon.toFixed(3);
+  // Full-precision request coordinates prevent nearby farms sharing a cache entry.
+  var cacheId=String(lat)+","+String(lon);
   // Last valid data per source: reused only within its window and always labelled.
   var reuse=function(kind,policy,result){
    var hasState=typeof SourceState==="object"&&SourceState;
@@ -287,6 +288,13 @@ async function loadOrchardWeather(){
   };
   data.forecast=reuse("forecast","orchard_forecast",data.forecast);
   data.archive=reuse("archive","orchard_reanalysis",data.archive);
+  if(data.forecast.ok){
+   // Cached responses can outlive their forecast dates. Never present expired
+   // rows as upcoming weather; archive/reanalysis remains a separate section.
+   var today=OrchardWeather.saudiToday();
+   data.forecast.rows=data.forecast.rows.filter(function(row){return row.date>=today;});
+   if(!data.forecast.rows.length){data.forecast.ok=false;data.forecast.error={message:"لا توجد أيام توقع مستقبلية صالحة؛ أعد المحاولة لاحقاً."};}
+  }
   if(data.forecast.ok){renderOrchardSource("orchardForecastSource",data.forecast.source);renderOrchardDays("orchardForecast",data.forecast.rows,stage,data.forecast.cachedNote?"توقع نموذجي محفوظ":"توقع نموذجي");if(data.forecast.cachedNote)$("orchardForecast").insertAdjacentText("afterbegin",data.forecast.cachedNote+" ");}
   else $("orchardForecast").textContent="تعذر تحميل التوقعات: "+orchardError(data.forecast.error);
   if(data.archive.ok){renderOrchardSource("orchardHistorySource",data.archive.source);renderOrchardDays("orchardHistory",data.archive.rows,stage,data.archive.cachedNote?"إعادة تحليل محفوظة":"إعادة تحليل");if(data.archive.cachedNote)$("orchardHistory").insertAdjacentText("afterbegin",data.archive.cachedNote+" ");}
