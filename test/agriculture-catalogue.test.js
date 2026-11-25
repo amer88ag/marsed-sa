@@ -12,7 +12,7 @@ const plant = () => ({
   requirements: {
     temperature_c: { min: 5, max: 35, source_ids: ["ministry-guide"] },
     elevation_m: { min: 500, max: 2200, source_ids: ["ministry-guide"] },
-    annual_rainfall_mm: { min: null, max: null, source_ids: [] },
+    annual_rainfall_mm: { min: 200, max: 800, source_ids: ["ministry-guide"] },
     soil_ph: { min: 5.5, max: 8, source_ids: ["ministry-guide"] }
   },
   operations: [{ type: "pruning", source_ids: ["ministry-guide"] }],
