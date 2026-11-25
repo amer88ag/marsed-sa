@@ -30,7 +30,7 @@
 
   // Runs one request with an optional timeout and an optional caller signal.
   // `parse` is "json" (default), "text" or "none" (returns the Response).
-  async function request(url, options) {
+  async function requestOnce(url, options) {
     const config = options || {};
     const fetcher = config.fetch || (typeof fetch === "function" ? fetch : null);
     if (!fetcher) throw new RequestError("network", "Fetch implementation is unavailable");
@@ -135,5 +135,57 @@
     }
   }
 
-  return { request, createLatestTracker, describeError, isAbortError, RequestError, DEFAULT_TIMEOUT_MS };
+  // Transient failures worth one more attempt: no response, timeout, rate limit
+  // or gateway/server errors. Never retried: aborts, 4xx client errors, bad JSON.
+  const RETRYABLE_STATUS = [429, 500, 502, 503, 504];
+  function isTransient(error) {
+    if (!error) return false;
+    if (error.kind === "network" || error.kind === "timeout") return true;
+    return error.kind === "http" && RETRYABLE_STATUS.indexOf(error.status) !== -1;
+  }
+  function wait(ms, signal) {
+    return new Promise(function (resolve, reject) {
+      const timer = setTimeout(resolve, ms);
+      if (signal && typeof signal.addEventListener === "function") {
+        signal.addEventListener("abort", function () { clearTimeout(timer); reject(new RequestError("aborted", "Request was cancelled")); }, { once: true });
+      }
+    });
+  }
+
+  // request(url, { retries = 0, retryDelayMs = 400, ...requestOnce options }).
+  // Retries only transient errors, with exponential backoff; the last error is
+  // thrown with `attempts` set so the UI can say how many tries were made.
+  async function request(url, options) {
+    const config = options || {};
+    const retries = Number.isInteger(config.retries) && config.retries > 0 ? Math.min(config.retries, 3) : 0;
+    const base = Number.isFinite(config.retryDelayMs) && config.retryDelayMs >= 0 ? config.retryDelayMs : 400;
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await requestOnce(url, config);
+      } catch (error) {
+        if (attempt >= retries || !isTransient(error) || (config.signal && config.signal.aborted)) {
+          if (error && typeof error === "object") error.attempts = attempt + 1;
+          throw error;
+        }
+        await wait(base * Math.pow(2, attempt), config.signal);
+      }
+    }
+  }
+
+  // Concurrent identical requests (same URL and parse mode, no caller signal)
+  // share one network call. The entry is dropped once the call settles.
+  const inflight = new Map();
+  function requestShared(url, options) {
+    const config = options || {};
+    if (config.signal) return request(url, config);
+    const key = (config.parse || "json") + " " + url;
+    if (inflight.has(key)) return inflight.get(key);
+    const promise = request(url, config);
+    inflight.set(key, promise);
+    const clear = function () { if (inflight.get(key) === promise) inflight.delete(key); };
+    promise.then(clear, clear);
+    return promise;
+  }
+
+  return { request, requestShared, isTransient, createLatestTracker, describeError, isAbortError, RequestError, DEFAULT_TIMEOUT_MS };
 });

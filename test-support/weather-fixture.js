@@ -53,6 +53,7 @@ async function runDashboard(nowIso, data, extra) {
     SaudiTime: require(path.join(ROOT, "src/platform/time/saudi-time.js")),
     FreshnessPolicy: require(path.join(ROOT, "src/platform/quality/freshness.js")),
     UnitPolicy: require(path.join(ROOT, "src/platform/quality/units.js")),
+    SourceState: require(path.join(ROOT, "src/platform/data/source-state.js")),
     CityRegistry: require(path.join(ROOT, "src/platform/geo/cities.js")),
     RouteItinerary: require(path.join(ROOT, "src/services/routing/itinerary.js")),
     OsrmAdapter: require(path.join(ROOT, "src/providers/routing/osrm/adapter.js")),

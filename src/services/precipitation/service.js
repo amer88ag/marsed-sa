@@ -18,7 +18,9 @@
       fetch: fetcher,
       init: { cache: "no-store" },
       signal: config.signal,
-      timeoutMs: config.timeoutMs
+      timeoutMs: config.timeoutMs,
+      retries: config.retries === undefined ? 1 : config.retries,
+      retryDelayMs: config.retryDelayMs
     });
     if (!payload || payload.schema_version !== 1 || !payload.series) {
       throw new TypeError("Unsupported CHIRPS dataset schema");

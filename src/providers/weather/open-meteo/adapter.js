@@ -30,8 +30,8 @@
     const query = new URLSearchParams({
       latitude: String(location.lat),
       longitude: String(location.lon),
-      current: "temperature_2m,precipitation,rain,showers,wind_speed_10m,weather_code",
-      daily: "precipitation_sum,precipitation_probability_max",
+      current: "temperature_2m,relative_humidity_2m,precipitation,rain,showers,wind_speed_10m,wind_gusts_10m,cloud_cover,pressure_msl,weather_code",
+      daily: "precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min",
       forecast_days: "1",
       timezone: "Asia/Riyadh"
     });
@@ -45,8 +45,8 @@
     const query = new URLSearchParams({
       latitude: locations.map(location => String(location.lat)).join(","),
       longitude: locations.map(location => String(location.lon)).join(","),
-      current: "temperature_2m,precipitation,rain,showers,wind_speed_10m,weather_code",
-      daily: "precipitation_sum,precipitation_probability_max",
+      current: "temperature_2m,relative_humidity_2m,precipitation,rain,showers,wind_speed_10m,wind_gusts_10m,cloud_cover,pressure_msl,weather_code",
+      daily: "precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min",
       forecast_days: "1",
       timezone: locations.map(() => "Asia/Riyadh").join(",")
     });
@@ -144,6 +144,7 @@
       location: { id: location.id, name: location.name, latitude: location.lat, longitude: location.lon, elevation_m: numericOrNull(payload.elevation, "elevation") },
       current: {
         temperature: numericOrNull(current.temperature_2m, "temperature_2m"),
+        relative_humidity: numericOrNull(current.relative_humidity_2m, "relative_humidity_2m"),
         precipitation: numericOrNull(current.precipitation, "precipitation"),
         rain: numericOrNull(current.rain, "rain"),
         showers: numericOrNull(current.showers, "showers"),
@@ -159,7 +160,9 @@
       today: {
         date: daily.time[0],
         precipitation: numericOrNull((daily.precipitation_sum || [])[0], "precipitation_sum"),
-        precipitation_probability_max: numericOrNull((daily.precipitation_probability_max || [])[0], "precipitation_probability_max")
+        precipitation_probability_max: numericOrNull((daily.precipitation_probability_max || [])[0], "precipitation_probability_max"),
+        temperature_max: numericOrNull((daily.temperature_2m_max || [])[0], "temperature_2m_max"),
+        temperature_min: numericOrNull((daily.temperature_2m_min || [])[0], "temperature_2m_min")
       },
       provenance: {
         source_url: "https://open-meteo.com/",

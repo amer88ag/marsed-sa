@@ -13,6 +13,8 @@
 :root{color-scheme:light;--navy:#102b46;--blue:#1769aa;--sky:#eaf4fb;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa;--green:#16794b;--amber:#9a5a00;--red:#b42318}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}button,select{font:inherit}button{cursor:pointer}.top{background:linear-gradient(120deg,#102b46,#174d76);color:#fff;padding:22px max(20px,calc((100% - 1280px)/2));}.brand{display:flex;justify-content:space-between;align-items:center;gap:16px}.brand h1{font-size:clamp(21px,3vw,30px);margin:0}.brand p{margin:7px 0 0;color:#c6d8e7;font-size:14px}.status{font-size:12px;border:1px solid #7092ac;border-radius:30px;padding:8px 12px;white-space:nowrap}.wrap{max-width:1280px;margin:auto;padding:22px 18px 48px}.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.toolbar label{font-size:13px;color:var(--muted)}select,.btn{border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:white;color:var(--ink)}.btn.primary{background:var(--blue);border-color:var(--blue);color:white}.btn:disabled{opacity:.5;cursor:not-allowed}.updated{margin-inline-start:auto;color:var(--muted);font-size:12px}.grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 3px 14px #183b5710}.panel-head{display:flex;justify-content:space-between;align-items:center;padding:15px 17px;border-bottom:1px solid var(--line)}.panel-head h2{font-size:16px;margin:0}.panel-head span{font-size:12px;color:var(--muted)}#map{height:450px;width:100%;background:#e8eff4}.map-note{padding:9px 14px;color:var(--muted);font-size:11px;border-top:1px solid var(--line)}.radar-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line)}.radar-tools label{font-size:12px;color:var(--muted)}.radar-tools select{padding:8px 10px}.radar-legend{display:flex;gap:12px;flex-wrap:wrap;padding:9px 14px;font-size:11px;color:var(--muted)}.legend-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:4px}.radar-meta{padding:0 14px 10px;font-size:11px;color:var(--muted);line-height:1.7}.trip-panel{margin:0 0 16px}.trip-controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:14px}.trip-controls input{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:var(--ink);font:inherit}.trip-controls .trip-time-help{grid-column:1/-1;margin:-3px 0 0;color:var(--muted);font-size:11px}.trip-controls button{grid-column:1/-1}.trip-controls label{display:grid;gap:6px;font-size:12px;color:var(--muted)}.trip-results{padding:0 14px 14px}.trip-summary{padding:10px 12px;border-radius:10px;background:#eef6fc;color:#234d6b;font-size:12px;line-height:1.8;margin-bottom:10px}.trip-table{width:100%;border-collapse:collapse;font-size:12px}.trip-table th,.trip-table td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}.trip-table th{color:var(--muted);font-weight:600}.trip-note{font-size:11px;color:var(--muted);line-height:1.8;margin-top:10px}@media(max-width:650px){.trip-controls{grid-template-columns:1fr 1fr}.trip-controls label:nth-child(3){grid-column:1/-1}.trip-controls button{grid-column:1/-1}.trip-results{overflow-x:auto}}.side{display:grid;gap:16px;align-content:start}.place-title{padding:16px 17px 0}.place-title h2{margin:0;font-size:22px}.place-title p{margin:5px 0;color:var(--muted);font-size:12px}.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}.atmospheric-metrics{padding-top:10px}.atmospheric-metrics .metric strong{font-size:21px}.metric{background:#f6f9fc;border:1px solid #e8eef3;border-radius:12px;padding:13px}.metric small{color:var(--muted);font-size:12px}.metric strong{display:block;font-size:25px;margin-top:8px;font-weight:700}.metric em{font-style:normal;color:var(--muted);font-size:11px}.notice{margin:0 14px 14px;padding:11px 12px;border-radius:10px;background:#fff7e8;color:#79500b;font-size:12px;line-height:1.7}.chart-wrap{padding:12px 14px 16px}.chart{width:100%;height:180px;display:block}.data-state{padding:10px 14px;color:var(--muted);font-size:12px;line-height:1.7}.data-state.error{color:var(--red)}.data-meta{font-size:11px;color:var(--muted);padding:0 14px 14px}.chart-labels{display:flex;gap:14px;flex-wrap:wrap;padding:0 14px 8px;font-size:11px;color:var(--muted)}.chart-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:10px}.sources{display:grid;gap:0}.source{padding:14px 16px;border-bottom:1px solid var(--line)}.source:last-child{border:0}.source b{display:block;font-size:14px}.source p{margin:5px 0;color:var(--muted);font-size:12px;line-height:1.6}.source a{color:var(--blue);text-decoration:none;font-size:12px}.source .tag{display:inline-block;margin-top:7px;border-radius:30px;padding:4px 8px;background:#edf5fb;color:#275b80;font-size:10px}.section-title{font-size:18px;margin:24px 0 12px}.foot{margin-top:18px;color:var(--muted);font-size:11px;line-height:1.8}.error{color:var(--red)}.loading{color:var(--muted);font-size:13px;padding:10px 14px}.leaflet-container{font-family:Tahoma,Arial,sans-serif}.weather-context{padding:0 14px 14px}.weather-context h3{font-size:14px;margin:12px 0 8px}.insight{padding:12px;border-radius:12px;background:#eef6fc;color:#234d6b;font-size:13px;line-height:1.8}.hourly{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scroll-snap-type:x proximity}.hour{min-width:86px;border:1px solid var(--line);border-radius:11px;padding:10px 8px;text-align:center;scroll-snap-align:start;background:#fbfdff}.hour b,.day b{display:block;font-size:13px}.hour strong{display:block;font-size:19px;margin:7px 0}.hour small,.day small{display:block;color:var(--muted);font-size:11px;line-height:1.6}.daily{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;padding:12px 14px}.day{background:#f7fafc;border:1px solid #e8eef3;border-radius:10px;padding:10px 7px;text-align:center;min-width:0}.day strong{display:block;font-size:14px;margin:7px 0}.day span{font-size:11px;color:var(--blue)}@media(max-width:850px){.daily{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:850px){.grid{grid-template-columns:1fr}.side{grid-template-columns:1fr}.updated{width:100%;margin:0}#map{height:360px}.wrap{padding:14px 12px 32px}.top{padding:18px 16px}.status{font-size:10px}}
+.data-state-badge{font-size:12px;margin-top:4px;color:#3a4a5c}.data-state-badge[data-state="cached"],.data-state-badge[data-state="stale"],.data-state-badge[data-state="partial"]{color:#8a5700}.data-state-badge[data-state="unavailable"],.data-state-badge[data-state="source_error"]{color:#b42318}
+.compare-tools{display:flex;gap:8px;align-items:center;margin:8px 0;font-size:13px}.compare-tools select{font:inherit;padding:6px 8px;border-radius:8px;border:1px solid #d6dee6}.compare-wrap{overflow-x:auto;max-width:100%}.compare{width:100%;border-collapse:collapse;font-size:13px}.compare th,.compare td{padding:7px 6px;border-bottom:1px solid #e6ecf1;text-align:start;white-space:nowrap}.compare th{font-size:12px;color:#4c5b6b;font-weight:600}
 </style>
 </head>
 <body>
@@ -29,6 +31,7 @@
 </select>
 <button class="btn primary" id="refresh">تحديث البيانات</button>
 <div class="updated" id="updated">لم يتم جلب البيانات بعد</div>
+<div class="data-state-badge" id="dataState" data-state="not_loaded" aria-live="polite">الحالة: لم يتم جلبها بعد</div>
 </div>
 <section class="panel trip-panel" id="road-trips">
 <div class="panel-head"><h2>عين الطريق والرحلات</h2><span>تجربة أولية بين المدن</span></div>
@@ -91,6 +94,12 @@
 <div class="chart-wrap"><svg id="rainChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مخطط كميات الأمطار اليومية"></svg><div class="chart-labels"><span>اليوم</span><span>←</span><span>بعد 6 أيام</span></div></div>
 <div id="chartCaption" class="loading">يظهر المخطط بعد تحميل البيانات.</div>
 </section>
+<section class="panel" id="compare">
+<div class="panel-head"><h2>مقارنة الطقس بين المدن</h2><span>ناتج نموذج · نفس وقت الصلاحية</span></div>
+<div class="compare-tools"><label for="compareSort">ترتيب حسب</label><select id="compareSort"><option value="registry">ترتيب المدن</option><option value="temperature">الحرارة الآن</option><option value="max">العظمى اليوم</option><option value="precip">هطول اليوم المتوقع</option><option value="elevation">ارتفاع التضاريس</option></select></div>
+<div class="compare-wrap"><table class="compare"><thead><tr><th>المدينة</th><th>الحرارة °م</th><th>العظمى/الصغرى °م</th><th>الرطوبة %</th><th>هطول اليوم المتوقع ملم (احتمال)</th><th>الرياح/الهبات كم/س</th><th>ضغط مستوى البحر hPa</th><th>ارتفاع التضاريس م</th></tr></thead><tbody id="compareBody"><tr><td colspan="8">لم يتم جلب البيانات بعد.</td></tr></tbody></table></div>
+<div class="data-state" id="compareNote">القيم من طلب واحد لنموذج Open-Meteo لكل المدن؛ ليست رصد محطات. «—» تعني قيمة غير متاحة ولا تُعد صفراً. ارتفاع التضاريس من نموذج 90 م عند نقطة المدينة. الضغط مختزل إلى مستوى سطح البحر لتصح المقارنة بين المدن.</div>
+</section>
 <section class="panel" id="chirps">
 <div class="panel-head"><h2>الأمطار التاريخية — CHIRPS v3</h2><span>ملم/يوم</span></div>
 <div class="chart-wrap"><svg id="chirpsChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مقارنة أمطار CHIRPS SAT وRNL اليومية عند إحداثيات المدينة"></svg><div class="chart-labels"><span>■ SAT — أزرق</span><span>■ RNL — أخضر</span></div></div>
@@ -113,6 +122,7 @@
 <script src="src/platform/http/client.js"></script>
 <script src="src/platform/time/saudi-time.js"></script>
 <script src="src/platform/quality/freshness.js"></script>
+<script src="src/platform/data/source-state.js"></script>
 <script src="src/platform/geo/cities.js"></script>
 <script src="src/platform/geo/map-frame.js"></script>
 <script src="src/platform/quality/units.js"></script>
@@ -254,7 +264,23 @@ function radarPopup(key,item){
   "<br>احتمال المطر: "+(item.today.precipitation_probability_max===null?"غير متاح":Math.round(item.today.precipitation_probability_max)+"٪")+
   "<br><small>نموذج Open-Meteo · ليس رصداً أرضياً أو تنبيهاً رسمياً</small>";
 }
+function renderComparison(){
+ var body=$("compareBody");if(!body)return;
+ var order=Object.keys(places),mode=$("compareSort")?$("compareSort").value:"registry";
+ var val=function(key){var d=radarData[key];if(!d)return null;return mode==="temperature"?d.current.temperature:mode==="max"?d.today.temperature_max:mode==="precip"?d.today.precipitation:mode==="elevation"?d.location.elevation_m:null};
+ if(mode!=="registry")order.sort(function(a,b){var x=val(a),y=val(b);if((x===null||x===undefined)&&(y===null||y===undefined))return 0;if(x===null||x===undefined)return 1;if(y===null||y===undefined)return -1;return y-x});
+ var cell=function(v,d){return v===null||v===undefined?"—":number(v,d)};
+ var rows=order.map(function(key){
+  var d=radarData[key],name=escapeHtml(places[key].name);
+  if(!d)return "<tr><td>"+name+"</td><td colspan='7'>غير متاحة</td></tr>";
+  var c=d.current||{},t=d.today||{},loc=d.location||{};
+  return "<tr><td>"+name+"</td><td>"+cell(c.temperature,1)+"</td><td>"+cell(t.temperature_max,0)+" / "+cell(t.temperature_min,0)+"</td><td>"+cell(c.relative_humidity,0)+"</td><td>"+cell(t.precipitation,1)+(t.precipitation_probability_max===null||t.precipitation_probability_max===undefined?"":" ("+number(t.precipitation_probability_max,0)+"%)")+"</td><td>"+cell(c.wind_speed,0)+" / "+cell(c.wind_gusts,0)+"</td><td>"+cell(c.pressure_msl,1)+"</td><td>"+cell(loc.elevation_m,0)+"</td></tr>";
+ });
+ body.innerHTML=rows.join("");
+}
+function escapeHtml(text){return String(text).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]})}
 function renderRadar(){
+ renderComparison();
  Object.keys(places).forEach(function(key){
   var circle=radarCircles[key],item=radarData[key];
   if(!circle)return;
@@ -277,6 +303,7 @@ async function loadRadar(){
   if(requestId!==radarRequestId)return;
   radarData={};
   results.forEach(function(result){if(result.data)radarData[result.location_id]=result.data;});
+  if(Object.keys(radarData).length)SourceState.remember("city_overview","all",radarData);
   if(Object.keys(radarData).length){
    var firstValid=Object.keys(radarData).map(function(key){return radarData[key].valid_time}).filter(Boolean).sort().pop();
    var radarFresh=FreshnessPolicy.currentWeather(firstValid,new Date());
@@ -287,7 +314,12 @@ async function loadRadar(){
   if(failed)setText("radarMeta",$("radarMeta").textContent+" · بيانات غير متاحة لـ "+failed+" مدينة؛ لا تُستبدل القيم المفقودة بأصفار.");
   if(!Object.keys(radarData).length)setText("radarMeta","تعذر الحصول على بيانات المدن حالياً. تحقق من الاتصال ثم أعد المحاولة. المصدر: Open-Meteo.");
  }catch(error){
-  if(requestId===radarRequestId)setText("radarMeta","تعذر تحديث طبقة المدن: "+errorText(error)+". البيانات السابقة إن وجدت لا تُعد تحديثاً جديداً.");
+  if(requestId!==radarRequestId)return;
+  if(!Object.keys(radarData).length){
+   var cached=SourceState.onFailure("city_overview","all",error,{isStale:function(payload,now){var latest=Object.keys(payload).map(function(k){return payload[k].valid_time}).filter(Boolean).sort().pop();return FreshnessPolicy.currentWeather(latest,now).status!=="fresh"}});
+   if(cached.payload){radarData=cached.payload;renderRadar();setText("radarMeta","تعذر تحديث طبقة المدن ("+errorText(error)+"). "+SourceState.describe(cached));return}
+  }
+  setText("radarMeta","تعذر تحديث طبقة المدن: "+errorText(error)+". البيانات المعروضة إن وجدت من تحديث سابق وليست جديدة.");
  }finally{
   if(requestId===radarRequestId)$("refreshRadar").disabled=false;
  } 
@@ -362,6 +394,45 @@ function chirpsAgeText(dataset,now){
  var cycle=check.status==="behind_release_cycle"?"متأخرة "+check.days_behind+" يوماً عن آخر إصدار نهائي متوقع (حتى "+check.expected_latest+")":check.status==="current_for_cycle"?"مواكبة لآخر إصدار نهائي متوقع (حتى "+check.expected_latest+")":"تعذر تقييمها";
  return " · آخر تحديث للعينة: "+updated+" · وفق دورة إصدار CHIRPS الشهرية العينة "+cycle+" (عينة تاريخية وليست بيانات حديثة)";
 }
+function renderWeatherData(data){
+  var measurement=function(name){var item=data.measurements.find(function(entry){return entry.name===name});return item?item.value:null};
+ setText("temp",number(measurement("temperature"),1));
+ setText("feels",number(measurement("apparent_temperature"),1));
+ setText("rain",number(measurement("precipitation"),1));
+ setText("rainLabel",data.valid_interval_seconds?"الهطول خلال آخر "+Math.round(data.valid_interval_seconds/60)+" دقيقة":"الهطول خلال الفترة الحالية");
+ setText("humidity",number(measurement("relative_humidity"),0));
+ setText("wind",number(measurement("wind_speed"),0));
+ setText("elevation",number(data.location&&data.location.elevation_m,0));
+ setText("pressureMsl",number(measurement("pressure_msl"),1));
+ setText("surfacePressure",number(measurement("surface_pressure"),1));
+ setText("dewPoint",number(measurement("dew_point"),1));
+ setText("cloudCover",measurement("cloud_cover")===null?"—":number(measurement("cloud_cover"),0)+"٪");
+ setText("windGusts",number(measurement("wind_gusts"),0));
+ setText("windDirection",windDirectionLabel(measurement("wind_direction")));
+ setText("uvIndex",number(data.daily&&data.daily[0]&&data.daily[0].uv_index_max,1));
+ setText("wetBulb",number(measurement("wet_bulb_temperature"),1));
+ setText("cape",number(measurement("cape"),0));
+ setText("freezingLevel",number(measurement("freezing_level_height"),0));
+ setText("boundaryLayer",number(measurement("boundary_layer_height"),0));
+ setText("soilTemp",number(measurement("soil_temperature_0_7cm"),1));
+ setText("soilMoisture",number(measurement("soil_moisture_0_7cm"),3));
+ setText("wind80",number(measurement("wind_speed_80m"),1));
+ setText("wind100",number(measurement("wind_speed_100m"),1));
+ setText("solarRadiation",number(measurement("shortwave_radiation"),0));
+ setText("solarSplit",number(measurement("direct_radiation"),0)+" / "+number(measurement("diffuse_radiation"),0));
+ setText("condition",weatherDescription(data.current_weather_code));
+ setText("daylight",data.is_day===true?"نهار":data.is_day===false?"ليل":"فترة اليوم غير متاحة");
+ setText("weatherInsight",practicalInsight(data));
+ renderHourly(data.hourly); renderDaily(data.daily);
+ drawChart(data.daily.map(function(row){return row.valid_date}),data.daily.map(function(row){return row.precipitation}));
+ setText("chartCaption","توقع نموذجي من Open-Meteo لمجموع الهطول لكل يوم تقويمي سعودي ("+data.daily.length+" أيام). "+forecastWindowText(data.daily,"valid_date")+" الأيام دون قيمة تُترك فارغة ولا تُرسم صفراً. لا يقارن مباشرة بتقدير CHIRPS.");
+ setText("loading","تم تحميل بيانات النموذج بنجاح.");
+ setText("updated",dataTimeText(data,new Date()));
+ setText("connection","● متصل");
+ $("quality").innerHTML='تنبيه منهجي: القيم الحالية (فترة 15 دقيقة) والتوقعات مستمدة من نماذج الطقس لدى Open-Meteo، لا تمثل هذه القيم رصداً مباشراً أو تنبيهاً رسمياً من المركز الوطني للأرصاد. الارتفاع تقدير تضاريسي من Copernicus DEM GLO-90 بدقة 90م، وليس قياساً مساحياً. الضغط عند مستوى سطح البحر أنسب لمقارنة الطقس بين المواقع، بينما ضغط سطح الموقع يتأثر بالارتفاع.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · <a href="https://open-meteo.com/en/docs/elevation-api" target="_blank" rel="noopener">Copernicus DEM GLO-90 elevation</a> · الإسناد وفق CC BY 4.0.';
+}
+// Unified data state badge (fresh / cached / stale / partial / unavailable / source error / not loaded).
+function showDataState(result){var el=$("dataState");if(!el)return;el.textContent=SourceState.describe(result);el.setAttribute("data-state",result?result.state:"not_loaded")}
 function renderHourly(rows){
  var target=$("hourlyForecast"),now=new Date();
  var upcoming=(rows||[]).filter(function(row){var t=row.valid_time&&SaudiTime.parseSaudiLocal(row.valid_time);return t&&t.getTime()>=now.getTime()-60*60*1000}).slice(0,12);
@@ -456,47 +527,26 @@ async function loadWeather(){
   weatherAbort=freshController(weatherAbort);
   var data=await WeatherService.fetchWeather({id:requestedKey,name:p.name,lat:p.lat,lon:p.lon},{signal:weatherAbort?weatherAbort.signal:undefined,timeoutMs:REQUEST_TIMEOUT_MS});
   if(requestId!==weatherRequestId||requestedKey!==activeKey)return;
-  var measurement=function(name){var item=data.measurements.find(function(entry){return entry.name===name});return item?item.value:null};
-  setText("temp",number(measurement("temperature"),1));
-  setText("feels",number(measurement("apparent_temperature"),1));
-  setText("rain",number(measurement("precipitation"),1));
-  setText("rainLabel",data.valid_interval_seconds?"الهطول خلال آخر "+Math.round(data.valid_interval_seconds/60)+" دقيقة":"الهطول خلال الفترة الحالية");
-  setText("humidity",number(measurement("relative_humidity"),0));
-  setText("wind",number(measurement("wind_speed"),0));
-  setText("elevation",number(data.location&&data.location.elevation_m,0));
-  setText("pressureMsl",number(measurement("pressure_msl"),1));
-  setText("surfacePressure",number(measurement("surface_pressure"),1));
-  setText("dewPoint",number(measurement("dew_point"),1));
-  setText("cloudCover",measurement("cloud_cover")===null?"—":number(measurement("cloud_cover"),0)+"٪");
-  setText("windGusts",number(measurement("wind_gusts"),0));
-  setText("windDirection",windDirectionLabel(measurement("wind_direction")));
-  setText("uvIndex",number(data.daily&&data.daily[0]&&data.daily[0].uv_index_max,1));
-  setText("wetBulb",number(measurement("wet_bulb_temperature"),1));
-  setText("cape",number(measurement("cape"),0));
-  setText("freezingLevel",number(measurement("freezing_level_height"),0));
-  setText("boundaryLayer",number(measurement("boundary_layer_height"),0));
-  setText("soilTemp",number(measurement("soil_temperature_0_7cm"),1));
-  setText("soilMoisture",number(measurement("soil_moisture_0_7cm"),3));
-  setText("wind80",number(measurement("wind_speed_80m"),1));
-  setText("wind100",number(measurement("wind_speed_100m"),1));
-  setText("solarRadiation",number(measurement("shortwave_radiation"),0));
-  setText("solarSplit",number(measurement("direct_radiation"),0)+" / "+number(measurement("diffuse_radiation"),0));
-  setText("condition",weatherDescription(data.current_weather_code));
-  setText("daylight",data.is_day===true?"نهار":data.is_day===false?"ليل":"فترة اليوم غير متاحة");
-  setText("weatherInsight",practicalInsight(data));
-  renderHourly(data.hourly); renderDaily(data.daily);
-  drawChart(data.daily.map(function(row){return row.valid_date}),data.daily.map(function(row){return row.precipitation}));
-  setText("chartCaption","توقع نموذجي من Open-Meteo لمجموع الهطول لكل يوم تقويمي سعودي ("+data.daily.length+" أيام). "+forecastWindowText(data.daily,"valid_date")+" الأيام دون قيمة تُترك فارغة ولا تُرسم صفراً. لا يقارن مباشرة بتقدير CHIRPS.");
-  setText("loading","تم تحميل بيانات النموذج بنجاح.");
-  setText("updated",dataTimeText(data,new Date()));
-  setText("connection","● متصل");
-  $("quality").innerHTML='تنبيه منهجي: القيم الحالية (فترة 15 دقيقة) والتوقعات مستمدة من نماذج الطقس لدى Open-Meteo، لا تمثل هذه القيم رصداً مباشراً أو تنبيهاً رسمياً من المركز الوطني للأرصاد. الارتفاع تقدير تضاريسي من Copernicus DEM GLO-90 بدقة 90م، وليس قياساً مساحياً. الضغط عند مستوى سطح البحر أنسب لمقارنة الطقس بين المواقع، بينما ضغط سطح الموقع يتأثر بالارتفاع.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · <a href="https://open-meteo.com/en/docs/elevation-api" target="_blank" rel="noopener">Copernicus DEM GLO-90 elevation</a> · الإسناد وفق CC BY 4.0.';
+  SourceState.remember("weather_current",requestedKey,data);
+  var issues=(data.quality&&data.quality.unit_mismatches?data.quality.unit_mismatches.length:0)+(data.quality&&data.quality.unverified_units?data.quality.unverified_units.length:0);
+  var validAt=data.valid_time?SaudiTime.parseSaudiLocal(data.valid_time):null;
+  renderWeatherData(data);
+  showDataState(SourceState.onSuccess({issues:issues,dataStale:FreshnessPolicy.currentWeather(validAt,new Date()).status==="stale"}));
  }catch(error){
   if(requestId!==weatherRequestId||requestedKey!==activeKey)return;
-  clearWeatherDisplay();
-  setText("loading","تعذر جلب البيانات. تحقق من الاتصال ثم أعد المحاولة.");
-  $("loading").classList.add("error");setText("connection","● تعذر الاتصال");
-  setText("chartCaption","لم تُعرض بيانات بديلة أو تقديرات مصطنعة. "+errorText(error));
+  var fallback=SourceState.onFailure("weather_current",requestedKey,error,{isStale:function(payload,now){var v=payload&&payload.valid_time?SaudiTime.parseSaudiLocal(payload.valid_time):null;return FreshnessPolicy.currentWeather(v,now).status==="stale"}});
+  if(fallback.payload){
+   renderWeatherData(fallback.payload);
+   setText("loading","تعذر تحديث البيانات الآن ("+errorText(error)+")، فتُعرض آخر بيانات صالحة محفوظة مع وسمها.");
+   $("loading").classList.add("error");setText("connection","● تعذر الاتصال — بيانات محفوظة");
+   showDataState(fallback);
+  }else{
+   clearWeatherDisplay();
+   setText("loading","تعذر جلب البيانات. تحقق من الاتصال ثم أعد المحاولة.");
+   $("loading").classList.add("error");setText("connection","● تعذر الاتصال");
+   setText("chartCaption","لم تُعرض بيانات بديلة أو تقديرات مصطنعة. "+errorText(error));
+   showDataState(fallback);
+  }
  }finally{
   if(requestId===weatherRequestId)$("refresh").disabled=false;
  }
@@ -504,6 +554,7 @@ async function loadWeather(){
 $("place").addEventListener("change",function(e){selectCity(e.target.value)});
 $("refresh").addEventListener("click",loadWeather);
 $("radarMode").addEventListener("change",function(e){radarMode=e.target.value;renderRadar()});
+if($("compareSort"))$("compareSort").addEventListener("change",renderComparison);
 $("refreshRadar").addEventListener("click",loadRadar);
 initMap();initTripControls();$("planTrip").addEventListener("click",planTrip);loadWeather();loadChirps();loadRadar();
 })();

@@ -23,7 +23,9 @@
       fetch: fetcher,
       headers: { Accept: "application/json" },
       signal: config.signal,
-      timeoutMs: config.timeoutMs
+      timeoutMs: config.timeoutMs,
+      retries: config.retries === undefined ? 1 : config.retries,
+      retryDelayMs: config.retryDelayMs
     });
   }
   async function fetchWeather(location, options) {

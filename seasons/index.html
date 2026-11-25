@@ -122,6 +122,8 @@ main{max-width:1120px;margin:auto;padding:18px 14px 36px}.hero,.panel{background
 </section>
 </main>
 <script src="../src/platform/http/client.js"></script>
+<script src="../src/platform/time/saudi-time.js"></script>
+<script src="../src/platform/data/source-state.js"></script>
 <script src="../src/platform/quality/units.js"></script>
 <script src="../src/services/agriculture/orchard-weather.js"></script>
 <script>
@@ -273,16 +275,28 @@ async function loadOrchardWeather(){
   var location={lat:lat,lon:lon},stage=$("farmStage").value;
   var data=await OrchardWeather.fetchOrchardData(location,{signal:orchardAbort?orchardAbort.signal:undefined,timeoutMs:15000});
   if(requestId!==orchardRequestId)return;
-  if(data.forecast.ok){renderOrchardSource("orchardForecastSource",data.forecast.source);renderOrchardDays("orchardForecast",data.forecast.rows,stage,"توقع نموذجي");}
+  var cacheId=lat.toFixed(3)+","+lon.toFixed(3);
+  // Last valid data per source: reused only within its window and always labelled.
+  var reuse=function(kind,policy,result){
+   var hasState=typeof SourceState==="object"&&SourceState;
+   if(result.ok){if(hasState)SourceState.remember(policy,cacheId,{rows:result.rows,source:result.source});return result}
+   var cached=hasState?SourceState.onFailure(policy,cacheId,result.error):null;
+   if(cached&&cached.payload)return {ok:true,rows:cached.payload.rows,source:cached.payload.source,cachedNote:SourceState.describe(cached),error:result.error};
+   return result;
+  };
+  data.forecast=reuse("forecast","orchard_forecast",data.forecast);
+  data.archive=reuse("archive","orchard_reanalysis",data.archive);
+  if(data.forecast.ok){renderOrchardSource("orchardForecastSource",data.forecast.source);renderOrchardDays("orchardForecast",data.forecast.rows,stage,data.forecast.cachedNote?"توقع نموذجي محفوظ":"توقع نموذجي");if(data.forecast.cachedNote)$("orchardForecast").insertAdjacentText("afterbegin",data.forecast.cachedNote+" ");}
   else $("orchardForecast").textContent="تعذر تحميل التوقعات: "+orchardError(data.forecast.error);
-  if(data.archive.ok){renderOrchardSource("orchardHistorySource",data.archive.source);renderOrchardDays("orchardHistory",data.archive.rows,stage,"إعادة تحليل");}
+  if(data.archive.ok){renderOrchardSource("orchardHistorySource",data.archive.source);renderOrchardDays("orchardHistory",data.archive.rows,stage,data.archive.cachedNote?"إعادة تحليل محفوظة":"إعادة تحليل");if(data.archive.cachedNote)$("orchardHistory").insertAdjacentText("afterbegin",data.archive.cachedNote+" ");}
   else $("orchardHistory").textContent="تعذر تحميل إعادة التحليل: "+orchardError(data.archive.error);
   var modelSource=data.forecast.source||data.archive.source;
   var farmElevation=$("farmElevation").value.trim()===""?null:Number($("farmElevation").value);
   var elevation=OrchardWeather.elevationContext(farmElevation,modelSource?modelSource.model_elevation_m:null);
   $("orchardElevation").hidden=false;$("orchardElevation").textContent=elevation.text;
   var ok=data.forecast.ok||data.archive.ok;
-  $("orchardWeatherStatus").textContent=ok?"اكتمل جلب البيانات"+(data.forecast.ok&&data.archive.ok?"":" جزئياً")+". راجع وسم كل بطاقة: توقع نموذجي أو إعادة تحليل تاريخية؛ لا تمثل أي منهما قياس محطة مباشر.":"تعذر جلب بيانات الطقس حالياً. تحقق من الاتصال والإحداثيات ثم أعد المحاولة.";
+  var usedCache=!!(data.forecast.cachedNote||data.archive.cachedNote);
+  $("orchardWeatherStatus").textContent=ok?(usedCache?"تعذر تحديث مصدر واحد على الأقل فعُرضت آخر بيانات صالحة محفوظة وموسومة. ":"")+"اكتمل جلب البيانات"+(data.forecast.ok&&data.archive.ok?"":" جزئياً")+". راجع وسم كل بطاقة: توقع نموذجي أو إعادة تحليل تاريخية؛ لا تمثل أي منهما قياس محطة مباشر.":"تعذر جلب بيانات الطقس حالياً. تحقق من الاتصال والإحداثيات ثم أعد المحاولة.";
  }catch(error){
   if(requestId!==orchardRequestId)return;
   $("orchardWeatherStatus").textContent="تعذر جلب بيانات الطقس: "+orchardError(error);

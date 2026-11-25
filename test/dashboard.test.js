@@ -304,7 +304,7 @@ function createDashboardHarness() {
   const getElementById = id => {
     if (!elements.has(id)) elements.set(id, {
       id, textContent: '', innerHTML: '', disabled: false, value: 'riyadh',
-      classList: { add() {}, remove() {} },
+      classList: { add() {}, remove() {} }, setAttribute(name, value) { this[name] = String(value); },
       addEventListener(type, callback) { listeners[id + ':' + type] = callback; }
     });
     return elements.get(id);
@@ -324,7 +324,7 @@ function createDashboardHarness() {
   const document = { getElementById };
   const window = { L: leaflet };
   const context = {
-    CityRegistry: require("../src/platform/geo/cities.js"), SaudiTime: require("../src/platform/time/saudi-time.js"), FreshnessPolicy: require("../src/platform/quality/freshness.js"), UnitPolicy: require("../src/platform/quality/units.js"),
+    CityRegistry: require("../src/platform/geo/cities.js"), SaudiTime: require("../src/platform/time/saudi-time.js"), FreshnessPolicy: require("../src/platform/quality/freshness.js"), UnitPolicy: require("../src/platform/quality/units.js"), SourceState: require("../src/platform/data/source-state.js"),
     document, window, L: leaflet, console, Date, Math, Number, isFinite,
     URL,
     WeatherService: {

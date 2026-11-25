@@ -225,7 +225,7 @@
   }
 
   async function fetchDaily(url, kind, config) {
-    const payload = await http.request(url, { fetch: config.fetch, headers: { Accept: "application/json" }, signal: config.signal, timeoutMs: config.timeoutMs });
+    const payload = await http.request(url, { fetch: config.fetch, headers: { Accept: "application/json" }, signal: config.signal, timeoutMs: config.timeoutMs, retries: config.retries === undefined ? 1 : config.retries, retryDelayMs: config.retryDelayMs });
     const normalized = normalizeDailyWithQuality(payload);
     const source = describeSource(payload, kind, normalized.rows, config.retrievedAt);
     source.unit_quality = normalized.quality;
