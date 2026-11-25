@@ -101,6 +101,35 @@ test("trip: routing timeout re-enables the button and explains the failure", asy
   assert.equal(page.$("planTrip").disabled, false);
 });
 
+test("trip: OSRM outage shows a labelled straight-line distance, never a road route or drive time", async () => {
+  const page = dashboardHarness({
+    route: async () => { throw Object.assign(new Error("Service Unavailable"), { kind: "http", status: 503 }); },
+    routeWeather: async () => { throw new Error("must not be called without a route"); }
+  });
+  await page.$("planTrip").fire("click");
+  await flush();
+  const html = page.$("tripOutput").innerHTML;
+  assert.match(html, /ليست مسار طريق/);
+  assert.match(html, /لا يُقدَّر زمن قيادة/);
+  const km = Number((html.match(/المسافة المستقيمة بين المدينتين: (\d+) كم/) || [])[1]);
+  assert.ok(km > 800 && km < 900, "Riyadh–Jeddah great-circle ≈ 850 km, got " + km);
+  assert.match(page.$("tripStatus").textContent, /OSRM/);
+  assert.equal(page.$("planTrip").disabled, false);
+});
+
+test("trip: each route point shows model terrain elevation, or «غير متاح» when missing", async () => {
+  const page = dashboardHarness({
+    route: async () => route,
+    routeWeather: async points => points.map((point, i) => ({ location_id: point.id, elevation_m: i === 0 ? 612 : null, hourly: null, error: "x" }))
+  });
+  await page.$("planTrip").fire("click");
+  await flush();
+  const html = page.$("tripOutput").innerHTML;
+  assert.match(html, /ارتفاع التضاريس/);
+  assert.match(html, /612 م/);
+  assert.match(html, /ليس مسحاً ميدانياً/);
+});
+
 test("no literal \\n artefacts are rendered in pages", () => {
   for (const file of ["index.html", "seasons/index.html", "elevation/index.html", "satellite/index.html", "satellite/coverage.html", "admin/index.html"]) {
     assert.doesNotMatch(fs.readFileSync(file, "utf8"), /\\n</, file);

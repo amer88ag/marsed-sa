@@ -41,16 +41,16 @@ main{max-width:1120px;margin:auto;padding:18px 14px 36px}.hero,.panel{background
 <p>ملاحظة: هذا التقسيم المناخي للأشهر لا يعني أن الطقس يلتزم بحدود الفصل. يعرض المرصد حالة الحرارة والأمطار الفعلية والتوقعات لكل مدينة بصورة مستقلة.</p>
 </section>
 <section class="seasonal-block" id="astronomical-dates">
-<h2>مواعيد الفصول الفلكية الدقيقة — 2026</h2>
+<h2 id="astroTitle">مواعيد الفصول الفلكية الدقيقة — 2026</h2>
 <p>هذه لحظات الاعتدال والانقلاب الفلكية في النصف الشمالي، محوّلة إلى توقيت السعودية (UTC+3). يبدأ الفصل الفلكي عند اللحظة نفسها عالمياً، لكن التاريخ والساعة يختلفان حسب المنطقة الزمنية.</p>
-<div class="crop-grid">
+<div class="crop-grid" id="astroGrid">
 <article class="crop-card"><strong>🌱 الربيع الفلكي</strong><h3>20 مارس 2026</h3><p><b>5:46 مساءً</b> — الاعتدال الربيعي</p></article>
 <article class="crop-card"><strong>☀️ الصيف الفلكي</strong><h3>21 يونيو 2026</h3><p><b>11:24 صباحاً</b> — الانقلاب الصيفي</p></article>
 <article class="crop-card"><strong>🍂 الخريف الفلكي</strong><h3>23 سبتمبر 2026</h3><p><b>3:05 صباحاً</b> — الاعتدال الخريفي</p></article>
 <article class="crop-card"><strong>❄️ الشتاء الفلكي</strong><h3>21 ديسمبر 2026</h3><p><b>11:50 مساءً</b> — الانقلاب الشتوي</p></article>
 </div>
 <div class="note">للمقارنة: الفصول المناخية (الأرصادية) ثابتة بالأشهر: الربيع يبدأ 1 مارس، الصيف 1 يونيو، الخريف 1 سبتمبر، والشتاء 1 ديسمبر. أما الفصول الفلكية فتبدأ في لحظة الاعتدال أو الانقلاب وتتغير تواريخها وساعاتها من سنة إلى أخرى. لا تخلط بين التعريفين.</div>
-<p><small>مصدر اللحظات الفلكية: المرصد البحري الأمريكي USNO، الأوقات الأصلية بالتوقيت العالمي UTC، والتحويل إلى توقيت السعودية بإضافة 3 ساعات. راجع المصدر للسنة المطلوبة قبل عرضها مستقبلاً.</small></p>
+<p><small id="astroSource">مصدر اللحظات الفلكية: المرصد البحري الأمريكي USNO، الأوقات الأصلية بالتوقيت العالمي UTC، والتحويل إلى توقيت السعودية بإضافة 3 ساعات. راجع المصدر للسنة المطلوبة قبل عرضها مستقبلاً.</small></p>
 </section>
 <section class="seasonal-block">
 <h2>التقويم الزراعي: ماذا أزرع وماذا أخدم الآن؟</h2>
@@ -121,6 +121,7 @@ main{max-width:1120px;margin:auto;padding:18px 14px 36px}.hero,.panel{background
 <p>التقويم الزراعي يستند جزئياً إلى مفكرة الوزارة الطبعة السابعة 2018–2019، وهي مرجع تاريخي إرشادي لا يثبت وحده صلاحية الموعد حالياً. بعض الجداول شهرية وعلى مستوى مناطق واسعة؛ لذلك يعرض المرصد نوافذ شهرية لا يوماً دقيقاً حين لا يدعم المصدر دقة أعلى. يجب تحديث التوصيات عند توفر إصدارات أحدث، وتحليلها بحسب الارتفاع والصنف والطقس المحلي.</p>
 </section>
 </main>
+<script src="../src/platform/time/astro-seasons.js"></script>
 <script src="../src/platform/http/client.js"></script>
 <script src="../src/platform/time/saudi-time.js"></script>
 <script src="../src/platform/data/source-state.js"></script>
@@ -307,6 +308,28 @@ async function loadOrchardWeather(){
 }
 orchardButton.addEventListener("click",loadOrchardWeather);
 
+})();
+// Astronomical seasons for the current Saudi year, computed (Meeus ch. 27).
+(function(){
+ if(typeof AstroSeasons!=="object")return;
+ var grid=document.getElementById("astroGrid"),title=document.getElementById("astroTitle"),src=document.getElementById("astroSource");
+ if(!grid||!title)return;
+ var now=new Date(),saudiYear=Number(new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Riyadh",year:"numeric"}).format(now));
+ var icons={march:"🌱 الربيع الفلكي",june:"☀️ الصيف الفلكي",september:"🍂 الخريف الفلكي",december:"❄️ الشتاء الفلكي"};
+ var dateFmt=new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn",{timeZone:"Asia/Riyadh",day:"numeric",month:"long",year:"numeric"});
+ var timeFmt=new Intl.DateTimeFormat("ar-SA-u-nu-latn",{timeZone:"Asia/Riyadh",hour:"numeric",minute:"2-digit"});
+ try{
+  var events=AstroSeasons.events(saudiYear),next=events.find(function(e){return e.utc>now});
+  title.textContent="مواعيد الفصول الفلكية — "+saudiYear;
+  grid.replaceChildren.apply(grid,events.map(function(e){
+   var card=document.createElement("article");card.className="crop-card";
+   var label=document.createElement("strong");label.textContent=icons[e.id]+(e===next?" · القادم":e.utc<=now?" · مضى":"");
+   var h=document.createElement("h3");h.textContent=dateFmt.format(e.utc);
+   var p=document.createElement("p");var b=document.createElement("b");b.textContent="نحو "+timeFmt.format(e.utc);p.append(b," — "+e.label.replace(/ \(.*\)$/,""));
+   card.append(label,h,p);return card;
+  }));
+  if(src)src.textContent="محسوبة في المتصفح بخوارزمية Jean Meeus (Astronomical Algorithms، الفصل 27) بدقة نحو دقيقة، ومحوّلة إلى توقيت السعودية (UTC+3). طابقت جدول هيئة الأرصاد الأمريكية NWS المأخوذ من بيانات المرصد البحري USNO لعامي 2026 و2027 بفارق لا يزيد عن دقيقة. هذه مواعيد فلكية، وليست بدايات المواسم الشعبية أو الفصول المناخية.";
+ }catch(error){/* keep the static fallback */}
 })();
 </script>
 </body>

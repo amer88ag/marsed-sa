@@ -116,6 +116,8 @@
         }));
         return {
           location_id: locations[index].id,
+          // Terrain elevation of the model point used for this route sample (90 m DEM per Open-Meteo docs).
+          elevation_m: numericOrNull(item.elevation, "elevation"),
           hourly: rows,
           retrieved_at: retrievedAt || new Date().toISOString(),
           provider_id: "open-meteo",
@@ -210,7 +212,8 @@
       ["dew_point", "dew_point_2m", "°C"],
       ["cloud_cover", "cloud_cover", "%"],
       ["pressure_msl", "pressure_msl", "hPa"],
-      ["surface_pressure", "surface_pressure", "hPa"]
+      ["surface_pressure", "surface_pressure", "hPa"],
+      ["visibility", "visibility", "m"]
     ].map(([name, key, unit]) => ({
       name, unit, value: numericOrNull(current[key], key), unit_status: unitStatus(payload.current_units, key)
     }));
