@@ -16,7 +16,7 @@ const plant = () => ({
     soil_ph: { min: 5.5, max: 8, source_ids: ["ministry-guide"] }
   },
   operations: [{ type: "pruning", source_ids: ["ministry-guide"] }],
-  sources: [source]
+  sources: [{ ...source }]
 });
 
 test("plant record requires Arabic and scientific names and a supported category", () => {
