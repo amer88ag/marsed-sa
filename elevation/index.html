@@ -44,16 +44,20 @@ button,input{font:inherit}button{border:1px solid var(--line);background:#fff;bo
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="../src/platform/http/client.js"></script>
+<script src="../src/platform/geo/cities.js"></script>
+<script src="../src/platform/geo/map-frame.js"></script>
 <script>
 (function(){
 "use strict";
 var $=function(id){return document.getElementById(id)};
 var map=L.map("map").setView([23.8,45.0],5),marker=null,requestId=0,activeAbort=null,lastResult=null,TIMEOUT_MS=12000;
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+if(typeof SaudiMapFrame!=="undefined")SaudiMapFrame.frame(map,L,{url:"../data/geo/saudi_boundary.geojson"});
 function status(message,isError){$("status").textContent=message;$("status").style.color=isError?"#b42318":""}
 function fmt(value){return Number(value).toFixed(5)}
 async function measure(lat,lon,zoom){
  if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat < -90||lat > 90||lon < -180||lon > 180){status("الإحداثيات غير صحيحة. تحقق من خط العرض والطول.",true);return}
+ if(typeof SaudiMapFrame!=="undefined"&&!SaudiMapFrame.contains(lat,lon)){status("النقطة خارج نطاق المرصد (المملكة العربية السعودية وما حولها). اختر نقطة داخل النطاق.",true);return}
  var id=++requestId;
  // Cancel the previous point's request; the id check below also discards any late reply.
  if(activeAbort)activeAbort.abort();

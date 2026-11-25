@@ -70,6 +70,8 @@
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="../src/platform/http/client.js"></script>
+<script src="../src/platform/geo/cities.js"></script>
+<script src="../src/platform/geo/map-frame.js"></script>
 <script src="../src/services/satellite/nasa-gibs.js"></script>
 <script>
 (function(){
@@ -133,8 +135,10 @@ function moveDate(offset){
 }
 function init(){
  if(!window.L){setStatus("تعذر تحميل مكتبة الخريطة. تحقق من الاتصال.",true);return}
- map=L.map("satMap",{scrollWheelZoom:true,minZoom:2,maxZoom:10}).setView([23.8,45.2],5);
+ map=L.map("satMap",{scrollWheelZoom:true,minZoom:4,maxZoom:10}).setView([23.8,45.2],5);
  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+ // Vector outline sits in Leaflet's overlay pane, above the imagery tiles. Illustrative, not an official boundary.
+ if(typeof SaudiMapFrame!=="undefined")SaudiMapFrame.frame(map,L,{url:"../data/geo/saudi_boundary.geojson"});
  $("layer").addEventListener("change",refreshAvailability);
  $("imageDate").addEventListener("change",loadLayer);
  $("refreshImage").addEventListener("click",refreshAvailability);

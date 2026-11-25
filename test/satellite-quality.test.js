@@ -128,7 +128,7 @@ function coverageHarness(availability) {
     getAvailableDates: (key, fetchImpl, options) => { calls.push(key); return availability(key, options); }
   });
   const CoverageStub = Object.assign({}, Coverage, {
-    checkPoint: async (key, date, point) => ({ id: point.id, name: point.name, lat: point.lat, lon: point.lon, z: 7, x: 1, y: 1, url: "u", status: key === "modisAquaTrue" ? "blank" : "valid" })
+    checkPoint: async (key, date, point) => ({ id: point.id, name: point.name, lat: point.lat, lon: point.lon, region_id: point.region_id, z: 7, x: 1, y: 1, url: "u", status: key === "modisAquaTrue" ? "blank" : "valid" })
   });
   const page = runPage("satellite/coverage.html", {
     NasaGibsSatellite: SatelliteStub, NasaGibsCoverage: CoverageStub, HttpClient: Http, Image: function () {}
@@ -157,7 +157,15 @@ test("four-layer scan: one layer failing does not fail the others, and the summa
   const pills = page.$("summary").children.map(child => child.textContent);
   assert.equal(pills.length, 4);
   assert.ok(pills.some(text => /MODIS Terra — ألوان طبيعية: تعذر الفحص/.test(text)));
-  assert.ok(pills.some(text => /MODIS Aqua.*فارغة 19/.test(text)));
+  assert.ok(pills.some(text => /MODIS Aqua.*و19 فارغة/.test(text)));
+  // Three separate indicators per layer: server response, verified content, regional coverage.
+  const viirs = pills.find(text => /VIIRS/.test(text));
+  assert.match(viirs, /① استجابة خادم الصور: 19 من 19/);
+  assert.match(viirs, /② محتوى مرئي متحقق منه: 19 صالحة/);
+  assert.match(viirs, /③ تغطية المناطق المستهدفة: 13 من 13 منطقة/);
+  const aqua = pills.find(text => /MODIS Aqua/.test(text));
+  assert.match(aqua, /① استجابة خادم الصور: 19 من 19/, "delivered tiles still count as responses");
+  assert.match(aqua, /③ تغطية المناطق المستهدفة: 0 من 13/, "blank tiles give no regional coverage");
 });
 
 test("12. coverage page rejects a run on a date that is in range but off-step", async () => {

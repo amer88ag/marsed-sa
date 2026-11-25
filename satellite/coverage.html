@@ -55,6 +55,7 @@ table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:right;
 </main>
 <script src="../src/platform/http/client.js"></script>
 <script src="../src/services/satellite/nasa-gibs.js"></script>
+<script src="../src/platform/geo/cities.js"></script>
 <script src="../src/services/satellite/nasa-gibs-coverage.js"></script>
 <script>
 (function(){
@@ -67,6 +68,16 @@ var STATE_LABELS={valid:"محتوى مرئي صالح",partial:"بلاطة جز�
 function status(message,error){$("status").textContent=message;$("status").classList.toggle("error",!!error)}
 function dateStatus(message,error){$("dateStatus").textContent=message;$("dateStatus").classList.toggle("error",!!error)}
 function summaryText(counts){return "محتوى صالح "+counts.valid+" · جزئية "+counts.partial+" · فارغة "+counts.blank+" · دون تحقق "+counts.unverified+" · فشل/مهلة "+counts.failed+" (من "+counts.total+")"}
+// Three independent indicators: (1) server response, (2) verified visible content, (3) regional sample coverage.
+function indicatorsText(results){
+ var counts=NasaGibsCoverage.summarize(results),regions=NasaGibsCoverage.summarizeRegions(results);
+ var missing=regions.regions.filter(function(item){return item.points>0&&item.valid===0}).map(function(item){return item.name});
+ return "① استجابة خادم الصور: "+counts.delivered+" من "+counts.total+" بلاطة"+
+  " · ② محتوى مرئي متحقق منه: "+counts.valid+" صالحة و"+counts.partial+" جزئية و"+counts.blank+" فارغة و"+counts.unverified+" دون تحقق"+
+  " · ③ تغطية المناطق المستهدفة: "+regions.withValidContent+" من "+regions.total+" منطقة إدارية فيها نقطة واحدة على الأقل بمحتوى صالح"+
+  (missing.length?" (دون محتوى صالح: "+missing.join("، ")+")":"")+
+  ". المؤشر الثالث عينة نقطية لكل منطقة وليس قياساً لتغطية المساحة.";
+}
 function renderSummary(results){
  var counts=NasaGibsCoverage.summarize(results);
  $("summary").innerHTML="";
@@ -153,7 +164,7 @@ async function runAllLayers(){
     renderRows(results,meta.title,date,true);
     allResults=allResults.concat(results);
     var pill=document.createElement("span");pill.className="pill";
-    pill.textContent=meta.title+" ("+date+"): "+summaryText(NasaGibsCoverage.summarize(results));
+    pill.textContent=meta.title+" ("+date+"): "+indicatorsText(results);
     $("summary").appendChild(pill);
    }catch(layerError){
     failedLayers++;
@@ -163,7 +174,7 @@ async function runAllLayers(){
    }
   }
   var totals=NasaGibsCoverage.summarize(allResults);
-  status("اكتمل فحص الطبقات: "+summaryText(totals)+(failedLayers?" · تعذر فحص "+failedLayers+" طبقة":"")+". النتائج عينة من 19 نقطة وليست إثباتاً لتغطية وطنية.",failedLayers>0||totals.failed>0);
+  status("اكتمل فحص الطبقات: "+summaryText(totals)+(failedLayers?" · تعذر فحص "+failedLayers+" طبقة":"")+". النتائج عينة من "+NasaGibsCoverage.POINTS.length+" نقطة وليست إثباتاً لتغطية وطنية.",failedLayers>0||totals.failed>0);
  }catch(error){status("توقف فحص الطبقات: "+error.message,true)}
  finally{
   busy=false;$("runAll").disabled=false;$("layer").disabled=false;
@@ -174,14 +185,14 @@ async function run(){
  if(busy)return;
  var key=$("layer").value,date=$("imageDate").value;
  if(!NasaGibsSatellite.isDateAvailable(date,cachedPeriods)){status("التاريخ المختار غير متاح ضمن فترات هذه الطبقة أو لا يوافق خطوتها الزمنية. اختر تاريخاً آخر.",true);return}
- busy=true;$("run").disabled=true;$("runAll").disabled=true;$("layer").disabled=true;$("imageDate").disabled=true;status("جارٍ اختبار 19 موقعاً؛ قد يستغرق الفحص بعض الوقت…");
+ busy=true;$("run").disabled=true;$("runAll").disabled=true;$("layer").disabled=true;$("imageDate").disabled=true;status("جارٍ اختبار "+NasaGibsCoverage.POINTS.length+" موقعاً؛ قد يستغرق الفحص بعض الوقت…");
  try{
   var results=await Promise.all(NasaGibsCoverage.POINTS.map(function(point){
    return NasaGibsCoverage.checkPoint(key,date,point,NasaGibsSatellite,Image,TIMEOUT_MS);
   }));
   renderRows(results,NasaGibsSatellite.getLayer(key).title,date,false);
   var counts=renderSummary(results);
-  status("انتهى الفحص: "+summaryText(counts)+". هذه عينة عند z=7 وليست تغطية وطنية.",counts.valid!==counts.total);
+  status("انتهى الفحص — "+indicatorsText(results)+" المستوى z=7.",counts.valid!==counts.total);
  }catch(error){status("تعذر إكمال الفحص: "+error.message,true)}
  finally{
   busy=false;$("layer").disabled=false;$("runAll").disabled=false;

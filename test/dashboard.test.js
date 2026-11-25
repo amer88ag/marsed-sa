@@ -12,15 +12,17 @@ test('Arabic RTL document and responsive viewport are present', () => {
 });
 
 test('all configured Saudi cities have coordinates and labels', () => {
-  const cityBlock = html.match(/var places=\{([\s\S]*?)\};/);
-  assert.ok(cityBlock, 'city registry exists');
-  const keys = [...cityBlock[1].matchAll(/([a-z]+):\{name:/g)].map(m => m[1]);
+  // The dashboard reads its cities from the unified registry instead of an inline list.
+  assert.match(html, /var places=CityRegistry\.placesFor\("dashboard"\);/);
+  assert.doesNotMatch(html, /var places=\{/);
+  const places = require('../src/platform/geo/cities.js').placesFor('dashboard');
+  const keys = Object.keys(places);
   assert.ok(keys.length >= 13, 'at least 13 Saudi cities are configured');
   for (const key of keys) {
-    const entry = cityBlock[1].match(new RegExp(key + ':\\{name:"[^"]+",lat:([0-9.]+),lon:([0-9.]+)\\}'));
-    assert.ok(entry, key + ' has numeric latitude and longitude');
-    assert.ok(Number(entry[1]) >= 16 && Number(entry[1]) <= 33, key + ' latitude is within Saudi bounds');
-    assert.ok(Number(entry[2]) >= 34 && Number(entry[2]) <= 56, key + ' longitude is within Saudi bounds');
+    const entry = places[key];
+    assert.ok(entry.name && Number.isFinite(entry.lat) && Number.isFinite(entry.lon), key + ' has a label and numeric coordinates');
+    assert.ok(entry.lat >= 16 && entry.lat <= 33, key + ' latitude is within Saudi bounds');
+    assert.ok(entry.lon >= 34 && entry.lon <= 56, key + ' longitude is within Saudi bounds');
   }
 });
 
@@ -322,6 +324,7 @@ function createDashboardHarness() {
   const document = { getElementById };
   const window = { L: leaflet };
   const context = {
+    CityRegistry: require("../src/platform/geo/cities.js"),
     document, window, L: leaflet, console, Date, Math, Number, isFinite,
     URL,
     WeatherService: {

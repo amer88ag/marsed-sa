@@ -1,32 +1,17 @@
 (function (root, factory) {
-  const api = factory();
+  const cities = (typeof module === "object" && module.exports)
+    ? require("../../platform/geo/cities.js")
+    : root && root.CityRegistry;
+  const api = factory(cities);
   if (typeof module === "object" && module.exports) module.exports = api;
   if (root) root.NasaGibsCoverage = api;
-})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+})(typeof globalThis !== "undefined" ? globalThis : this, function (cities) {
   "use strict";
 
   const ZOOM = 7;
-  const POINTS = Object.freeze([
-    { id: "tabuk", name: "تبوك", lat: 28.3838, lon: 36.5550 },
-    { id: "arar", name: "عرعر", lat: 30.9753, lon: 41.0381 },
-    { id: "sakaka", name: "سكاكا", lat: 29.9697, lon: 40.2064 },
-    { id: "hail", name: "حائل", lat: 27.5114, lon: 41.7208 },
-    { id: "hafr", name: "حفر الباطن", lat: 28.4328, lon: 45.9708 },
-    { id: "dammam", name: "الدمام", lat: 26.4207, lon: 50.0888 },
-    { id: "riyadh", name: "الرياض", lat: 24.7136, lon: 46.6753 },
-    { id: "qassim", name: "بريدة", lat: 26.3592, lon: 43.9818 },
-    { id: "madinah", name: "المدينة المنورة", lat: 24.5247, lon: 39.5692 },
-    { id: "yanbu", name: "ينبع", lat: 24.0895, lon: 38.0618 },
-    { id: "makkah", name: "مكة المكرمة", lat: 21.3891, lon: 39.8579 },
-    { id: "jeddah", name: "جدة", lat: 21.4858, lon: 39.1925 },
-    { id: "taif", name: "الطائف", lat: 21.2703, lon: 40.4158 },
-    { id: "albaha", name: "الباحة", lat: 20.0129, lon: 41.4677 },
-    { id: "abha", name: "أبها", lat: 18.2164, lon: 42.5053 },
-    { id: "khamis", name: "خميس مشيط", lat: 18.3064, lon: 42.7290 },
-    { id: "jazan", name: "جازان", lat: 16.8894, lon: 42.5511 },
-    { id: "najran", name: "نجران", lat: 17.4924, lon: 44.1277 },
-    { id: "sharurah", name: "شرورة", lat: 17.4667, lon: 47.1167 }
-  ]);
+  // Sampling points come from the unified city registry (config/cities.json, group
+  // "coverage"): one source of truth shared with weather, CHIRPS and routing.
+  const POINTS = Object.freeze(cities.pointsFor("coverage").map(function (point) { return Object.freeze(point); }));
 
   function tileCoordinates(lat, lon, zoom) {
     const z = zoom === undefined ? ZOOM : zoom;
@@ -172,7 +157,7 @@
   async function checkPoint(layerKey, date, point, satelliteService, ImageCtor, timeoutMs, options) {
     const request = buildProbeUrl(layerKey, date, point, satelliteService);
     const result = await probeImage(request.url, ImageCtor, timeoutMs, options);
-    return Object.assign({ id: point.id, name: point.name, lat: point.lat, lon: point.lon, url: request.url }, request.tile, result);
+    return Object.assign({ id: point.id, name: point.name, lat: point.lat, lon: point.lon, region_id: point.region_id || null, url: request.url }, request.tile, result);
   }
 
   // Aggregates a list of probe results without merging distinct meanings.
@@ -190,5 +175,27 @@
     return counts;
   }
 
-  return { ZOOM, POINTS, tileCoordinates, buildProbeUrl, analyzePixels, probeImage, checkPoint, summarize };
+  // Third, independent indicator: how many of the 13 administrative regions have
+  // at least one point with verified visible content. A point sample per region,
+  // not an areal coverage measurement.
+  function summarizeRegions(results) {
+    const regions = (cities && cities.REGISTRY && cities.REGISTRY.regions) || [];
+    const byRegion = {};
+    regions.forEach(function (region) { byRegion[region.id] = { id: region.id, name: region.name_ar, points: 0, valid: 0 }; });
+    (Array.isArray(results) ? results : []).forEach(function (result) {
+      const entry = byRegion[result.region_id];
+      if (!entry) return;
+      entry.points++;
+      if (result.status === "valid") entry.valid++;
+    });
+    const list = Object.keys(byRegion).map(function (key) { return byRegion[key]; });
+    return {
+      total: list.length,
+      sampled: list.filter(function (item) { return item.points > 0; }).length,
+      withValidContent: list.filter(function (item) { return item.valid > 0; }).length,
+      regions: list
+    };
+  }
+
+  return { ZOOM, POINTS, summarizeRegions, tileCoordinates, buildProbeUrl, analyzePixels, probeImage, checkPoint, summarize };
 });
