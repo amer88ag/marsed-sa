@@ -124,7 +124,7 @@ test("summary keeps delivered, verified and failed counts distinct", () => {
 function coverageHarness(availability) {
   const calls = [];
   const SatelliteStub = Object.assign({}, Satellite, {
-    saudiDate: () => "2026-11-24",
+    saudiDate: () => "2026-11-24", productDateCap: () => "2026-11-24",
     getAvailableDates: (key, fetchImpl, options) => { calls.push(key); return availability(key, options); }
   });
   const CoverageStub = Object.assign({}, Coverage, {

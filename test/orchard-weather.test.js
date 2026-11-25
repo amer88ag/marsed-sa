@@ -23,9 +23,11 @@ test("daily normalization preserves null and rejects mismatched arrays", () => {
 });
 
 test("risk rules distinguish cold, heat and modeled water-balance signals", () => {
+  // Rows as produced by normalizeDaily: every field carries a verified unit status.
+  const verified = {min:"verified",max:"verified",precipitation:"verified",precipitationProbability:"verified",et0:"verified"};
   const result = OrchardWeather.evaluate([
-    {date:"2026-11-24",min:0,max:41,precipitation:0,et0:7},
-    {date:"2026-11-25",min:8,max:34,precipitation:2,et0:4}
+    {date:"2026-11-24",min:0,max:41,precipitation:0,et0:7,unit_status:verified},
+    {date:"2026-11-25",min:8,max:34,precipitation:2,et0:4,unit_status:verified}
   ], "flower");
   assert.ok(result[0].alerts.some(x => x.type === "cold" && x.level === "high"));
   assert.ok(result[0].alerts.some(x => x.type === "heat" && x.level === "high"));

@@ -86,7 +86,7 @@ function loadLayer(){
  if(!map||!window.L)return;
  var key=$("layer").value,date=$("imageDate").value;
  if(!NasaGibsSatellite.validDate(date)){setStatus("اختر تاريخاً صحيحاً للصورة.",true);return}
- if(!NasaGibsSatellite.isDateAvailable(date,availablePeriods)){setStatus("لا توجد بيانات موثقة لهذا التاريخ في الطبقة المختارة. اختر تاريخاً متاحاً.",true);return}
+ if(!NasaGibsSatellite.isDateAvailable(date,availablePeriods)){var before=NasaGibsSatellite.adjacentAvailableDate(date,availablePeriods,-1,$("imageDate").max),after=NasaGibsSatellite.adjacentAvailableDate(date,availablePeriods,1,$("imageDate").max);setStatus("لا توجد بيانات موثقة لهذا التاريخ في الطبقة المختارة (خارج فتراتها أو خطوتها الزمنية)."+(before||after?" أقرب تاريخ متاح: "+[before,after].filter(Boolean).join(" أو ")+".":" اختر تاريخاً متاحاً."),true);return}
  var meta=NasaGibsSatellite.getLayer(key),renderId=++renderRequestId;
  currentTileErrors=0;
  clearImage();
@@ -110,7 +110,7 @@ async function refreshAvailability(){
   var result=await NasaGibsSatellite.getAvailableDates(key,null,{signal:availabilityAbort?availabilityAbort.signal:undefined,timeoutMs:15000});
   if(requestId!==availabilityRequestId)return;
   availablePeriods=result.periods;
-  var latest=result.latestDate,today=NasaGibsSatellite.saudiDate(new Date());
+  var latest=result.latestDate,today=NasaGibsSatellite.productDateCap(new Date());
   if(!latest){setStatus("لم تُرجع الخدمة تاريخاً متاحاً لهذه الطبقة.",true);return}
   // Step-aware: the latest date that the WMTS domain actually lists (respects P1D/P8D/P1M and gaps).
   var latestAtOrBeforeToday=NasaGibsSatellite.latestAvailableOnOrBefore(availablePeriods,today);

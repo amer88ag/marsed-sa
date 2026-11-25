@@ -60,7 +60,7 @@ test("elevation: timeout and invalid values are reported, not shown as numbers",
 // ---- road trip on the dashboard ----------------------------------------------
 function dashboardHarness(services) {
   return runPage("index.html", Object.assign({
-    L: leaflet(), HttpClient: Http, RouteItinerary: Itinerary, OsrmAdapter: Osrm, CityRegistry: require("../src/platform/geo/cities.js"), SaudiTime: require("../src/platform/time/saudi-time.js"), FreshnessPolicy: require("../src/platform/quality/freshness.js"),
+    L: leaflet(), HttpClient: Http, RouteItinerary: Itinerary, OsrmAdapter: Osrm, CityRegistry: require("../src/platform/geo/cities.js"), SaudiTime: require("../src/platform/time/saudi-time.js"), FreshnessPolicy: require("../src/platform/quality/freshness.js"), UnitPolicy: require("../src/platform/quality/units.js"),
     PrecipitationService: { fetchDataset: async () => { throw new Error("offline"); }, getCitySeries() {} },
     WeatherService: {
       fetchWeather: () => new Promise(() => {}),

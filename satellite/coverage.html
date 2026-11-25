@@ -127,7 +127,7 @@ async function refreshDates(){
  try{
   var result=await NasaGibsSatellite.getAvailableDates(key,null,{signal:newSignal(),timeoutMs:TIMEOUT_MS});
   if(requestId!==availabilityRequestId||key!==$("layer").value)return;
-  var today=NasaGibsSatellite.saudiDate(new Date());
+  var today=NasaGibsSatellite.productDateCap(new Date());
   var latestAtOrBeforeToday=NasaGibsSatellite.latestAvailableOnOrBefore(result.periods,today);
   if(!latestAtOrBeforeToday)throw new Error("لا توجد فترة متاحة حتى تاريخ اليوم");
   cachedPeriods=result.periods;
@@ -135,7 +135,7 @@ async function refreshDates(){
   $("imageDate").max=latestAtOrBeforeToday;
   $("imageDate").value=latestAtOrBeforeToday;
   $("imageDate").disabled=false;$("run").disabled=false;
-  dateStatus("أحدث تاريخ متاح حتى اليوم وفق نطاق الخدمة وخطوته الزمنية: "+latestAtOrBeforeToday+". اختر تاريخاً ضمن الفترات المتاحة ثم ابدأ الفحص.");
+  dateStatus("أحدث تاريخ متاح حتى اليوم (بتوقيت UTC، كما تؤرخ NASA منتجاتها) وفق نطاق الخدمة وخطوته الزمنية: "+latestAtOrBeforeToday+". اختر تاريخاً ضمن الفترات المتاحة ثم ابدأ الفحص.");
  }catch(error){
   if(requestId!==availabilityRequestId||key!==$("layer").value||(error&&error.kind==="aborted"))return;
   dateStatus("تعذر التحقق من نطاق التواريخ. قد يكون الاتصال أو CORS غير متاح من هذا المتصفح أو انتهت المهلة. "+error.message,true)
@@ -146,7 +146,7 @@ async function runAllLayers(){
  var keys=["viirsTrue","modisTerraTrue","modisAquaTrue","modisFalse"];
  busy=true;$("run").disabled=true;$("runAll").disabled=true;$("layer").disabled=true;$("imageDate").disabled=true;
  $("results").innerHTML="";$("summary").innerHTML="";
- var allResults=[],failedLayers=0,today=NasaGibsSatellite.saudiDate(new Date());
+ var allResults=[],failedLayers=0,today=NasaGibsSatellite.productDateCap(new Date());
  try{
   for(var index=0;index<keys.length;index++){
    var key=keys[index],meta=NasaGibsSatellite.getLayer(key);

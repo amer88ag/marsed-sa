@@ -1,11 +1,11 @@
 (function (root, factory) {
-  const http = (typeof module === "object" && module.exports)
-    ? require("../../platform/http/client.js")
-    : (root && root.HttpClient) || null;
-  const api = factory(http);
+  const node = typeof module === "object" && module.exports;
+  const http = node ? require("../../platform/http/client.js") : (root && root.HttpClient) || null;
+  const units = node ? require("../../platform/quality/units.js") : (root && root.UnitPolicy) || null;
+  const api = factory(http, units);
   if (typeof module === "object" && module.exports) module.exports = api;
   if (root) root.OrchardWeather = api;
-})(typeof globalThis !== "undefined" ? globalThis : this, function (http) {
+})(typeof globalThis !== "undefined" ? globalThis : this, function (http, units) {
   "use strict";
 
   const DAILY_FIELDS = "temperature_2m_min,temperature_2m_max,precipitation_sum,precipitation_probability_max,et0_fao_evapotranspiration";
@@ -78,11 +78,29 @@
     return Number.isFinite(n) ? n : null;
   }
 
-  function normalizeDaily(payload) {
+  const ROW_FIELDS = { min: "temperature_2m_min", max: "temperature_2m_max", precipitation: "precipitation_sum",
+    precipitationProbability: "precipitation_probability_max", et0: "et0_fao_evapotranspiration" };
+
+  // Rows plus unit quality. Mismatched units are nulled; every row carries the
+  // unit status of each field so indicators can refuse unverified values.
+  function normalizeDailyWithQuality(payload) {
     if (!payload || !payload.daily || !Array.isArray(payload.daily.time)) {
       throw new TypeError("Weather response has no daily series");
     }
-    const daily = payload.daily;
+    if (!units) throw new Error("Unit policy is unavailable");
+    const quality = units.newQuality();
+    const guarded = units.guardBlock(payload.daily, payload.daily_units, quality, "daily");
+    const status = {};
+    Object.keys(ROW_FIELDS).forEach(function (name) { status[name] = units.unitStatus(payload.daily_units, ROW_FIELDS[name]); });
+    const rows = normalizeColumns(guarded).map(function (row) { return Object.assign(row, { unit_status: Object.assign({}, status) }); });
+    return { rows: rows, quality: quality };
+  }
+
+  function normalizeDaily(payload) {
+    return normalizeDailyWithQuality(payload).rows;
+  }
+
+  function normalizeColumns(daily) {
     const dates = daily.time;
     const fields = [
       "temperature_2m_min",
@@ -114,9 +132,24 @@
   function alert(level, type, text, basis, limits, source) {
     return { level: level, type: type, text: text, basis: basis, limits: limits, source: source };
   }
-  function classifyDay(day, stage, sourceLabel) {
+  // A value feeds an indicator only when present AND its unit is verified.
+  function usable(day, field) {
+    return day[field] !== null && day[field] !== undefined && !!day.unit_status && day.unit_status[field] === "verified";
+  }
+  const FIELD_LABELS = { min: "الصغرى", max: "العظمى", precipitation: "الهطول", et0: "ET₀" };
+  function classifyDay(rawDay, stage, sourceLabel) {
     const alerts = [];
     const source = sourceLabel || "Open-Meteo";
+    // Unverified values are blanked for the checks below (shown, but never judged).
+    const day = Object.assign({}, rawDay);
+    const skipped = [];
+    ["min", "max", "precipitation", "et0"].forEach(function (field) {
+      if (rawDay[field] !== null && rawDay[field] !== undefined && !usable(rawDay, field)) { skipped.push(FIELD_LABELS[field]); day[field] = null; }
+    });
+    if (skipped.length) {
+      alerts.push(alert("info", "unit", "لم تُقيَّم بعض المؤشرات لهذا اليوم لعدم التحقق من وحدة القيم: " + skipped.join("، ") + ".",
+        "الخدمة لم تعلن الوحدة أو أعلنت وحدة مختلفة", "تُعرض القيم كما وردت لكنها لا تدخل في أي مؤشر", source));
+    }
     if (day.min !== null && day.min <= 0) {
       alerts.push(alert("high", "cold", "مؤشر برودة شديدة: الصغرى في النموذج عند أو دون الصفر. ليس إنذار صقيع رسمياً؛ تحقق بقراءة محلية قرب الأرض واتبع إرشاداً زراعياً لحماية الأجزاء الحساسة.",
         "الحرارة الدنيا " + day.min + "°م ≤ 0°م", MODEL_LIMIT + "؛ حرارة سطح النبات قد تختلف عن حرارة الهواء على ارتفاع 2 م، وحد التضرر يختلف بحسب النوع والصنف والمرحلة ومدة البرودة.", source));
@@ -193,8 +226,10 @@
 
   async function fetchDaily(url, kind, config) {
     const payload = await http.request(url, { fetch: config.fetch, headers: { Accept: "application/json" }, signal: config.signal, timeoutMs: config.timeoutMs });
-    const rows = normalizeDaily(payload);
-    return { ok: true, rows: rows, source: describeSource(payload, kind, rows, config.retrievedAt), error: null };
+    const normalized = normalizeDailyWithQuality(payload);
+    const source = describeSource(payload, kind, normalized.rows, config.retrievedAt);
+    source.unit_quality = normalized.quality;
+    return { ok: true, rows: normalized.rows, source: source, quality: normalized.quality, error: null };
   }
 
   // Fetches forecast and reanalysis independently: one failing never hides the other.
@@ -212,5 +247,5 @@
     return { forecast: toResult(settled[0]), archive: toResult(settled[1]) };
   }
 
-  return { buildForecastUrl, buildArchiveUrl, normalizeDaily, evaluate, describeSource, elevationContext, fetchOrchardData, shiftDate, validLocation, saudiToday };
+  return { normalizeDailyWithQuality, buildForecastUrl, buildArchiveUrl, normalizeDaily, evaluate, describeSource, elevationContext, fetchOrchardData, shiftDate, validLocation, saudiToday };
 });

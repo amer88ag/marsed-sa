@@ -122,6 +122,7 @@ main{max-width:1120px;margin:auto;padding:18px 14px 36px}.hero,.panel{background
 </section>
 </main>
 <script src="../src/platform/http/client.js"></script>
+<script src="../src/platform/quality/units.js"></script>
 <script src="../src/services/agriculture/orchard-weather.js"></script>
 <script>
 (function(){
@@ -223,7 +224,7 @@ function orchardCard(title, lines, alerts){
  var strong=document.createElement("strong");strong.textContent=title;article.appendChild(strong);
  lines.forEach(function(line){var p=document.createElement("p");p.textContent=line;article.appendChild(p)});
  (alerts||[]).forEach(function(alert){
-  var p=document.createElement("p");p.textContent="مؤشر متابعة: "+alert.text;p.style.color=alert.level==="high"?"#b42318":"#8a5700";article.appendChild(p);
+  var p=document.createElement("p");p.textContent="مؤشر متابعة: "+alert.text;p.style.color=alert.level==="high"?"#b42318":alert.level==="info"?"#55606b":"#8a5700";article.appendChild(p);
   var why=document.createElement("small");why.textContent="السبب: "+alert.basis+" · الحدود: "+alert.limits+" · المصدر: "+alert.source;why.style.display="block";article.appendChild(why);
  });
  return article;
@@ -247,7 +248,12 @@ function renderOrchardSource(target,source){
  host.hidden=false;
  host.textContent="النوع: "+source.label+" · المصدر: "+source.provider+" · الفترة: "+(source.date_start||"—")+" إلى "+(source.date_end||"—")+
   " · نقطة الشبكة: "+(source.grid_latitude===null?"—":source.grid_latitude)+", "+(source.grid_longitude===null?"—":source.grid_longitude)+
-  " · وقت الجلب: "+new Date(source.retrieved_at).toLocaleString("ar-SA",{timeZone:"Asia/Riyadh"})+" · "+source.limitations.join(" · ")+" · "+source.attribution;
+  " · وقت الجلب: "+new Date(source.retrieved_at).toLocaleString("ar-SA",{timeZone:"Asia/Riyadh"})+" · "+source.limitations.join(" · ")+unitQualityText(source.unit_quality)+" · "+source.attribution;
+}
+function unitQualityText(q){
+ if(!q)return " · الوحدات: لم يُتحقق منها";
+ var bad=(q.unit_mismatches||[]).length,unverified=(q.unverified_units||[]).length;
+ return bad||unverified?" · الوحدات: "+(bad?"حُجبت "+bad+" قيمة لاختلاف الوحدة":"")+(bad&&unverified?" و":"")+(unverified?"لم يُتحقق من وحدة "+unverified+" حقلاً":""):" · الوحدات: متحقق منها";
 }
 function orchardError(error){return typeof HttpClient!=="undefined"&&error&&error.kind?HttpClient.describeError(error):(error&&error.message?error.message:"خطأ غير معروف")}
 async function loadOrchardWeather(){

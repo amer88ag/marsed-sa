@@ -218,3 +218,20 @@
 | Natural Earth 1:10m (v5.x) | حدود المملكة (رؤية السعودية `admin_0_countries_sau`)، المناطق الـ13، مرجع إحداثيات المدن | ملك عام | غير إلزامي؛ نذكره في الخريطة مع تنبيه «ليست حدوداً رسمية» | 1:10m؛ مبسطة 0.01°/0.02° | للتوضيح فقط؛ ليست حدود GEOSA الرسمية | 2026-11-25 |
 | NCM | — | يتطلب اعتماداً وبيانات دخول | — | — | **لا تكامل قبل الموافقة** | السجل السابق |
 | GEOSA | — | تقييد النسخ والعرض العام دون موافقة خطية | — | — | **غير مفعّل** | السجل السابق (لم يُعد التحقق) |
+
+
+## سجل المزودين الموحد — 2026-11-25
+
+مطابق لـ `config/providers.json` (اختبار بوابة الإصدار G10 يفشل إذا غاب معرّف مزود من هذا الملف). عمود «الحالة الصحية» يبقى `not_monitored` أو `not_connected` لأن المراقبة الحية غير مفعّلة. نتائج الفحص الحي في 2026-11-25 موثقة في `docs/FINAL_CLOSURE_REPORT.md`.
+
+| المعرّف | المزود | حالة الترخيص | الترخيص والشروط | الإسناد | الحالة الصحية | الخدمات المستخدمة |
+|---|---|---|---|---|---|---|
+| `open-meteo` | Open-Meteo | approved_with_conditions | CC BY 4.0 for data; free API tier is for non-commercial use subject to published limits | Weather data by Open-Meteo.com | not_monitored | weather, road-trips, elevation, seasons-orchard |
+| `chirps-v3` | Climate Hazards Center — CHIRPS v3 | research_reviewed | Product catalogs describe public-domain availability; retain source attribution and verify product-specific terms | CHIRPS v3, Climate Hazards Center, UCSB | not_monitored | precipitation |
+| `ncm` | المركز الوطني للأرصاد | approval_required | Commercial/direct integration conditions and fees require written confirmation | المركز الوطني للأرصاد | not_connected | weather |
+| `nasa-imerg` | NASA GPM IMERG | review_required | Review exact product terms, attribution and redistribution conditions before public integration | NASA GPM IMERG | not_connected | — |
+| `openstreetmap` | OpenStreetMap | approved_with_conditions | Open Database License (ODbL); tile usage policy and attribution requirements apply | © OpenStreetMap contributors | not_monitored | maps, road-trips, satellite, elevation |
+| `osrm-demo` | OSRM Demo Server | review_required | OpenStreetMap-derived route data under ODbL attribution; demo service restricted to reasonable non-commercial use, max 1 request/second, best-effort without uptime or latency guarantees | © OpenStreetMap contributors · Route calculated by OSRM | not_monitored | road-trips |
+| `nasa-gibs` | NASA GIBS (Global Imagery Browse Services) | approved_with_conditions | NASA open data policy (CC0 for NASA-led mission data unless stated otherwise); acknowledge GIBS/ESDIS; no implied NASA endorsement | Imagery: NASA Earthdata / GIBS (ESDIS) | not_monitored | satellite, satellite-coverage |
+| `copernicus-dem` | Copernicus DEM GLO-90 (via Open-Meteo Elevation API) | approved_with_conditions | CC BY 4.0 with Copernicus/DLR/Airbus attribution | © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; Elevation data by Open-Meteo.com | not_monitored | elevation |
+| `natural-earth` | Natural Earth 1:10m | approved_with_conditions | Public domain | Natural Earth (public domain) | not_monitored | maps, satellite, elevation |

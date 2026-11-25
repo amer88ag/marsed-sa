@@ -30,7 +30,7 @@
 <button class="btn primary" id="refresh">تحديث البيانات</button>
 <div class="updated" id="updated">لم يتم جلب البيانات بعد</div>
 </div>
-<section class="panel trip-panel">
+<section class="panel trip-panel" id="road-trips">
 <div class="panel-head"><h2>عين الطريق والرحلات</h2><span>تجربة أولية بين المدن</span></div>
 <div class="trip-controls">
 <label for="tripOrigin">مدينة الانطلاق<select id="tripOrigin" aria-label="مدينة الانطلاق"><option value="riyadh">الرياض</option><option value="abha">أبها</option><option value="jeddah">جدة</option><option value="dammam">الدمام</option><option value="tabuk">تبوك</option><option value="hail">حائل</option><option value="buraidah">بريدة</option><option value="madinah">المدينة المنورة</option><option value="makkah">مكة المكرمة</option><option value="jazan">جازان</option><option value="najran">نجران</option><option value="arar">عرعر</option><option value="sakaka">سكاكا</option></select></label>
@@ -49,7 +49,7 @@
 <div class="map-note">الخريطة الأساسية من OpenStreetMap. موقع المؤشر يوضح المدينة المختارة، وليس قياساً لمحطة رصد.</div>
 </section>
 <div class="side">
-<section class="panel">
+<section class="panel" id="weather">
 <div class="place-title"><h2 id="placeName">الرياض</h2><p id="placeCoords">24.7136° شمالاً، 46.6753° شرقاً</p></div>
 <div id="loading" class="loading">جارٍ جلب بيانات الطقس من خدمة النماذج المفتوحة…</div>
 <div class="metrics">
@@ -91,7 +91,7 @@
 <div class="chart-wrap"><svg id="rainChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مخطط كميات الأمطار اليومية"></svg><div class="chart-labels"><span>اليوم</span><span>←</span><span>بعد 6 أيام</span></div></div>
 <div id="chartCaption" class="loading">يظهر المخطط بعد تحميل البيانات.</div>
 </section>
-<section class="panel">
+<section class="panel" id="chirps">
 <div class="panel-head"><h2>الأمطار التاريخية — CHIRPS v3</h2><span>ملم/يوم</span></div>
 <div class="chart-wrap"><svg id="chirpsChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مقارنة أمطار CHIRPS SAT وRNL اليومية عند إحداثيات المدينة"></svg><div class="chart-labels"><span>■ SAT — أزرق</span><span>■ RNL — أخضر</span></div></div>
 <div id="chirpsState" class="data-state">تعرض اللوحة عينة بحثية قصيرة محفوظة مع الموقع، وليست بيانات محدثة يومياً ولا تغطية وطنية.</div>
@@ -115,6 +115,7 @@
 <script src="src/platform/quality/freshness.js"></script>
 <script src="src/platform/geo/cities.js"></script>
 <script src="src/platform/geo/map-frame.js"></script>
+<script src="src/platform/quality/units.js"></script>
 <script src="src/providers/weather/open-meteo/adapter.js"></script>
 <script src="src/providers/precipitation/chirps/adapter.js"></script>
 <script src="src/services/weather/service.js"></script>
@@ -201,6 +202,7 @@ async function planTrip(){
    return {point:point,eta:eta,forecast:forecast};
   });
   var unavailable=rows.filter(function(row){return !row.forecast}).length;
+  var unverifiedPoints=weather.filter(function(item){return (item.unverified_units&&item.unverified_units.length)||(item.unit_mismatches&&item.unit_mismatches.length)}).length;
   clearTripMap();
   if(map&&window.L){
    var latlngs=route.geometry.map(function(pair){return [pair[1],pair[0]]});
@@ -220,7 +222,7 @@ async function planTrip(){
   }).join("");
   table+='</tbody></table>';
   $("tripOutput").innerHTML=table;
-  setText("tripStatus","تم حساب المسار وجلب ملخص الطقس للنقاط المتاحة. زمن القيادة تقدير من OSRM وليس زمن مرور حياً، ولا تتوفر بيانات ازدحام أو حوادث أو إغلاقات."+(unavailable?" · لا يتوفر توقع ساعي مطابق لوقت الوصول في "+unavailable+" نقطة؛ عُرضت «غير متاح» بدلاً من تقدير مختلق.":""));
+  setText("tripStatus","تم حساب المسار وجلب ملخص الطقس للنقاط المتاحة. زمن القيادة تقدير من OSRM وليس زمن مرور حياً، ولا تتوفر بيانات ازدحام أو حوادث أو إغلاقات."+(unavailable?" · لا يتوفر توقع ساعي مطابق لوقت الوصول في "+unavailable+" نقطة؛ عُرضت «غير متاح» بدلاً من تقدير مختلق.":"")+(unverifiedPoints?" · لم يتم التحقق من وحدات بعض القيم في "+unverifiedPoints+" نقطة؛ تُعرض كما وردت دون حكم.":""));
  }catch(error){
   if(requestId!==tripRequestId)return;
   clearTripMap();
@@ -307,8 +309,12 @@ function windDirectionLabel(degrees){
  return directions[index]+" · "+Math.round(Number(degrees))+"°";
 }
 function practicalInsight(data){
- var getValue=function(name){var item=(data.measurements||[]).find(function(x){return x.name===name});return item&&typeof item.value==="number"&&Number.isFinite(item.value)?item.value:null};
- var code=data.current_weather_code,day=data.daily&&data.daily[0],rain=day&&typeof day.precipitation_probability_max==="number"?day.precipitation_probability_max:null;
+ // Advice uses a value only when its unit was verified; unverified values are shown elsewhere but never judged here.
+ var skipped=[];
+ var verifiedField=function(scope,field){return typeof UnitPolicy!=="undefined"&&UnitPolicy.fieldVerified(data.quality,scope,field)};
+ var getValue=function(name){var item=(data.measurements||[]).find(function(x){return x.name===name});if(!item||typeof item.value!=="number"||!Number.isFinite(item.value))return null;if(item.unit_status!=="verified"){skipped.push(name);return null}return item.value};
+ var code=verifiedField("current","weather_code")?data.current_weather_code:null,day=data.daily&&data.daily[0];
+ var rain=day&&typeof day.precipitation_probability_max==="number"?(verifiedField("daily","precipitation_probability_max")?day.precipitation_probability_max:(skipped.push("precipitation_probability_max"),null)):null;
  var wind=getValue("wind_speed"),apparent=getValue("apparent_temperature"),parts=[];
  if(code!==null&&code!==undefined&&[61,63,65,80,81,82,95,96,99].includes(Number(code)))parts.push("رمز حالة الطقس في النموذج يشير إلى هطول أو عواصف؛ راجع التحديثات قبل الأنشطة الخارجية.");
  else if(rain!==null&&rain>=50)parts.push("احتمال المطر مرتفع في توقع اليوم؛ تابع التحديثات وخطط للأنشطة الخارجية وفق المستجدات.");
@@ -318,6 +324,7 @@ function practicalInsight(data){
  else if(apparent!==null&&apparent<=10)parts.push("الأجواء المحسوسة باردة؛ اختر ملابس مناسبة خصوصاً في الخارج.");
  if(wind!==null&&wind>=35)parts.push("الرياح نشطة بحسب النموذج؛ انتبه للأشياء الخفيفة أثناء الأنشطة الخارجية.");
  if(!parts.length)parts.push("لا تتوفر بيانات كافية لتكوين ملخص عملي موثوق الآن؛ راجع تفاصيل التوقعات ومصدرها.");
+ if(skipped.length)parts.push("لم تُستخدم "+skipped.length+" قيمة في هذا الملخص لعدم التحقق من وحدتها.");
  return parts.join(" ")+" هذا تفسير مبسط لمخرجات نموذج جوي وليس تنبيهاً رسمياً أو بديلاً عن تعليمات الجهات المختصة.";
 }
 // Valid time and age of the data, not only the fetch time. The "current" values are

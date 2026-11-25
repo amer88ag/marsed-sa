@@ -26,6 +26,14 @@
     date.setUTCDate(date.getUTCDate() + offset);
     return date.toISOString().slice(0, 10);
   }
+  // GIBS product dates are UTC calendar days. Use this (not the Saudi date) to cap
+  // the selectable range: between 00:00 and 03:00 Saudi time the Saudi date is a
+  // day ahead, and GIBS domains can list dates that have not started in UTC yet
+  // (observed live 2026-11-25: MODIS Aqua domain ended 2026-11-26).
+  function productDateCap(now) {
+    const date = now instanceof Date ? now : new Date(now === undefined ? Date.now() : now);
+    return Number.isFinite(date.getTime()) ? date.toISOString().slice(0, 10) : null;
+  }
   function saudiDate(now) {
     const parts = new Intl.DateTimeFormat("en-GB", {
       timeZone: "Asia/Riyadh", year: "numeric", month: "2-digit", day: "2-digit"
@@ -204,5 +212,5 @@
     if (!LAYERS[layerKey]) throw new TypeError("Unsupported NASA GIBS layer");
     return Object.assign({}, LAYERS[layerKey]);
   }
-  return { BASE, LAYERS, validDate, shiftDate, saudiDate, describeDomainsUrl, parseAvailablePeriods, parseStep, latestAvailableDate, latestAvailableOnOrBefore, earliestAvailableDate, adjacentAvailableDate, isDateAvailable, getAvailableDates, buildTileUrl, getLayer };
+  return { BASE, LAYERS, validDate, shiftDate, saudiDate, productDateCap, describeDomainsUrl, parseAvailablePeriods, parseStep, latestAvailableDate, latestAvailableOnOrBefore, earliestAvailableDate, adjacentAvailableDate, isDateAvailable, getAvailableDates, buildTileUrl, getLayer };
 });

@@ -110,7 +110,8 @@ test("orchard: each source can fail independently (HTTP, JSON, timeout)", async 
 });
 
 test("orchard alerts explain basis, limits and source and never compute irrigation", () => {
-  const [day] = Orchard.evaluate([{ date: "2026-11-25", min: -1, max: 41, precipitation: 0, et0: 7 }], "flower", "توقع نموذجي");
+  const verified = { min: "verified", max: "verified", precipitation: "verified", precipitationProbability: "verified", et0: "verified" };
+  const [day] = Orchard.evaluate([{ date: "2026-11-25", min: -1, max: 41, precipitation: 0, et0: 7, unit_status: verified }], "flower", "توقع نموذجي");
   for (const alert of day.alerts) {
     assert.ok(alert.basis && alert.limits && alert.source === "توقع نموذجي", alert.type);
   }
