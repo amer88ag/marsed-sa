@@ -120,6 +120,17 @@ main{max-width:1120px;margin:auto;padding:18px 14px 36px}.hero,.panel{background
 <a href="https://direct.ksu.edu.sa/entities/journalarticle/5d90b133-7b02-4665-ab13-493a7b214e29" target="_blank" rel="noopener">جامعة الملك سعود — دراسة اختلاف مواعيد زراعة الخضروات حسب المناطق</a>
 <p>التقويم الزراعي يستند جزئياً إلى مفكرة الوزارة الطبعة السابعة 2018–2019، وهي مرجع تاريخي إرشادي لا يثبت وحده صلاحية الموعد حالياً. بعض الجداول شهرية وعلى مستوى مناطق واسعة؛ لذلك يعرض المرصد نوافذ شهرية لا يوماً دقيقاً حين لا يدعم المصدر دقة أعلى. يجب تحديث التوصيات عند توفر إصدارات أحدث، وتحليلها بحسب الارتفاع والصنف والطقس المحلي.</p>
 </section>
+<section class="seasonal-block" id="plant-catalogue">
+<h2>موسوعة النباتات والمحاصيل</h2>
+<p>سجل مرجعي للنباتات المزروعة والبرية والمحاصيل في المملكة. تُعرض المناطق ومواسم الإنتاج فقط عندما يدعمها مصدر منشور؛ وموسم توفر الثمار ليس موعد غرس أو تقليم.</p>
+<div class="planner-controls">
+<label>بحث عن نبات <input id="plantSearch" type="search" placeholder="اكتب اسم النبات أو الاسم العلمي"></label>
+<label>الفئة <select id="plantCategory"><option value="">كل الفئات</option><option value="fruit_tree">أشجار مثمرة</option><option value="vegetable">خضروات</option><option value="field_crop">محاصيل حقلية</option><option value="native_tree">أشجار محلية</option><option value="wild_plant">نباتات برية</option><option value="ornamental">نباتات زينة</option><option value="pasture">مراعي وأعلاف</option></select></label>
+</div>
+<p id="plantCatalogueStatus" class="note" aria-live="polite">جارٍ تحميل السجل الموثق…</p>
+<div id="plantCatalogueGrid" class="crop-grid" aria-live="polite"></div>
+<div class="note">البيانات الناقصة تظهر على أنها «لم توثق بعد» ولا تُعامل كصفر أو كدليل على عدم ملاءمة النبات. لن يصدر المرصد توصية زراعة قطعية دون بيانات موثقة للصنف والموقع والتربة والمياه.</div>
+</section>
 </main>
 <script src="../src/platform/time/astro-seasons.js"></script>
 <script src="../src/platform/http/client.js"></script>
@@ -127,6 +138,7 @@ main{max-width:1120px;margin:auto;padding:18px 14px 36px}.hero,.panel{background
 <script src="../src/platform/data/source-state.js"></script>
 <script src="../src/platform/quality/units.js"></script>
 <script src="../src/services/agriculture/orchard-weather.js"></script>
+<script src="../src/services/agriculture/plant-catalogue.js"></script>
 <script>
 (function(){
 "use strict";
@@ -338,6 +350,53 @@ orchardButton.addEventListener("click",loadOrchardWeather);
   }));
   if(src)src.textContent="محسوبة في المتصفح بخوارزمية Jean Meeus (Astronomical Algorithms، الفصل 27) بدقة نحو دقيقة، ومحوّلة إلى توقيت السعودية (UTC+3). طابقت جدول هيئة الأرصاد الأمريكية NWS المأخوذ من بيانات المرصد البحري USNO لعامي 2026 و2027 بفارق لا يزيد عن دقيقة. هذه مواعيد فلكية، وليست بدايات المواسم الشعبية أو الفصول المناخية.";
  }catch(error){/* keep the static fallback */}
+})();
+</script>
+<script>
+(function(){
+"use strict";
+var data=[],months=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+var labels={fruit_tree:"شجرة مثمرة",vegetable:"خضروات",field_crop:"محصول حقلي",native_tree:"شجرة محلية",wild_plant:"نبات بري",ornamental:"زينة",pasture:"مراعٍ وأعلاف"};
+function el(tag,text,className){var node=document.createElement(tag);if(text!==undefined)node.textContent=text;if(className)node.className=className;return node;}
+function render(){
+ var q=($("plantSearch").value||"").trim().toLocaleLowerCase("ar");
+ var category=$("plantCategory").value;
+ var rows=window.PlantCatalogue.filterByCategory(data,category).filter(function(p){
+  return !q||(p.names.ar+" "+p.names.scientific).toLocaleLowerCase("ar").includes(q);
+ });
+ var grid=$("plantCatalogueGrid");grid.replaceChildren();
+ rows.forEach(function(p){
+  var card=el("article",undefined,"crop-card");
+  card.append(el("strong",labels[p.category]||p.category));
+  card.append(el("h3",p.names.ar));
+  card.append(el("p",p.names.scientific));
+  if(Array.isArray(p.administrative_regions)&&p.administrative_regions.length)card.append(el("p","مناطق إنتاج/زراعة منشورة: "+p.administrative_regions.join("، ")));
+  else card.append(el("p","التوزيع المحلي: لم يوثق بعد"));
+  if(Array.isArray(p.harvest_windows))p.harvest_windows.forEach(function(w){
+   var text=(w.type==="production"?"موسم إنتاج منشور: ":"نافذة حصاد: ")+months[w.start_month-1]+" – "+months[w.end_month-1];
+   card.append(el("p",text));
+   card.append(el("small",w.label_ar||""));
+  });
+  card.append(el("small",p.notes_ar&&p.notes_ar.length?p.notes_ar.join(" "):"البيانات الزراعية التفصيلية قيد التوثيق."));
+  var links=el("div");
+  (p.sources||[]).forEach(function(s){
+   var a=el("a",s.publisher+" — "+s.title);a.href=s.url;a.target="_blank";a.rel="noopener noreferrer";a.style.display="block";a.style.marginTop="7px";a.style.color="#1769aa";a.style.fontSize="11px";links.append(a);
+  });
+  card.append(links);grid.append(card);
+ });
+ $("plantCatalogueStatus").textContent=rows.length?"عدد السجلات الموثقة المعروضة: "+rows.length:"لا توجد سجلات تطابق البحث؛ لا يعني ذلك عدم وجود نباتات مناسبة.";
+}
+function $(id){return document.getElementById(id);}
+Promise.all([
+ fetch("../data/agriculture/plants.json",{cache:"no-cache"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();})
+]).then(function(result){
+ data=Array.isArray(result[0].plants)?result[0].plants:[];
+ render();
+}).catch(function(){
+ $("plantCatalogueStatus").textContent="تعذر تحميل موسوعة النباتات حالياً؛ تبقى بقية صفحات المواسم والطقس متاحة.";
+});
+$("plantSearch").addEventListener("input",render);
+$("plantCategory").addEventListener("change",render);
 })();
 </script>
 </body>
