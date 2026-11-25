@@ -11,7 +11,7 @@
 ## 0. جولة الإغلاق من `cac832f`
 
 ### 0.1 الملفات التي تغيرت
-`index.html`، `src/services/precipitation/chirps-chart.js` (جديد)، `src/services/precipitation/aggregate.js`، `config/providers.json`، `tools/browser-smoke/smoke.js`، `test-support/weather-fixture.js`، `test/chirps-chart.test.js` (جديد)، `test/weather-review.test.js` (جديد)، `test/pages-quality.test.js`، `test/dashboard.test.js`، والوثائق الأربع.
+`index.html`، `tools/release-gate.js`، `src/services/precipitation/chirps-chart.js` (جديد)، `src/services/precipitation/aggregate.js`، `config/providers.json`، `tools/browser-smoke/smoke.js`، `test-support/weather-fixture.js`، `test/chirps-chart.test.js` (جديد)، `test/weather-review.test.js` (جديد)، `test/pages-quality.test.js`، `test/dashboard.test.js`، والوثائق الأربع.
 
 ### 0.2 العيوب المكتشفة والمصلحة
 | # | العيب | الإصلاح |
@@ -25,6 +25,7 @@
 | 7 | علامة النسبة مكررة في الغطاء السحابي | أُزيلت من القيمة |
 | 8 | صيغة الجمع «3 يوم» و«3 يوماً كاملة» | «3 أيام» |
 | 9 | فحص القص في Chrome لا يكشف المحتوى المقطوع داخل حاوية مخفية | صار يكشفه؛ واستُثنيت بلاطات الخريطة |
+| 10 | بوابة الإصدار ما زالت تتوقع `a59d397` على GitHub بعد الدفع، فتفشل G3 وG6 | مرجعان: GitHub الحالي `cac832f` لـ G3، والأصل `a59d397` لملفات النشر والبيانات التاريخية والإحداثيات |
 
 **تصحيح لملاحظة أثناء العمل:** ظننت من لقطة شاشة أن جدول الرحلة مقصوص على الجوال، والقياس أثبت أنه داخل حاوية قابلة للتمرير الأفقي أصلاً. لم يكن عيباً؛ أضفت تلميح تمرير فقط.
 
@@ -41,7 +42,7 @@
 | `journey.js` | محاكاة في Chrome | **17/17** على المقاسين |
 | `coverage-real-cors.js` | CORS حقيقي بين أصلين محليين | 76/76 كما صُممت |
 | `sri-probe.js` | Chrome | الملف المعدل يُحجب |
-| `release-gate.js` | محلي | يُشغَّل بعد آخر commit |
+| `release-gate.js` | محلي | **10/10**. مرجع GitHub صار `cac832f` بعد الدفع المعتمد، وتبقى G4–G6 مقارنة بالأصل `a59d397` |
 | `live-check.js` من بيئة العمل | حي | **12/12 لم تُستجب** (غير حاسم) |
 
 ### 0.5 المصادر المتحقق منها حياً
