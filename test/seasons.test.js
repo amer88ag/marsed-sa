@@ -35,7 +35,7 @@ test('agricultural source age and uncertainty are disclosed', () => {
 
 test('season and agricultural JavaScript parses without syntax errors', () => {
   const scripts = [...page.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(m => m[1].trim()).filter(Boolean);
-  assert.equal(scripts.length, 1);
+  assert.equal(scripts.length, 2);
   for (const script of scripts) new vm.Script(script, { filename: 'seasons/index.html' });
 });
 
@@ -72,6 +72,16 @@ test('orchard profile assistant exposes elevation, tree, stage and observed temp
   for (const stage of ['dormant','bud','flower','set','growth','harvest','postharvest']) assert.ok(page.includes(stage+':"'), stage);
   assert.match(page, /لا نحول هذا الرقم وحده إلى موعد زراعي/);
   assert.match(page, /تعامل معها كقراءة رصدية فقط/);
+});
+
+test('plant catalogue is integrated into the existing seasons page', () => {
+  assert.match(page, /id="plant-catalogue"/);
+  assert.match(page, /id="plantCatalogueGrid"/);
+  assert.match(page, /id="plantSearch"/);
+  assert.match(page, /id="plantCategory"/);
+  assert.match(page, /src="\.\.\/src\/services\/agriculture\/plant-catalogue\.js"/);
+  assert.match(page, /\.\.\/data\/agriculture\/plants\.json/);
+  assert.match(page, /موسم توفر الثمار ليس موعد غرس أو تقليم/);
 });
 
 test('season page defines its DOM lookup helper before first use', () => {
