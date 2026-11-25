@@ -67,10 +67,18 @@ const hourly = n => { const t=[],v=[]; const s=Date.now(); for(let i=0;i<n;i++){
     let out; try { out = await action(page); } catch (e) { out = "ACTION FAILED " + e.message; }
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     // Elements wider than the viewport that are not inside a horizontal scroller (clipping check).
+    // Clipped = part of the element is unreachable: it sticks out of the viewport, or out of an
+    // overflow:hidden/clip ancestor, with no horizontally scrollable ancestor in between.
     const clipped = await page.evaluate(() => Array.from(document.querySelectorAll("body *")).filter(el => {
-      const r = el.getBoundingClientRect(); if (!r.width || r.right <= window.innerWidth + 1 && r.left >= -1) return false;
-      for (let a = el.parentElement; a; a = a.parentElement) { const o = getComputedStyle(a).overflowX; if (o === "auto" || o === "scroll" || o === "hidden") return false; }
-      return true; }).slice(0, 5).map(el => el.tagName + (el.id ? "#" + el.id : "") + (el.className && typeof el.className === "string" ? "." + el.className.split(" ")[0] : "")));
+      if (el.closest(".leaflet-container")) return false; // map tiles overflow the map by design
+      const r = el.getBoundingClientRect(); if (!r.width || !r.height) return false;
+      for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+        const o = getComputedStyle(a).overflowX;
+        if (o === "auto" || o === "scroll") return false;
+        if (o === "hidden" || o === "clip") { const p = a.getBoundingClientRect(); if (r.left < p.left - 1 || r.right > p.right + 1) return true; }
+      }
+      return r.left < -1 || r.right > window.innerWidth + 1;
+    }).slice(0, 5).map(el => el.tagName + (el.id ? "#" + el.id : "") + (el.className && typeof el.className === "string" ? "." + el.className.split(" ")[0] : "")));
     const leafletLoaded = await page.evaluate(() => typeof window.L === "object");
     await page.screenshot({ path: name + (desktop ? "-desktop" : "") + ".png", fullPage: false });
     results.push({ name, viewport: desktop ? "1280x800" : "390x844", out: String(out).replace(/\s+/g, " ").slice(0, 4000), errors, overflowPx: overflow, clipped, leafletLoaded });

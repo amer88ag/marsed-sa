@@ -66,7 +66,9 @@ test('CHIRPS city time-series panel is wired to the committed dataset artifact',
 });
 
 test('CHIRPS panel does not silently replace missing rainfall with zero', () => {
-  assert.match(html, /row\.precipitation_mm===null/);
+  // Null handling now lives in the chart module; checked behaviourally in test/chirps-chart.test.js.
+  assert.match(html, /chirps-chart\.js/);
+  assert.match(html, /row\.precipitation_mm!==null/);
   assert.match(html, /لا توجد سجلات لهذه المدينة/);
 });
 
