@@ -112,7 +112,7 @@ check("G9", "Working tree clean (every change is committed locally)", () => {
 check("G10", "Required documents exist; every provider id is named in DATA_SOURCES.md; no in-progress checklist rows", () => {
   // Checks presence and cross-references only. It does not verify that the prose
   // of the documents is up to date or correct.
-  const required = ["docs/FINAL_CLOSURE_REPORT.md", "docs/CLOSURE_CHECKLIST.md", "docs/DATA_QUALITY_AUDIT.md", "docs/DATA_SOURCES.md", "docs/GEO_REGISTRY.md", "docs/IMPLEMENTATION_STATUS.md"];
+  const required = ["docs/FINAL_CLOSURE_REPORT.md", "docs/CLOSURE_CHECKLIST.md", "docs/OWNER_DECISIONS.md", "tools/live-check/README.md", "docs/DATA_QUALITY_AUDIT.md", "docs/DATA_SOURCES.md", "docs/GEO_REGISTRY.md", "docs/IMPLEMENTATION_STATUS.md"];
   required.forEach(f => must(fs.existsSync(path.join(ROOT, f)), "missing " + f));
   const sources = fs.readFileSync(path.join(ROOT, "docs/DATA_SOURCES.md"), "utf8");
   const providers = JSON.parse(fs.readFileSync(path.join(ROOT, "config/providers.json"), "utf8")).providers;
@@ -125,7 +125,7 @@ check("G10", "Required documents exist; every provider id is named in DATA_SOURC
 
 const EXTERNAL = [
   "NCM written opinion on classification and regulatory requirements (docs/MASTER_PRODUCT_PLAN.md §11)",
-  "Live verification of Open-Meteo and CHIRPS (not reachable from the development environment)",
+  "Live verification of Open-Meteo and CHIRPS: run tools/live-check/live-check.js from a connected machine (unreachable from the development environment)",
   "Owner decision: the 4 city coordinates that differ from Natural Earth (riyadh, makkah, najran, sakaka)",
   "Owner decision: the 7-day margin on the CHIRPS final release cycle",
   "Owner decision: activating the research-stage services",

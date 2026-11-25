@@ -86,7 +86,8 @@ const NON_DATA_HOSTS = {
 const TOOL_ONLY_HOSTS = {
   "127.0.0.1": "local cross-origin servers for the real-CORS test",
   "local.test": "intercepted pseudo-origin for the browser smoke test",
-  "tiles.example.org": "placeholder origin in cors-probe.js (requests intercepted)"
+  "tiles.example.org": "placeholder origin in cors-probe.js (requests intercepted)",
+  "marsed.example": "reserved .example origin sent as the Origin header in tools/live-check to test NASA CORS (never requested)"
 };
 
 function hostsIn(files) {
