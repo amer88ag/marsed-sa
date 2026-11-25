@@ -16,7 +16,7 @@
   function parseFiniteNumber(value) {
     if (typeof value === "number") return Number.isFinite(value) ? value : null;
     if (typeof value !== "string" || value.trim() === "" ||
-        !/^[+-]?(?:\\d+\\.?\\d*|\\.\\d+)(?:[eE][+-]?\\d+)?$/.test(value.trim())) return null;
+        !/^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$/.test(value.trim())) return null;
     const number = Number(value);
     return Number.isFinite(number) ? number : null;
   }
@@ -86,7 +86,7 @@
   }
 
   function validISODate(value) {
-    if (typeof value !== "string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) return false;
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
     const date = new Date(value + "T12:00:00Z");
     return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
   }
