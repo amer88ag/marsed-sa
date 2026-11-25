@@ -71,6 +71,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="../src/platform/http/client.js"></script>
 <script src="../src/platform/time/saudi-time.js"></script>
+<script src="../src/platform/quality/freshness.js"></script>
 <script src="../src/platform/geo/cities.js"></script>
 <script src="../src/platform/geo/map-frame.js"></script>
 <script src="../src/services/satellite/nasa-gibs.js"></script>
@@ -94,7 +95,7 @@ function loadLayer(){
   attribution:'Imagery © <a href="https://www.earthdata.nasa.gov/">NASA Earthdata</a> / <a href="https://gibs.earthdata.nasa.gov/">GIBS</a>'
  });
  nextLayer.on("tileerror",function(){if(renderId!==renderRequestId)return;currentTileErrors++;setStatus("تعذر تحميل "+currentTileErrors+" من مربعات الصورة الظاهرة. قد توجد فجوات تغطية مكانية رغم أن التاريخ ضمن نطاق المنتج.",true)});
- nextLayer.on("load",function(){if(renderId!==renderRequestId)return;var coverageNote=currentTileErrors?" · تغطية غير مكتملة: تعذر تحميل "+currentTileErrors+" مربعاً":" · اكتمل تحميل مربعات العرض الحالية";var productAge=typeof SaudiTime!=="undefined"?SaudiTime.daysBetween(date,SaudiTime.saudiDate(new Date())):null;setStatus(meta.title+" · نوع البيانات: صورة أقمار صناعية مرئية · تاريخ المنتج: "+date+(productAge===null?"":" ("+(productAge===0?"اليوم":SaudiTime.ageText(productAge*1440))+")")+" · آخر تاريخ متاح حسب الخدمة: "+NasaGibsSatellite.latestAvailableDate(availablePeriods)+coverageNote+" · "+meta.note+" · المصدر: NASA GIBS",currentTileErrors>0)});
+ nextLayer.on("load",function(){if(renderId!==renderRequestId)return;var coverageNote=currentTileErrors?" · تغطية غير مكتملة: تعذر تحميل "+currentTileErrors+" مربعاً":" · اكتمل تحميل مربعات العرض الحالية";var productAge=typeof FreshnessPolicy!=="undefined"?FreshnessPolicy.satelliteProduct(date,new Date()).age_days_utc:null;setStatus(meta.title+" · نوع البيانات: صورة أقمار صناعية مرئية · تاريخ المنتج الفعلي (UTC): "+date+(productAge===null?"":" ("+(productAge===0?"اليوم بتوقيت UTC":SaudiTime.ageText(productAge*1440))+")")+" · آخر تاريخ متاح حسب الخدمة: "+NasaGibsSatellite.latestAvailableDate(availablePeriods)+coverageNote+" · "+meta.note+" · المصدر: NASA GIBS",currentTileErrors>0)});
  layer=nextLayer;layer.addTo(map);activeKey=key;
  setStatus("جارٍ تحميل "+meta.title+" بتاريخ "+date+"…");
 }

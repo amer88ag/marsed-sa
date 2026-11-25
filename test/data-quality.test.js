@@ -131,7 +131,7 @@ test("easily confused indicators are described as different things", () => {
   assert.match(limits("soil_moisture_0_7cm"), /ليست الرطوبة النسبية/);
   assert.match(limits("wet_bulb_temperature"), /تختلف عن الحرارة المحسوسة/);
   assert.match(limits("apparent_temperature"), /ليست حرارة البصيلة الرطبة/);
-  assert.match(limits("wind_speed"), /تختلف عن رياح 80\/100\/120/);
+  assert.match(limits("wind_speed"), /تختلف عن رياح 80 و100 م/);
   assert.match(limits("daily_et0"), /ليست كمية ري/);
   assert.match(limits("precipitation"), /لا مجموع اليوم/);
   assert.equal(Catalog.get("chirps_sat").data_type, "estimate");
@@ -167,7 +167,7 @@ test("UI shows valid time, age, data type and fetch time separately", async () =
 test("UI warns when the data are older than expected, or labelled with another offset", async () => {
   const stale = await runDashboard("2026-11-25T03:00:00Z", payload({ validTime: "2026-11-24T23:45" }));
   assert.match(stale.$("updated").textContent, /منذ 6 ساعات/);
-  assert.match(stale.$("updated").textContent, /⚠️ البيانات أقدم من المتوقع/);
+  assert.match(stale.$("updated").textContent, /⚠️ البيانات أقدم من 90 دقيقة \(حد تشغيلي قابل للمراجعة\)/);
   const offset = await runDashboard("2026-11-24T21:00:00Z", payload({ offset: 0 }));
   assert.match(offset.$("updated").textContent, /بإزاحة غير توقيت السعودية/);
   const units = await runDashboard("2026-11-24T21:00:00Z", payload({ currentUnits: { temperature_2m: "°F" } }));
@@ -197,7 +197,11 @@ test("weather failure does not block CHIRPS, and CHIRPS shows its age and type",
   const page = await runDashboard("2026-11-25T12:00:00Z", Object.assign(new Error("HTTP 503"), { kind: "http" }), {
     precipitation: { fetchDataset: async () => dataset, getCitySeries: (d, c, p) => Chirps.normalizeCitySeries(d, c, p) }
   });
-  assert.match(page.$("chirpsState").textContent, /آخر يوم في العينة \(2026-09-03\) منذ 83 يوماً/);
+  // On 2026-11-25 the newest expected CHIRPS final release covers September (CHC: third week of the following month + 7-day margin).
+  assert.match(page.$("chirpsState").textContent, /الفترة: 2026-09-01 إلى 2026-09-03/);
+  assert.match(page.$("chirpsState").textContent, /آخر تحديث للعينة: 2026-11-21/);
+  assert.match(page.$("chirpsState").textContent, /متأخرة 27 يوماً عن آخر إصدار نهائي متوقع \(حتى 2026-09-30\)/);
+  assert.doesNotMatch(page.$("chirpsState").textContent, /دقيقة/, "no minute-based threshold for CHIRPS");
   assert.match(page.$("chirpsState").textContent, /عينة تاريخية وليست بيانات حديثة/);
   assert.match(page.$("chirpsState").textContent, /تقدير من الأقمار الصناعية والمحطات وليس رصداً مباشراً/);
   assert.doesNotMatch(fs.readFileSync("index.html", "utf8"), /تبويب Actions/, "public page does not instruct visitors to run CI");
@@ -207,7 +211,8 @@ test("weather failure does not block CHIRPS, and CHIRPS shows its age and type",
 test("satellite page states data type and product age; elevation states GLO-90 limits", () => {
   const sat = fs.readFileSync("satellite/index.html", "utf8");
   assert.match(sat, /نوع البيانات: صورة أقمار صناعية مرئية/);
-  assert.match(sat, /SaudiTime\.daysBetween\(date,SaudiTime\.saudiDate\(new Date\(\)\)\)/);
+  assert.match(sat, /FreshnessPolicy\.satelliteProduct\(date,new Date\(\)\)\.age_days_utc/);
+  assert.match(sat, /تاريخ المنتج الفعلي \(UTC\)/);
   const elevation = fs.readFileSync("elevation/index.html", "utf8");
   assert.match(elevation, /GLO-90/);
   assert.match(elevation, /90 متراً/);

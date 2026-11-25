@@ -12,7 +12,7 @@
       latitude: String(location.lat),
       longitude: String(location.lon),
       current: "temperature_2m,relative_humidity_2m,dew_point_2m,precipitation,rain,showers,wind_speed_10m,wind_direction_10m,wind_gusts_10m,apparent_temperature,weather_code,is_day,cloud_cover,pressure_msl,surface_pressure,wet_bulb_temperature_2m,cape,freezing_level_height,boundary_layer_height,soil_temperature_0_to_7cm,soil_moisture_0_to_7cm,wind_speed_80m,wind_speed_100m,wind_direction_80m,wind_direction_100m,shortwave_radiation,direct_radiation,diffuse_radiation,visibility,uv_index",
-      hourly: "temperature_2m,apparent_temperature,dew_point_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover,pressure_msl,surface_pressure,visibility,uv_index,shortwave_radiation,wet_bulb_temperature_2m,cape,freezing_level_height,boundary_layer_height,evapotranspiration,soil_temperature_0_to_7cm,soil_temperature_7_to_28cm,soil_temperature_28_to_100cm,soil_temperature_100_to_255cm,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,soil_moisture_28_to_100cm,soil_moisture_100_to_255cm,wind_speed_80m,wind_speed_100m,wind_speed_120m,wind_direction_80m,wind_direction_100m,wind_direction_120m,direct_radiation,diffuse_radiation",
+      hourly: "temperature_2m,apparent_temperature,dew_point_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover,pressure_msl,surface_pressure,visibility,uv_index,shortwave_radiation,wet_bulb_temperature_2m,cape,freezing_level_height,boundary_layer_height,evapotranspiration,soil_temperature_0_to_7cm,soil_temperature_7_to_28cm,soil_temperature_28_to_100cm,soil_temperature_100_to_255cm,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,soil_moisture_28_to_100cm,soil_moisture_100_to_255cm,wind_speed_80m,wind_speed_100m,wind_direction_80m,wind_direction_100m,direct_radiation,diffuse_radiation",
       daily: "weather_code,precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,et0_fao_evapotranspiration",
       past_days: "0",
       forecast_days: "7",
@@ -191,7 +191,7 @@
   const HOURLY_UNITS = { temperature_2m: "°C", apparent_temperature: "°C", dew_point_2m: "°C", relative_humidity_2m: "%",
     precipitation_probability: "%", precipitation: "mm", wind_speed_10m: "km/h", wind_direction_10m: "°", wind_gusts_10m: "km/h",
     cloud_cover: "%", pressure_msl: "hPa", surface_pressure: "hPa", visibility: "m", shortwave_radiation: "W/m²",
-    wet_bulb_temperature_2m: "°C", soil_moisture_0_to_7cm: "m³/m³", wind_speed_80m: "km/h", wind_speed_100m: "km/h", wind_speed_120m: "km/h" };
+    wet_bulb_temperature_2m: "°C", soil_moisture_0_to_7cm: "m³/m³", wind_speed_80m: "km/h", wind_speed_100m: "km/h" };
   // Returns a copy of a column-oriented block with unit-mismatched columns nulled.
   function guardBlock(block, units, expectations, mismatches, scope) {
     if (!block) return block;
@@ -249,7 +249,7 @@
     }
     const hourly = guardBlock(payload.hourly || {}, payload.hourly_units, HOURLY_UNITS, mismatches, "hourly");
     const hourlyTimes = Array.isArray(hourly.time) ? hourly.time : [];
-    const hourlyFields = ["temperature_2m", "apparent_temperature", "dew_point_2m", "relative_humidity_2m", "precipitation_probability", "precipitation", "weather_code", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "cloud_cover", "pressure_msl", "surface_pressure", "visibility", "uv_index", "shortwave_radiation", "wet_bulb_temperature_2m", "cape", "freezing_level_height", "boundary_layer_height", "evapotranspiration", "soil_temperature_0_to_7cm", "soil_temperature_7_to_28cm", "soil_temperature_28_to_100cm", "soil_temperature_100_to_255cm", "soil_moisture_0_to_7cm", "soil_moisture_7_to_28cm", "soil_moisture_28_to_100cm", "soil_moisture_100_to_255cm", "wind_speed_80m", "wind_speed_100m", "wind_speed_120m", "wind_direction_80m", "wind_direction_100m", "wind_direction_120m", "direct_radiation", "diffuse_radiation"];
+    const hourlyFields = ["temperature_2m", "apparent_temperature", "dew_point_2m", "relative_humidity_2m", "precipitation_probability", "precipitation", "weather_code", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "cloud_cover", "pressure_msl", "surface_pressure", "visibility", "uv_index", "shortwave_radiation", "wet_bulb_temperature_2m", "cape", "freezing_level_height", "boundary_layer_height", "evapotranspiration", "soil_temperature_0_to_7cm", "soil_temperature_7_to_28cm", "soil_temperature_28_to_100cm", "soil_temperature_100_to_255cm", "soil_moisture_0_to_7cm", "soil_moisture_7_to_28cm", "soil_moisture_28_to_100cm", "soil_moisture_100_to_255cm", "wind_speed_80m", "wind_speed_100m", "wind_direction_80m", "wind_direction_100m", "direct_radiation", "diffuse_radiation"];
     for (const key of hourlyFields) {
       if (hourly[key] !== undefined && (!Array.isArray(hourly[key]) || hourly[key].length !== hourlyTimes.length)) {
         throw new TypeError("Hourly field length mismatch: " + key);
@@ -300,10 +300,8 @@
       soil_moisture_100_255cm: numericOrNull((hourly.soil_moisture_100_to_255cm || [])[index], "hourly.soil_moisture_100_to_255cm"),
       wind_speed_80m: numericOrNull((hourly.wind_speed_80m || [])[index], "hourly.wind_speed_80m"),
       wind_speed_100m: numericOrNull((hourly.wind_speed_100m || [])[index], "hourly.wind_speed_100m"),
-      wind_speed_120m: numericOrNull((hourly.wind_speed_120m || [])[index], "hourly.wind_speed_120m"),
       wind_direction_80m: numericOrNull((hourly.wind_direction_80m || [])[index], "hourly.wind_direction_80m"),
       wind_direction_100m: numericOrNull((hourly.wind_direction_100m || [])[index], "hourly.wind_direction_100m"),
-      wind_direction_120m: numericOrNull((hourly.wind_direction_120m || [])[index], "hourly.wind_direction_120m"),
       direct_radiation: numericOrNull((hourly.direct_radiation || [])[index], "hourly.direct_radiation"),
       diffuse_radiation: numericOrNull((hourly.diffuse_radiation || [])[index], "hourly.diffuse_radiation")
     }));

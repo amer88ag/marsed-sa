@@ -112,6 +112,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="src/platform/http/client.js"></script>
 <script src="src/platform/time/saudi-time.js"></script>
+<script src="src/platform/quality/freshness.js"></script>
 <script src="src/platform/geo/cities.js"></script>
 <script src="src/platform/geo/map-frame.js"></script>
 <script src="src/providers/weather/open-meteo/adapter.js"></script>
@@ -276,7 +277,7 @@ async function loadRadar(){
   results.forEach(function(result){if(result.data)radarData[result.location_id]=result.data;});
   if(Object.keys(radarData).length){
    var firstValid=Object.keys(radarData).map(function(key){return radarData[key].valid_time}).filter(Boolean).sort().pop();
-   var radarFresh=SaudiTime.freshness(firstValid,new Date(),90);
+   var radarFresh=FreshnessPolicy.currentWeather(firstValid,new Date());
    radarUpdatedAt="صلاحية "+(SaudiTime.saudiClock(SaudiTime.parseSaudiLocal(firstValid))||"غير معروفة")+" بتوقيت السعودية ("+SaudiTime.ageText(radarFresh.age_minutes)+")"+(radarFresh.status==="stale"?" ⚠️ قديمة":"")+" · جُلبت "+SaudiTime.saudiClock(new Date());
   }
   renderRadar();
@@ -323,10 +324,10 @@ function practicalInsight(data){
 // model output for an interval; they are stale if older than 90 minutes.
 function dataTimeText(data,now){
  var valid=data&&data.valid_time?SaudiTime.parseSaudiLocal(data.valid_time):null;
- var fresh=SaudiTime.freshness(valid,now,90);
+ var fresh=FreshnessPolicy.currentWeather(valid,now);
  var parts=[];
  parts.push(valid?"صلاحية البيانات: "+SaudiTime.saudiDate(valid)+" "+SaudiTime.saudiClock(valid)+" بتوقيت السعودية ("+SaudiTime.ageText(fresh.age_minutes)+")":"وقت صلاحية البيانات غير متاح");
- if(fresh.status==="stale")parts.push("⚠️ البيانات أقدم من المتوقع");
+ if(fresh.status==="stale")parts.push("⚠️ البيانات أقدم من "+FreshnessPolicy.POLICY.current_weather.max_age_minutes+" دقيقة (حد تشغيلي قابل للمراجعة)");
  if(fresh.status==="future")parts.push("⚠️ وقت الصلاحية في المستقبل؛ تحقق من ساعة الجهاز");
  if(data&&typeof data.utc_offset_seconds==="number"&&data.utc_offset_seconds!==10800)parts.push("⚠️ الخدمة أعادت أوقاتاً بإزاحة غير توقيت السعودية");
  parts.push("النوع: ناتج نموذج وليس رصد محطة");
@@ -334,12 +335,19 @@ function dataTimeText(data,now){
  parts.push("آخر جلب: "+SaudiTime.saudiClock(now));
  return parts.join(" · ");
 }
-// Age of the newest day in the stored CHIRPS sample. The sample is historical, never "current".
+// Forecasts are never "stale" because time passed since fetching: show their validity window and fetch time.
+function forecastWindowText(rows,field){
+ var w=FreshnessPolicy.forecastWindow(rows,field,new Date());
+ return "صلاحية التوقع: "+(w.valid_from||"—")+" إلى "+(w.valid_to||"—")+" بتوقيت السعودية · جُلب "+SaudiTime.saudiClock(new Date())+".";
+}
+// CHIRPS sample: period, last sample update, and position against the product's monthly release cycle.
 function chirpsAgeText(dataset,now){
  var end=dataset&&dataset.date_range&&dataset.date_range.end;
  if(!end)return " · تاريخ آخر يوم غير معروف";
- var days=SaudiTime.daysBetween(end,SaudiTime.saudiDate(now));
- return days===null?" · تاريخ آخر يوم غير صالح":" · آخر يوم في العينة ("+end+") "+SaudiTime.ageText(days*1440)+" (عينة تاريخية وليست بيانات حديثة)";
+ var check=FreshnessPolicy.chirpsSample(end,now);
+ var updated=dataset.generated_at_utc?String(dataset.generated_at_utc).slice(0,10):"غير معروف";
+ var cycle=check.status==="behind_release_cycle"?"متأخرة "+check.days_behind+" يوماً عن آخر إصدار نهائي متوقع (حتى "+check.expected_latest+")":check.status==="current_for_cycle"?"مواكبة لآخر إصدار نهائي متوقع (حتى "+check.expected_latest+")":"تعذر تقييمها";
+ return " · آخر تحديث للعينة: "+updated+" · وفق دورة إصدار CHIRPS الشهرية العينة "+cycle+" (عينة تاريخية وليست بيانات حديثة)";
 }
 function renderHourly(rows){
  var target=$("hourlyForecast"),now=new Date();
@@ -465,7 +473,7 @@ async function loadWeather(){
   setText("weatherInsight",practicalInsight(data));
   renderHourly(data.hourly); renderDaily(data.daily);
   drawChart(data.daily.map(function(row){return row.valid_date}),data.daily.map(function(row){return row.precipitation}));
-  setText("chartCaption","توقع نموذجي من Open-Meteo لمجموع الهطول لكل يوم تقويمي سعودي ("+data.daily.length+" أيام، من "+(data.daily[0]?data.daily[0].valid_date:"—")+"). الأيام دون قيمة تُترك فارغة ولا تُرسم صفراً. لا يقارن مباشرة بتقدير CHIRPS.");
+  setText("chartCaption","توقع نموذجي من Open-Meteo لمجموع الهطول لكل يوم تقويمي سعودي ("+data.daily.length+" أيام). "+forecastWindowText(data.daily,"valid_date")+" الأيام دون قيمة تُترك فارغة ولا تُرسم صفراً. لا يقارن مباشرة بتقدير CHIRPS.");
   setText("loading","تم تحميل بيانات النموذج بنجاح.");
   setText("updated",dataTimeText(data,new Date()));
   setText("connection","● متصل");

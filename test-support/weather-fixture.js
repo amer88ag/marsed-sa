@@ -51,6 +51,7 @@ async function runDashboard(nowIso, data, extra) {
     L: leafletStub(),
     HttpClient: require(path.join(ROOT, "src/platform/http/client.js")),
     SaudiTime: require(path.join(ROOT, "src/platform/time/saudi-time.js")),
+    FreshnessPolicy: require(path.join(ROOT, "src/platform/quality/freshness.js")),
     CityRegistry: require(path.join(ROOT, "src/platform/geo/cities.js")),
     RouteItinerary: require(path.join(ROOT, "src/services/routing/itinerary.js")),
     OsrmAdapter: require(path.join(ROOT, "src/providers/routing/osrm/adapter.js")),

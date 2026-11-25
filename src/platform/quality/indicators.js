@@ -33,7 +33,7 @@
     om("apparent_temperature", "apparent_temperature", "الحرارة المحسوسة", "Apparent temperature", "°C", "مؤشر راحة حرارية من الحرارة والرطوبة والرياح والإشعاع؛ ليست حرارة البصيلة الرطبة"),
     om("relative_humidity", "relative_humidity_2m", "الرطوبة النسبية", "Relative humidity (2 m)", "%", "رطوبة الهواء وليست رطوبة التربة"),
     om("precipitation", "precipitation", "الهطول خلال الفترة الحالية", "Precipitation (current interval)", "mm", "مجموع الفترة الحالية فقط (عادة 15 دقيقة)، لا مجموع اليوم؛ ناتج نموذج وليس مقياس مطر"),
-    om("wind_speed", "wind_speed_10m", "سرعة الرياح السطحية", "Wind speed (10 m)", "km/h", "على ارتفاع 10 م؛ تختلف عن رياح 80/100/120 م"),
+    om("wind_speed", "wind_speed_10m", "سرعة الرياح السطحية", "Wind speed (10 m)", "km/h", "على ارتفاع 10 م؛ تختلف عن رياح 80 و100 م"),
     om("wind_direction", "wind_direction_10m", "اتجاه الرياح", "Wind direction (10 m)", "°", "الاتجاه القادم منه الهواء"),
     om("wind_gusts", "wind_gusts_10m", "هبات الرياح", "Wind gusts (10 m)", "km/h", "أقصى هبة في الفترة السابقة (15 دقيقة) وفق النموذج، لا أقصى هبة لليوم"),
     om("wet_bulb_temperature", "wet_bulb_temperature_2m", "حرارة البصيلة الرطبة", "Wet-bulb temperature (2 m)", "°C", "تختلف عن الحرارة المحسوسة؛ ليست مؤشر إجهاد حراري رسمياً"),

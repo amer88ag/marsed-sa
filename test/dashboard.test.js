@@ -324,7 +324,7 @@ function createDashboardHarness() {
   const document = { getElementById };
   const window = { L: leaflet };
   const context = {
-    CityRegistry: require("../src/platform/geo/cities.js"), SaudiTime: require("../src/platform/time/saudi-time.js"),
+    CityRegistry: require("../src/platform/geo/cities.js"), SaudiTime: require("../src/platform/time/saudi-time.js"), FreshnessPolicy: require("../src/platform/quality/freshness.js"),
     document, window, L: leaflet, console, Date, Math, Number, isFinite,
     URL,
     WeatherService: {
