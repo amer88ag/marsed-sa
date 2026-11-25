@@ -24,6 +24,12 @@ test("orchard weather service is loaded before the page controller", () => {
   assert.match(service, /buildArchiveUrl\(location/);
 });
 
+test("orchard cache is coordinate-specific and expired forecast rows are excluded", () => {
+  assert.match(page, /var cacheId=String\(lat\)\+","\+String\(lon\)/);
+  assert.match(page, /row\.date>=today/);
+  assert.match(page, /لا توجد أيام توقع مستقبلية صالحة/);
+});
+
 test("all inline page scripts remain syntactically valid", () => {
   const scripts = [...page.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
     .map(match => match[1].trim()).filter(Boolean);
