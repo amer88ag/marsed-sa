@@ -16,21 +16,24 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-CITIES = {
-    "riyadh": {"name": "الرياض", "lat": 24.7136, "lon": 46.6753},
-    "abha": {"name": "أبها", "lat": 18.2164, "lon": 42.5053},
-    "jeddah": {"name": "جدة", "lat": 21.4858, "lon": 39.1925},
-    "dammam": {"name": "الدمام", "lat": 26.4207, "lon": 50.0888},
-    "tabuk": {"name": "تبوك", "lat": 28.3838, "lon": 36.5550},
-    "hail": {"name": "حائل", "lat": 27.5114, "lon": 41.7208},
-    "buraidah": {"name": "بريدة", "lat": 26.3260, "lon": 43.9750},
-    "madinah": {"name": "المدينة المنورة", "lat": 24.5247, "lon": 39.5692},
-    "makkah": {"name": "مكة المكرمة", "lat": 21.3891, "lon": 39.8579},
-    "jazan": {"name": "جازان", "lat": 16.8892, "lon": 42.5511},
-    "najran": {"name": "نجران", "lat": 17.5650, "lon": 44.2289},
-    "arar": {"name": "عرعر", "lat": 30.9753, "lon": 41.0381},
-    "sakaka": {"name": "سكاكا", "lat": 29.9697, "lon": 40.2064},
-}
+REGISTRY_PATH = Path(__file__).resolve().parent.parent / "config" / "cities.json"
+
+
+def load_cities(path: Path = REGISTRY_PATH) -> dict:
+    """CHIRPS sampling points from the unified city registry (group "chirps").
+
+    The registry is the single source of truth for city coordinates. Changing a
+    coordinate there requires re-extracting data/chirps_daily.json.
+    """
+    registry = json.loads(path.read_text(encoding="utf-8"))
+    return {
+        city["id"]: {"name": city["name_ar"], "lat": city["lat"], "lon": city["lon"]}
+        for city in registry["cities"]
+        if "chirps" in city["groups"]
+    }
+
+
+CITIES = load_cities()
 
 def parse_args():
     parser = argparse.ArgumentParser()

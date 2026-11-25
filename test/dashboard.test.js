@@ -12,15 +12,17 @@ test('Arabic RTL document and responsive viewport are present', () => {
 });
 
 test('all configured Saudi cities have coordinates and labels', () => {
-  const cityBlock = html.match(/var places=\{([\s\S]*?)\};/);
-  assert.ok(cityBlock, 'city registry exists');
-  const keys = [...cityBlock[1].matchAll(/([a-z]+):\{name:/g)].map(m => m[1]);
+  // The dashboard reads its cities from the unified registry instead of an inline list.
+  assert.match(html, /var places=CityRegistry\.placesFor\("dashboard"\);/);
+  assert.doesNotMatch(html, /var places=\{/);
+  const places = require('../src/platform/geo/cities.js').placesFor('dashboard');
+  const keys = Object.keys(places);
   assert.ok(keys.length >= 13, 'at least 13 Saudi cities are configured');
   for (const key of keys) {
-    const entry = cityBlock[1].match(new RegExp(key + ':\\{name:"[^"]+",lat:([0-9.]+),lon:([0-9.]+)\\}'));
-    assert.ok(entry, key + ' has numeric latitude and longitude');
-    assert.ok(Number(entry[1]) >= 16 && Number(entry[1]) <= 33, key + ' latitude is within Saudi bounds');
-    assert.ok(Number(entry[2]) >= 34 && Number(entry[2]) <= 56, key + ' longitude is within Saudi bounds');
+    const entry = places[key];
+    assert.ok(entry.name && Number.isFinite(entry.lat) && Number.isFinite(entry.lon), key + ' has a label and numeric coordinates');
+    assert.ok(entry.lat >= 16 && entry.lat <= 33, key + ' latitude is within Saudi bounds');
+    assert.ok(entry.lon >= 34 && entry.lon <= 56, key + ' longitude is within Saudi bounds');
   }
 });
 
@@ -35,7 +37,7 @@ test('weather provider adapter builds explicit Riyadh-time requests and service 
   const service = fs.readFileSync('src/services/weather/service.js', 'utf8');
   assert.match(adapter, /api\.open-meteo\.com\/v1\/forecast/);
   assert.match(adapter, /timezone: "Asia\/Riyadh"/);
-  assert.match(service, /if \(!response\.ok\) throw new Error/);
+  assert.match(service, /http\.request\(/); // HTTP failures are asserted behaviourally in 'weather service surfaces provider HTTP failures'
   assert.match(html, /تعذر جلب البيانات/);
 });
 
@@ -302,7 +304,7 @@ function createDashboardHarness() {
   const getElementById = id => {
     if (!elements.has(id)) elements.set(id, {
       id, textContent: '', innerHTML: '', disabled: false, value: 'riyadh',
-      classList: { add() {}, remove() {} },
+      classList: { add() {}, remove() {} }, setAttribute(name, value) { this[name] = String(value); },
       addEventListener(type, callback) { listeners[id + ':' + type] = callback; }
     });
     return elements.get(id);
@@ -322,6 +324,7 @@ function createDashboardHarness() {
   const document = { getElementById };
   const window = { L: leaflet };
   const context = {
+    CityRegistry: require("../src/platform/geo/cities.js"), SaudiTime: require("../src/platform/time/saudi-time.js"), FreshnessPolicy: require("../src/platform/quality/freshness.js"), UnitPolicy: require("../src/platform/quality/units.js"), SourceState: require("../src/platform/data/source-state.js"),
     document, window, L: leaflet, console, Date, Math, Number, isFinite,
     URL,
     WeatherService: {
@@ -660,7 +663,10 @@ test('route weather adapter requests hourly forecasts and preserves missing meas
   const adapter = require('../src/providers/weather/open-meteo/adapter.js');
   const points = [{ id: 'route-point-1', lat: 24.7, lon: 46.6 }, { id: 'route-point-2', lat: 21.5, lon: 39.2 }];
   const url = new URL(adapter.buildRouteWeatherBatchUrl(points));
-  assert.equal(url.searchParams.get('forecast_days'), '2');
+  // forecast_days counts Saudi calendar days, so 2 would not cover a rolling 48 h window.
+  assert.equal(url.searchParams.get('forecast_days'), '4');
+  assert.equal(new URL(adapter.buildRouteWeatherBatchUrl(points, { forecastDays: 3 })).searchParams.get('forecast_days'), '3');
+  assert.throws(() => adapter.buildRouteWeatherBatchUrl(points, { forecastDays: 0 }), /forecastDays/);
   assert.match(url.searchParams.get('hourly'), /precipitation_probability/);
   assert.equal(url.searchParams.get('timezone'), 'Asia/Riyadh,Asia/Riyadh');
   const result = adapter.normalizeRouteWeatherBatch([

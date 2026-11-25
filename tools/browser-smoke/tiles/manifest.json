@@ -1,0 +1,22 @@
+{
+ "VIIRS_SNPP_CorrectedReflectance_TrueColor": {
+  "file": "textured.png",
+  "cors": true,
+  "expected": "valid"
+ },
+ "MODIS_Terra_CorrectedReflectance_TrueColor": {
+  "file": "halfblack.png",
+  "cors": true,
+  "expected": "partial"
+ },
+ "MODIS_Aqua_CorrectedReflectance_TrueColor": {
+  "file": "black.png",
+  "cors": true,
+  "expected": "blank"
+ },
+ "MODIS_Terra_CorrectedReflectance_Bands721": {
+  "file": "textured.png",
+  "cors": false,
+  "expected": "loaded (unverified)"
+ }
+}

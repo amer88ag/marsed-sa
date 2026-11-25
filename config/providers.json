@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_type": "providers",
-  "updated_at": "2026-11-21",
+  "updated_at": "2026-11-25",
   "providers": [
     {
       "id": "open-meteo",
@@ -9,7 +9,9 @@
       "official_url": "https://open-meteo.com/",
       "domain": "weather",
       "products": [
-        "forecast-api"
+        "forecast-api",
+        "historical-api",
+        "elevation-api"
       ],
       "auth_mode": "none",
       "license_status": "approved_with_conditions",
@@ -108,6 +110,62 @@
       "rate_limit": "Maximum 1 request per second; avoid automated polling; public demo access can be withdrawn",
       "health_status": "not_monitored",
       "notes": "Prototype route geometry and modelled duration only. Not live traffic, road closure, incident, or official safety data; replace with a suitable provider before production."
+    },
+    {
+      "id": "nasa-gibs",
+      "name": "NASA GIBS (Global Imagery Browse Services)",
+      "official_url": "https://nasa-gibs.github.io/gibs-api-docs/",
+      "domain": "earth_observation",
+      "products": [
+        "VIIRS_SNPP_CorrectedReflectance_TrueColor",
+        "MODIS_Terra_CorrectedReflectance_TrueColor",
+        "MODIS_Aqua_CorrectedReflectance_TrueColor",
+        "MODIS_Terra_CorrectedReflectance_Bands721"
+      ],
+      "auth_mode": "none",
+      "license_status": "approved_with_conditions",
+      "license": "NASA open data policy (CC0 for NASA-led mission data unless stated otherwise); acknowledge GIBS/ESDIS; no implied NASA endorsement",
+      "attribution": "Imagery: NASA Earthdata / GIBS (ESDIS)",
+      "coverage": "Global daily daytime imagery; tile matrix GoogleMapsCompatible_Level9",
+      "rate_limit": "Follow GIBS usage guidance; no bulk scraping",
+      "health_status": "not_monitored",
+      "notes": "Live availability not verified from the development sandbox; tile content is checked in the browser when CORS allows."
+    },
+    {
+      "id": "copernicus-dem",
+      "name": "Copernicus DEM GLO-90 (via Open-Meteo Elevation API)",
+      "official_url": "https://open-meteo.com/en/docs/elevation-api",
+      "domain": "geography",
+      "products": [
+        "GLO-90 2021"
+      ],
+      "auth_mode": "none",
+      "license_status": "approved_with_conditions",
+      "license": "CC BY 4.0 with Copernicus/DLR/Airbus attribution",
+      "attribution": "© DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; Elevation data by Open-Meteo.com",
+      "coverage": "Global terrain model, ~90 m",
+      "rate_limit": "Open-Meteo free tier limits apply",
+      "health_status": "not_monitored",
+      "notes": "Terrain model, not a field survey or building height."
+    },
+    {
+      "id": "natural-earth",
+      "name": "Natural Earth 1:10m",
+      "official_url": "https://www.naturalearthdata.com/",
+      "domain": "geography",
+      "products": [
+        "admin_0_countries_sau",
+        "admin_1_states_provinces",
+        "populated_places"
+      ],
+      "auth_mode": "none",
+      "license_status": "approved_with_conditions",
+      "license": "Public domain",
+      "attribution": "Natural Earth (public domain)",
+      "coverage": "Global; Saudi point-of-view boundaries",
+      "rate_limit": "Static files committed to the repository; no runtime requests",
+      "health_status": "not_monitored",
+      "notes": "Illustrative boundaries only; not an official GEOSA boundary. Condition: label as illustrative wherever displayed."
     }
   ]
 }

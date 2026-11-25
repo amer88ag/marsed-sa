@@ -127,3 +127,15 @@ class ChirpsExtractTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CityRegistryLinkTest(unittest.TestCase):
+    def test_cities_come_from_unified_registry(self):
+        import json
+        from pathlib import Path
+        from scripts.chirps_extract import load_cities
+        registry = json.loads(Path("config/cities.json").read_text(encoding="utf-8"))
+        expected = {c["id"]: {"name": c["name_ar"], "lat": c["lat"], "lon": c["lon"]}
+                    for c in registry["cities"] if "chirps" in c["groups"]}
+        self.assertEqual(CITIES, expected)
+        self.assertEqual(load_cities(), expected)

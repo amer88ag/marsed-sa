@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b46">
+<meta name="description" content="مرصد الأقمار الصناعية للسعودية وشبه الجزيرة العربية — صور NASA GIBS ومصادر المركز الوطني للأرصاد.">
+<title>مرصد الأقمار الصناعية | مرصد السعودية</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+:root{--navy:#102b46;--blue:#1769aa;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}
+.top{background:linear-gradient(120deg,#102b46,#174d76);color:white;padding:22px max(16px,calc((100% - 1280px)/2))}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px}.brand h1{font-size:clamp(22px,3vw,30px);margin:0}.brand p{color:#c6d8e7;margin:7px 0 0;font-size:13px}
+.wrap{max-width:1280px;margin:auto;padding:18px 16px 42px}.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.nav a,.btn{display:inline-block;border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:white;color:var(--ink);text-decoration:none;font:inherit;cursor:pointer}.btn.primary{background:var(--blue);border-color:var(--blue);color:white}.panel{background:white;border:1px solid var(--line);border-radius:15px;overflow:hidden;margin-bottom:14px;box-shadow:0 3px 14px #183b5710}.head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}.head h2{font-size:16px;margin:0}.head small{color:var(--muted)}
+.controls{display:flex;align-items:end;gap:10px;flex-wrap:wrap;padding:13px}.controls label{display:grid;gap:5px;font-size:12px;color:var(--muted)}select,input{font:inherit;border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:white;color:var(--ink)}#satMap{height:min(68vh,650px);min-height:380px;background:#e8eff4}.status{padding:10px 14px;font-size:12px;color:var(--muted);line-height:1.7}.status.error{color:#b42318}.legend{padding:0 14px 13px;font-size:11px;color:var(--muted);line-height:1.8}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.item{padding:14px 16px}.item h3{font-size:14px;margin:0 0 7px}.item p{font-size:12px;color:var(--muted);line-height:1.8;margin:0 0 9px}.item a{color:var(--blue);font-size:12px;text-decoration:none}.tag{display:inline-block;border-radius:20px;padding:4px 8px;background:#eef6fc;color:#285b80;font-size:10px;margin:2px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.wrap{padding:13px 10px 32px}.top{padding:18px 14px}#satMap{height:58vh;min-height:340px}.controls label{flex:1;min-width:135px}.controls button{flex:1}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand"><div><h1>مرصد الأقمار الصناعية</h1><p>صور فضائية للسعودية وشبه الجزيرة العربية ومتابعة الغطاء السحابي والسطح</p></div><span id="sourceState" class="tag">مصدر الصور: NASA GIBS</span></div></header>
+<main class="wrap">
+<nav class="nav"><a href="../">الرئيسية</a><a href="../elevation/">قياس الارتفاع</a><a href="../seasons/">مواسم السنة والبستان</a><a href="./coverage.html">فحص التغطية المكانية</a></nav>
+<section class="panel">
+<div class="head"><h2>عارض صور الأقمار الصناعية</h2><small>NASA GIBS · صور مرئية يومية</small></div>
+<div class="controls">
+<label>القمر / نوع الصورة<select id="layer">
+<option value="viirsTrue">VIIRS Suomi NPP — ألوان طبيعية</option>
+<option value="modisTerraTrue">MODIS Terra — ألوان طبيعية</option>
+<option value="modisAquaTrue">MODIS Aqua — ألوان طبيعية</option>
+<option value="modisFalse">MODIS Terra — ألوان زائفة 7-2-1</option>
+</select></label>
+<label>تاريخ الصورة<input id="imageDate" type="date" disabled></label>
+<button class="btn" id="previousDay" type="button">التاريخ المتاح السابق</button>
+<button class="btn" id="nextDay" type="button">التاريخ المتاح التالي</button>
+<button class="btn primary" id="refreshImage" type="button">تحديث الصورة</button>
+</div>
+<div id="satMap" role="application" aria-label="خريطة صور الأقمار الصناعية فوق السعودية"></div>
+<div id="imageStatus" class="status" aria-live="polite">جارٍ تهيئة عارض صور الأقمار الصناعية…</div>
+<div class="legend">الصور المرئية تعتمد على ضوء النهار وقد تظهر أجزاء بلا بيانات عند غياب مرور فضائي أو تأخر المعالجة. التاريخ المختار هو تاريخ المنتج الفضائي وليس وقتاً لحظياً مضموناً. طبقات GIBS اليومية فسيفساء تجمع عدة مرورات للقمر خلال اليوم، ولا تحمل خدمة WMTS وقت مرور لكل منطقة، لذلك لا يعرض المرصد وقت مرور ولا يقدّم الصورة على أنها حية.</div>
+</section>
+<div class="grid">
+<section class="panel">
+<div class="head"><h2>مصدر الصور الحالي</h2><small>مفتوح دون مفتاح API</small></div>
+<div class="item"><h3>NASA Global Imagery Browse Services (GIBS)</h3><p>خدمة عامة تقدم طبقات مرئية فضائية عبر WMTS وWMS. منتجات عديدة تُتاح في الخدمة القريبة من الزمن الحقيقي خلال ساعات من الرصد، لكن زمن التوفر يختلف بحسب المنتج والتغطية.</p><a href="https://nasa-gibs.github.io/gibs-api-docs/" target="_blank" rel="noopener">توثيق NASA GIBS ↗</a></div>
+</section>
+<section class="panel">
+<div class="head"><h2>التكامل الرسمي السعودي</h2><small>يتطلب اعتماد API</small></div>
+<div class="item"><h3>المركز الوطني للأرصاد NCM</h3><p>يوثق المركز صوراً عالمية مركبة RGB وقنوات الأشعة تحت الحمراء ومؤشر NDVI. يتطلب استخدام واجهة API حساب دخول؛ لذلك لن نضع اسم المستخدم أو كلمة المرور في ملفات الواجهة أو المستودع.</p><a href="https://api-doc.ncm.gov.sa/en/api/available-parameters/satellite" target="_blank" rel="noopener">طبقات الأقمار الصناعية الرسمية ↗</a> · <a href="https://api-doc.ncm.gov.sa/en/api/getting-started" target="_blank" rel="noopener">طلب اعتماد API ↗</a><div><span class="tag">الربط المباشر مؤجل لحين إعداد وسيط آمن على الخادم</span></div></div>
+</section>
+<section class="panel">
+<div class="head"><h2>الطبقات المرشحة — غير مفعّلة بعد</h2><small>قيد التحقق من التغطية والوقت</small></div>
+<div class="item">
+<p><b>الشذوذات الحرارية والحرائق — VIIRS:</b> رصد فضائي لبؤر حرارية محتملة نهاراً وليلاً. لا يمثل وحده تأكيد حريق أو إنذاراً رسمياً.</p>
+<p><b>حرارة سطح الأرض — VIIRS LST:</b> متابعة حرارة السطح اليومية بدقة مصدر أصلية 1 كم؛ ليست درجة حرارة الهواء.</p>
+<p><b>الغبار — AIRS Dust Score:</b> مؤشر فضائي للغبار من مستشعر AIRS؛ ليس قياساً أرضياً لتركيز PM2.5 أو PM10.</p>
+<p><b>الأمطار الفضائية — GPM IMERG:</b> منتج هطول نصف ساعي على شبكة 0.1°؛ تقدير فضائي لا يعادل مقياس المطر الأرضي. يلزم التحقق من البعد الزمني الفعلي في WMTS قبل عرضه.</p>
+<p><b>الغطاء النباتي — VIIRS NDVI:</b> مؤشر نباتي متحرك لثمانية أيام بدقة مصدر أصلية 500م؛ لا يشخص صحة شجرة مفردة ولا يحدد احتياج الري وحده.</p>
+<p><b>الأشعة تحت الحمراء وبخار الماء:</b> مرشحتان لمتابعة السحب والرطوبة الجوية بعد تحديد منتجات وقنوات موثقة لكل منهما.</p>
+<p class="tag">لن تظهر هذه المنتجات كطبقات قابلة للاختيار حتى يكتمل اختبار نطاق التواريخ، وتغطية المملكة، ومحتوى البلاطات، ومصدر المنتج ودقته.</p>
+<p><a href="../docs/DATA_SOURCES.md">تفاصيل المصادر والطبقات المرشحة في سجل البيانات ↗</a></p>
+</div>
+</section>
+<section class="panel">
+<div class="head"><h2>حدود التفسير</h2></div>
+<div class="item"><p>الصورة المرئية لا تثبت هطول المطر. الأشعة تحت الحمراء تعطي مؤشرات عن حرارة قمم السحب ولا تقيس المطر مباشرة. تقدير المطر بالأقمار الصناعية يبقى منتجاً تقديرياً، ويجب مقارنته بالرادار والمحطات الأرضية متى توفرت.</p><p>صور MODIS وVIIRS ليست رصداً متواصلاً كل دقيقة مثل الأقمار الجغرافية الثابتة؛ لذا لا نعرضها كأنها بث حي.</p></div>
+</section>
+</div>
+<footer class="status">مرصد السعودية مشروع مستقل. صور الأقمار من NASA GIBS مع الإسناد المناسب. لا تمثل هذه الصور تحذيراً رسمياً أو قياساً أرضياً مباشراً.</footer>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="../src/platform/http/client.js"></script>
+<script src="../src/platform/time/saudi-time.js"></script>
+<script src="../src/platform/quality/freshness.js"></script>
+<script src="../src/platform/geo/cities.js"></script>
+<script src="../src/platform/geo/map-frame.js"></script>
+<script src="../src/services/satellite/nasa-gibs.js"></script>
+<script>
+(function(){
+"use strict";
+var map=null,layer=null,activeKey="viirsTrue",availablePeriods=[],availabilityRequestId=0,renderRequestId=0,currentTileErrors=0,availabilityAbort=null;
+function $(id){return document.getElementById(id)}
+function setStatus(message,isError){$("imageStatus").textContent=message;$("imageStatus").classList.toggle("error",!!isError)}
+function clearImage(){if(layer&&map){map.removeLayer(layer);layer=null}}
+function loadLayer(){
+ if(!map||!window.L)return;
+ var key=$("layer").value,date=$("imageDate").value;
+ if(!NasaGibsSatellite.validDate(date)){setStatus("اختر تاريخاً صحيحاً للصورة.",true);return}
+ if(!NasaGibsSatellite.isDateAvailable(date,availablePeriods)){var before=NasaGibsSatellite.adjacentAvailableDate(date,availablePeriods,-1,$("imageDate").max),after=NasaGibsSatellite.adjacentAvailableDate(date,availablePeriods,1,$("imageDate").max);setStatus("لا توجد بيانات موثقة لهذا التاريخ في الطبقة المختارة (خارج فتراتها أو خطوتها الزمنية)."+(before||after?" أقرب تاريخ متاح: "+[before,after].filter(Boolean).join(" أو ")+".":" اختر تاريخاً متاحاً."),true);return}
+ var meta=NasaGibsSatellite.getLayer(key),renderId=++renderRequestId;
+ currentTileErrors=0;
+ clearImage();
+ var nextLayer=L.tileLayer(NasaGibsSatellite.buildTileUrl(key,date),{
+  minZoom:2,maxZoom:10,maxNativeZoom:9,opacity:1,
+  attribution:'Imagery © <a href="https://www.earthdata.nasa.gov/">NASA Earthdata</a> / <a href="https://gibs.earthdata.nasa.gov/">GIBS</a>'
+ });
+ nextLayer.on("tileerror",function(){if(renderId!==renderRequestId)return;currentTileErrors++;setStatus("تعذر تحميل "+currentTileErrors+" من مربعات الصورة الظاهرة. قد توجد فجوات تغطية مكانية رغم أن التاريخ ضمن نطاق المنتج.",true)});
+ nextLayer.on("load",function(){if(renderId!==renderRequestId)return;var coverageNote=currentTileErrors?" · تغطية غير مكتملة: تعذر تحميل "+currentTileErrors+" مربعاً":" · اكتمل تحميل مربعات العرض الحالية";var productAge=typeof FreshnessPolicy!=="undefined"?FreshnessPolicy.satelliteProduct(date,new Date()).age_days_utc:null;setStatus(meta.title+" · نوع البيانات: صورة أقمار صناعية مرئية · تاريخ المنتج الفعلي (UTC): "+date+(productAge===null?"":" ("+(productAge===0?"اليوم بتوقيت UTC":SaudiTime.ageText(productAge*1440))+")")+" · آخر تاريخ متاح حسب الخدمة: "+NasaGibsSatellite.latestAvailableDate(availablePeriods)+coverageNote+" · "+meta.note+" · المصدر: NASA GIBS",currentTileErrors>0)});
+ layer=nextLayer;layer.addTo(map);activeKey=key;
+ setStatus("جارٍ تحميل "+meta.title+" بتاريخ "+date+"…");
+}
+async function refreshAvailability(){
+ var key=$("layer").value,requestId=++availabilityRequestId;
+ renderRequestId++;
+ clearImage();availablePeriods=[];$("imageDate").disabled=true;
+ setStatus("جارٍ الاستعلام من NASA GIBS عن تواريخ الصور المتاحة للطبقة المختارة…");
+ try{
+  if(availabilityAbort)availabilityAbort.abort();
+  availabilityAbort=typeof AbortController==="function"?new AbortController():null;
+  var result=await NasaGibsSatellite.getAvailableDates(key,null,{signal:availabilityAbort?availabilityAbort.signal:undefined,timeoutMs:15000});
+  if(requestId!==availabilityRequestId)return;
+  availablePeriods=result.periods;
+  var latest=result.latestDate,today=NasaGibsSatellite.productDateCap(new Date());
+  if(!latest){setStatus("لم تُرجع الخدمة تاريخاً متاحاً لهذه الطبقة.",true);return}
+  // Step-aware: the latest date that the WMTS domain actually lists (respects P1D/P8D/P1M and gaps).
+  var latestAtOrBeforeToday=NasaGibsSatellite.latestAvailableOnOrBefore(availablePeriods,today);
+  if(!latestAtOrBeforeToday){setStatus("لا توجد صورة متاحة لهذه الطبقة حتى تاريخ اليوم.",true);return}
+  $("imageDate").max=latestAtOrBeforeToday;
+  $("imageDate").min=NasaGibsSatellite.earliestAvailableDate(availablePeriods);
+  var selected=$("imageDate").value;
+  $("imageDate").value=NasaGibsSatellite.isDateAvailable(selected,availablePeriods)&&selected<=today?selected:latestAtOrBeforeToday;
+  $("imageDate").disabled=false;
+  loadLayer();
+ }catch(error){
+  if(requestId!==availabilityRequestId)return;
+  $("imageDate").disabled=true;
+  if(error&&error.kind==="aborted")return;
+  setStatus("تعذر التحقق من تواريخ الصور من NASA GIBS. لم نستخدم تاريخاً افتراضياً حتى لا نعرض تاريخاً غير مؤكد. تحقق من الاتصال أو أعد المحاولة. ("+error.message+")",true);
+ }
+}
+function moveDate(offset){
+ var date=$("imageDate").value;
+ if(!NasaGibsSatellite.validDate(date)||!availablePeriods.length)return;
+ var candidate=NasaGibsSatellite.adjacentAvailableDate(date,availablePeriods,offset,$("imageDate").max);
+ if(!candidate){setStatus("لا يوجد تاريخ متاح إضافي في هذا الاتجاه ضمن فترات وخطوات الطبقة.",true);return}
+ $("imageDate").value=candidate;loadLayer();
+}
+function init(){
+ if(!window.L){setStatus("تعذر تحميل مكتبة الخريطة. تحقق من الاتصال.",true);return}
+ map=L.map("satMap",{scrollWheelZoom:true,minZoom:4,maxZoom:10}).setView([23.8,45.2],5);
+ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+ // Vector outline sits in Leaflet's overlay pane, above the imagery tiles. Illustrative, not an official boundary.
+ if(typeof SaudiMapFrame!=="undefined")SaudiMapFrame.frame(map,L,{url:"../data/geo/saudi_boundary.geojson"});
+ $("layer").addEventListener("change",refreshAvailability);
+ $("imageDate").addEventListener("change",loadLayer);
+ $("refreshImage").addEventListener("click",refreshAvailability);
+ $("previousDay").addEventListener("click",function(){moveDate(-1)});
+ $("nextDay").addEventListener("click",function(){moveDate(1)});
+ refreshAvailability();
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
+</script>
+</body>
+</html>

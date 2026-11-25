@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_type": "services",
-  "updated_at": "2026-11-21",
+  "updated_at": "2026-11-26",
   "services": [
     {
       "id": "weather",
@@ -89,10 +89,11 @@
       "id": "maps",
       "title": "الخرائط الجغرافية",
       "category": "geography",
-      "description": "طبقات جغرافية مرخصة مع إسناد ومعلومات مصدر.",
+      "description": "خريطة أساس OpenStreetMap مع حدود توضيحية للمملكة والمناطق من Natural Earth (ليست حدوداً رسمية).",
       "status": "research",
       "provider_ids": [
-        "openstreetmap"
+        "openstreetmap",
+        "natural-earth"
       ],
       "capabilities": [
         "base_map",
@@ -129,6 +130,85 @@
       ],
       "data_class": "route_estimate_and_model_output",
       "safety_notice": "زمن المسار ليس حركة مرور حية. لا تتوفر بيانات موثقة عن الحوادث أو الإغلاقات أو التنبيهات الرسمية ضمن هذه التجربة."
+    },
+    {
+      "id": "satellite",
+      "title": "مرصد الأقمار الصناعية",
+      "category": "earth_observation",
+      "description": "عرض صور NASA GIBS اليومية المرئية للمملكة مع التحقق من تاريخ المنتج وخطوته الزمنية.",
+      "status": "research",
+      "ui_entry": "satellite/index.html",
+      "provider_ids": [
+        "nasa-gibs",
+        "openstreetmap",
+        "natural-earth"
+      ],
+      "capabilities": [
+        "true_color_imagery",
+        "false_color_721",
+        "date_availability"
+      ],
+      "data_class": "satellite_imagery",
+      "safety_notice": "صور مرئية يومية وليست بثاً حياً ولا قياساً فيزيائياً؛ قد تحتوي فجوات مرور."
+    },
+    {
+      "id": "satellite-coverage",
+      "title": "فحص تغطية بلاطات الأقمار",
+      "category": "diagnostics",
+      "description": "فحص تشخيصي لـ19 نقطة: استجابة الخادم، وصلاحية محتوى البلاطة، وتغطية المناطق الـ13.",
+      "status": "research",
+      "ui_entry": "satellite/coverage.html",
+      "provider_ids": [
+        "nasa-gibs"
+      ],
+      "capabilities": [
+        "tile_response",
+        "tile_content_check",
+        "regional_sample_coverage"
+      ],
+      "data_class": "diagnostic",
+      "safety_notice": "عينة نقطية وليست شهادة تغطية وطنية."
+    },
+    {
+      "id": "elevation",
+      "title": "مستكشف الارتفاع",
+      "category": "geography",
+      "description": "قياس ارتفاع التضاريس لنقطة على الخريطة من Copernicus DEM GLO-90.",
+      "status": "research",
+      "ui_entry": "elevation/index.html",
+      "provider_ids": [
+        "open-meteo",
+        "copernicus-dem",
+        "openstreetmap",
+        "natural-earth"
+      ],
+      "capabilities": [
+        "point_elevation",
+        "copy_coordinates"
+      ],
+      "data_class": "terrain_model",
+      "safety_notice": "دقة نحو 90 م؛ ليس مسحاً ميدانياً ولا ارتفاع مبانٍ."
+    },
+    {
+      "id": "seasons-orchard",
+      "title": "المواسم والزراعة والنباتات",
+      "category": "agriculture",
+      "description": "تقويم الفصول والأنواء، وتقويم المحاصيل والأشجار، وربط طقس الموقع بالتوقعات وإعادة التحليل؛ يجري توسيع موسوعة النباتات والملاءمة الجغرافية على مراحل.",
+      "status": "research",
+      "ui_entry": "seasons/index.html",
+      "provider_ids": [
+        "open-meteo"
+      ],
+      "capabilities": [
+        "seasonal_calendar",
+        "crop_calendar",
+        "orchard_forecast_indicators",
+        "orchard_reanalysis",
+        "plant_profiles_planned",
+        "regional_crop_suitability_planned"
+      ],
+      "data_class": "model_output",
+      "safety_notice": "المواعيد إرشادية بحسب المصادر والمنطقة والصنف؛ مؤشرات الطقس نموذجية وليست قياسات مزرعة أو أوامر ري أو إنذارات صقيع."
     }
   ]
 }

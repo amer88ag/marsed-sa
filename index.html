@@ -8,17 +8,23 @@
 <title>مرصد السعودية | المناخ والمياه</title>
 <link rel="preconnect" href="https://unpkg.com">
 <link rel="preconnect" href="https://tile.openstreetmap.org">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <style>
 :root{color-scheme:light;--navy:#102b46;--blue:#1769aa;--sky:#eaf4fb;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa;--green:#16794b;--amber:#9a5a00;--red:#b42318}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}button,select{font:inherit}button{cursor:pointer}.top{background:linear-gradient(120deg,#102b46,#174d76);color:#fff;padding:22px max(20px,calc((100% - 1280px)/2));}.brand{display:flex;justify-content:space-between;align-items:center;gap:16px}.brand h1{font-size:clamp(21px,3vw,30px);margin:0}.brand p{margin:7px 0 0;color:#c6d8e7;font-size:14px}.status{font-size:12px;border:1px solid #7092ac;border-radius:30px;padding:8px 12px;white-space:nowrap}.wrap{max-width:1280px;margin:auto;padding:22px 18px 48px}.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.toolbar label{font-size:13px;color:var(--muted)}select,.btn{border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:white;color:var(--ink)}.btn.primary{background:var(--blue);border-color:var(--blue);color:white}.btn:disabled{opacity:.5;cursor:not-allowed}.updated{margin-inline-start:auto;color:var(--muted);font-size:12px}.grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 3px 14px #183b5710}.panel-head{display:flex;justify-content:space-between;align-items:center;padding:15px 17px;border-bottom:1px solid var(--line)}.panel-head h2{font-size:16px;margin:0}.panel-head span{font-size:12px;color:var(--muted)}#map{height:450px;width:100%;background:#e8eff4}.map-note{padding:9px 14px;color:var(--muted);font-size:11px;border-top:1px solid var(--line)}.radar-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line)}.radar-tools label{font-size:12px;color:var(--muted)}.radar-tools select{padding:8px 10px}.radar-legend{display:flex;gap:12px;flex-wrap:wrap;padding:9px 14px;font-size:11px;color:var(--muted)}.legend-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:4px}.radar-meta{padding:0 14px 10px;font-size:11px;color:var(--muted);line-height:1.7}.trip-panel{margin:0 0 16px}.trip-controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:14px}.trip-controls input{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:var(--ink);font:inherit}.trip-controls .trip-time-help{grid-column:1/-1;margin:-3px 0 0;color:var(--muted);font-size:11px}.trip-controls button{grid-column:1/-1}.trip-controls label{display:grid;gap:6px;font-size:12px;color:var(--muted)}.trip-results{padding:0 14px 14px}.trip-summary{padding:10px 12px;border-radius:10px;background:#eef6fc;color:#234d6b;font-size:12px;line-height:1.8;margin-bottom:10px}.trip-table{width:100%;border-collapse:collapse;font-size:12px}.trip-table th,.trip-table td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}.trip-table th{color:var(--muted);font-weight:600}.trip-note{font-size:11px;color:var(--muted);line-height:1.8;margin-top:10px}@media(max-width:650px){.trip-controls{grid-template-columns:1fr 1fr}.trip-controls label:nth-child(3){grid-column:1/-1}.trip-controls button{grid-column:1/-1}.trip-results{overflow-x:auto}}.side{display:grid;gap:16px;align-content:start}.place-title{padding:16px 17px 0}.place-title h2{margin:0;font-size:22px}.place-title p{margin:5px 0;color:var(--muted);font-size:12px}.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}.atmospheric-metrics{padding-top:10px}.atmospheric-metrics .metric strong{font-size:21px}.metric{background:#f6f9fc;border:1px solid #e8eef3;border-radius:12px;padding:13px}.metric small{color:var(--muted);font-size:12px}.metric strong{display:block;font-size:25px;margin-top:8px;font-weight:700}.metric em{font-style:normal;color:var(--muted);font-size:11px}.notice{margin:0 14px 14px;padding:11px 12px;border-radius:10px;background:#fff7e8;color:#79500b;font-size:12px;line-height:1.7}.chart-wrap{padding:12px 14px 16px}.chart{width:100%;height:180px;display:block}.data-state{padding:10px 14px;color:var(--muted);font-size:12px;line-height:1.7}.data-state.error{color:var(--red)}.data-meta{font-size:11px;color:var(--muted);padding:0 14px 14px}.chart-labels{display:flex;gap:14px;flex-wrap:wrap;padding:0 14px 8px;font-size:11px;color:var(--muted)}.chart-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:10px}.sources{display:grid;gap:0}.source{padding:14px 16px;border-bottom:1px solid var(--line)}.source:last-child{border:0}.source b{display:block;font-size:14px}.source p{margin:5px 0;color:var(--muted);font-size:12px;line-height:1.6}.source a{color:var(--blue);text-decoration:none;font-size:12px}.source .tag{display:inline-block;margin-top:7px;border-radius:30px;padding:4px 8px;background:#edf5fb;color:#275b80;font-size:10px}.section-title{font-size:18px;margin:24px 0 12px}.foot{margin-top:18px;color:var(--muted);font-size:11px;line-height:1.8}.error{color:var(--red)}.loading{color:var(--muted);font-size:13px;padding:10px 14px}.leaflet-container{font-family:Tahoma,Arial,sans-serif}.weather-context{padding:0 14px 14px}.weather-context h3{font-size:14px;margin:12px 0 8px}.insight{padding:12px;border-radius:12px;background:#eef6fc;color:#234d6b;font-size:13px;line-height:1.8}.hourly{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scroll-snap-type:x proximity}.hour{min-width:86px;border:1px solid var(--line);border-radius:11px;padding:10px 8px;text-align:center;scroll-snap-align:start;background:#fbfdff}.hour b,.day b{display:block;font-size:13px}.hour strong{display:block;font-size:19px;margin:7px 0}.hour small,.day small{display:block;color:var(--muted);font-size:11px;line-height:1.6}.daily{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;padding:12px 14px}.day{background:#f7fafc;border:1px solid #e8eef3;border-radius:10px;padding:10px 7px;text-align:center;min-width:0}.day strong{display:block;font-size:14px;margin:7px 0}.day span{font-size:11px;color:var(--blue)}@media(max-width:850px){.daily{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:850px){.grid{grid-template-columns:1fr}.side{grid-template-columns:1fr}.updated{width:100%;margin:0}#map{height:360px}.wrap{padding:14px 12px 32px}.top{padding:18px 16px}.status{font-size:10px}}
+.data-state-badge{font-size:12px;margin-top:4px;color:#3a4a5c}.data-state-badge[data-state="cached"],.data-state-badge[data-state="stale"],.data-state-badge[data-state="partial"]{color:#8a5700}.data-state-badge[data-state="unavailable"],.data-state-badge[data-state="source_error"]{color:#b42318}
+.compare-tools{display:flex;gap:8px;align-items:center;margin:8px 0;font-size:13px}.compare-tools select{font:inherit;padding:6px 8px;border-radius:8px;border:1px solid #d6dee6}.compare-wrap{overflow-x:auto;max-width:100%}.compare{width:100%;border-collapse:collapse;font-size:13px}.compare th,.compare td{padding:7px 6px;border-bottom:1px solid #e6ecf1;text-align:start;white-space:nowrap}.compare th{font-size:12px;color:#4c5b6b;font-weight:600}
+.chirps-regions{margin-top:8px;font-size:13px}.chirps-regions summary{cursor:pointer;color:#20577a}
 </style>
 </head>
 <body>
 <header class="top"><div class="brand"><div><h1>مرصد السعودية للمناخ والمياه</h1><p>لوحة متابعة الطقس والأمطار والبيانات المناخية للمملكة</p></div><div class="status" id="connection">● جاهز للاتصال</div></div></header>
 <main class="wrap">
 <div class="toolbar">
+<a class="btn" href="elevation/" aria-label="فتح مسار قياس الارتفاع">⛰️ قياس الارتفاع</a>
+<a class="btn" href="seasons/" aria-label="فتح المواسم والزراعة والنباتات">🌦️ المواسم والزراعة</a>
+<a class="btn" href="satellite/" aria-label="فتح مرصد الأقمار الصناعية">🛰️ الأقمار الصناعية</a>
 <a class="btn" href="admin/">مركز إدارة الخدمات والمصادر</a>
 <label for="place">الموقع</label>
 <select id="place" aria-label="اختر مدينة أو منطقة">
@@ -26,8 +32,9 @@
 </select>
 <button class="btn primary" id="refresh">تحديث البيانات</button>
 <div class="updated" id="updated">لم يتم جلب البيانات بعد</div>
+<div class="data-state-badge" id="dataState" data-state="not_loaded" aria-live="polite">الحالة: لم يتم جلبها بعد</div>
 </div>
-<section class="panel trip-panel">
+<section class="panel trip-panel" id="road-trips">
 <div class="panel-head"><h2>عين الطريق والرحلات</h2><span>تجربة أولية بين المدن</span></div>
 <div class="trip-controls">
 <label for="tripOrigin">مدينة الانطلاق<select id="tripOrigin" aria-label="مدينة الانطلاق"><option value="riyadh">الرياض</option><option value="abha">أبها</option><option value="jeddah">جدة</option><option value="dammam">الدمام</option><option value="tabuk">تبوك</option><option value="hail">حائل</option><option value="buraidah">بريدة</option><option value="madinah">المدينة المنورة</option><option value="makkah">مكة المكرمة</option><option value="jazan">جازان</option><option value="najran">نجران</option><option value="arar">عرعر</option><option value="sakaka">سكاكا</option></select></label>
@@ -46,13 +53,13 @@
 <div class="map-note">الخريطة الأساسية من OpenStreetMap. موقع المؤشر يوضح المدينة المختارة، وليس قياساً لمحطة رصد.</div>
 </section>
 <div class="side">
-<section class="panel">
+<section class="panel" id="weather">
 <div class="place-title"><h2 id="placeName">الرياض</h2><p id="placeCoords">24.7136° شمالاً، 46.6753° شرقاً</p></div>
 <div id="loading" class="loading">جارٍ جلب بيانات الطقس من خدمة النماذج المفتوحة…</div>
 <div class="metrics">
 <div class="metric"><small>الحرارة الآن</small><strong id="temp">—</strong><em>°م · نموذج جوي</em></div>
 <div class="metric"><small>الحرارة المحسوسة</small><strong id="feels">—</strong><em>°م · تقدير النموذج</em></div>
-<div class="metric"><small>الهطول الحالي</small><strong id="rain">—</strong><em>ملم · نموذج جوي</em></div>
+<div class="metric"><small id="rainLabel">الهطول خلال الفترة الحالية</small><strong id="rain">—</strong><em>ملم · نموذج جوي</em></div>
 <div class="metric"><small>الرطوبة النسبية</small><strong id="humidity">—</strong><em>%</em></div>
 <div class="metric"><small>سرعة الرياح</small><strong id="wind">—</strong><em>كم/ساعة</em></div>
 <div class="metric"><small>حالة الطقس</small><strong id="condition" style="font-size:17px">—</strong><em id="daylight">—</em></div>
@@ -64,7 +71,8 @@
 <div class="metric"><small>الضغط عند سطح الموقع</small><strong id="surfacePressure">—</strong><em>هكتوباسكال (hPa)</em></div>
 <div class="metric"><small>درجة الندى</small><strong id="dewPoint">—</strong><em>°م · مؤشر الرطوبة والتكاثف</em></div>
 <div class="metric"><small>الغطاء السحابي</small><strong id="cloudCover">—</strong><em>% من السماء</em></div>
-<div class="metric"><small>هبات الرياح</small><strong id="windGusts">—</strong><em>كم/ساعة · أقصى هبة متوقعة</em></div>
+<div class="metric"><small>مدى الرؤية</small><strong id="visibility">—</strong><em>كم · تقدير نموذج، ليس قياس مطار</em></div>
+<div class="metric"><small>هبات الرياح</small><strong id="windGusts">—</strong><em>كم/ساعة · أقصى هبة خلال الفترة الحالية (نموذج)</em></div>
 <div class="metric"><small>اتجاه الرياح</small><strong id="windDirection" style="font-size:20px">—</strong><em>اتجاه قادم منه الهواء</em></div>
 <div class="metric"><small>مؤشر الأشعة فوق البنفسجية</small><strong id="uvIndex">—</strong><em>أقصى قيمة متوقعة اليوم</em></div>
 <div class="metric"><small>حرارة البصيلة الرطبة</small><strong id="wetBulb">—</strong><em>°م · مؤشر يجمع الحرارة والرطوبة</em></div>
@@ -84,14 +92,22 @@
 <div class="notice" id="quality">هذه القيم مستمدة من نموذج طقس، وليست قياسات مباشرة من محطة أرصاد. قد تختلف عن الرصد الأرضي.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · البيانات مرخصة وفق CC BY 4.0 مع الإسناد.</div>
 </section>
 <section class="panel">
-<div class="panel-head"><h2>الأمطار — 7 أيام سابقة و7 أيام قادمة</h2><span>ملم/يوم</span></div>
-<div class="chart-wrap"><svg id="rainChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مخطط كميات الأمطار اليومية"></svg><div class="chart-labels"><span>الأقدم</span><span>اليوم</span><span>الأحدث</span></div></div>
+<div class="panel-head"><h2>الأمطار المتوقعة — الأيام السبعة القادمة (توقع نموذجي)</h2><span>ملم/يوم</span></div>
+<div class="chart-wrap"><svg id="rainChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مخطط كميات الأمطار اليومية"></svg><div class="chart-labels"><span>اليوم</span><span>←</span><span>بعد 6 أيام</span></div></div>
 <div id="chartCaption" class="loading">يظهر المخطط بعد تحميل البيانات.</div>
 </section>
-<section class="panel">
+<section class="panel" id="compare">
+<div class="panel-head"><h2>مقارنة الطقس بين المدن</h2><span>ناتج نموذج · نفس وقت الصلاحية</span></div>
+<div class="compare-tools"><label for="compareSort">ترتيب حسب</label><select id="compareSort"><option value="registry">ترتيب المدن</option><option value="temperature">الحرارة الآن</option><option value="max">العظمى اليوم</option><option value="precip">هطول اليوم المتوقع</option><option value="elevation">ارتفاع التضاريس</option></select></div>
+<div class="compare-wrap"><table class="compare"><thead><tr><th>المدينة</th><th>الحرارة °م</th><th>العظمى/الصغرى °م</th><th>الرطوبة %</th><th>هطول اليوم المتوقع ملم (احتمال)</th><th>الرياح/الهبات كم/س</th><th>ضغط مستوى البحر hPa</th><th>ارتفاع التضاريس م</th></tr></thead><tbody id="compareBody"><tr><td colspan="8">لم يتم جلب البيانات بعد.</td></tr></tbody></table></div>
+<div class="data-state" id="compareNote">القيم من طلب واحد لنموذج Open-Meteo لكل المدن؛ ليست رصد محطات. «—» تعني قيمة غير متاحة ولا تُعد صفراً. ارتفاع التضاريس من نموذج 90 م عند نقطة المدينة. الضغط مختزل إلى مستوى سطح البحر لتصح المقارنة بين المدن.</div>
+</section>
+<section class="panel" id="chirps">
 <div class="panel-head"><h2>الأمطار التاريخية — CHIRPS v3</h2><span>ملم/يوم</span></div>
 <div class="chart-wrap"><svg id="chirpsChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مقارنة أمطار CHIRPS SAT وRNL اليومية عند إحداثيات المدينة"></svg><div class="chart-labels"><span>■ SAT — أزرق</span><span>■ RNL — أخضر</span></div></div>
-<div id="chirpsState" class="data-state">تعرض اللوحة العينة البحثية المحفوظة في المستودع. لتحديثها، شغّل مهمة Build CHIRPS city time series من تبويب Actions على فرع التطوير؛ التحديث لا ينشر تلقائياً إلى main.</div>
+<div id="chirpsState" class="data-state">تعرض اللوحة عينة بحثية قصيرة محفوظة مع الموقع، وليست بيانات محدثة يومياً ولا تغطية وطنية.</div>
+<div id="chirpsAnalysis" class="data-meta" aria-live="polite"></div>
+<details class="chirps-regions"><summary>مقارنة المدن في نافذة العينة نفسها (SAT)</summary><div class="compare-wrap"><table class="compare"><thead><tr><th>المدينة</th><th>مجموع النافذة ملم</th><th>أيام ممطرة ≥1 ملم</th><th>أعلى يوم ملم</th><th>آخر تاريخ متاح</th></tr></thead><tbody id="chirpsRegions"><tr><td colspan="5">لم يتم جلبها بعد.</td></tr></tbody></table></div></details>
 <div id="chirpsMeta" class="data-meta">العينة: أقرب خلية شبكية إلى إحداثيات المدينة، وليست متوسط أمطار كامل النطاق البلدي.</div>
 </section>
 </div>
@@ -106,19 +122,31 @@
 </section>
 <div class="foot">مرصد السعودية مشروع مستقل غير تابع للمركز الوطني للأرصاد أو NASA أو UCSB. لا تستخدم هذه اللوحة لاتخاذ قرارات السلامة أو الإخلاء أو الملاحة. في الحالات الطارئة اتبع تنبيهات الجهات الرسمية. © مرصد السعودية.</div>
 </main>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="src/platform/http/client.js"></script>
+<script src="src/platform/time/saudi-time.js"></script>
+<script src="src/platform/quality/freshness.js"></script>
+<script src="src/platform/data/source-state.js"></script>
+<script src="src/platform/geo/cities.js"></script>
+<script src="src/platform/geo/map-frame.js"></script>
+<script src="src/platform/quality/units.js"></script>
 <script src="src/providers/weather/open-meteo/adapter.js"></script>
 <script src="src/providers/precipitation/chirps/adapter.js"></script>
 <script src="src/services/weather/service.js"></script>
-<script src="src/services/precipitation/service.js"></script>\n<script src="src/providers/routing/osrm/adapter.js"></script>\n<script src="src/services/routing/service.js"></script>
+<script src="src/services/precipitation/service.js"></script>
+<script src="src/services/precipitation/aggregate.js"></script>
+<script src="src/providers/routing/osrm/adapter.js"></script>
+<script src="src/services/routing/service.js"></script>
 <script src="src/services/routing/itinerary.js"></script>
 <script>
 (function(){
 "use strict";
-var places={
-riyadh:{name:"الرياض",lat:24.7136,lon:46.6753},abha:{name:"أبها",lat:18.2164,lon:42.5053},jeddah:{name:"جدة",lat:21.4858,lon:39.1925},dammam:{name:"الدمام",lat:26.4207,lon:50.0888},tabuk:{name:"تبوك",lat:28.3838,lon:36.5550},hail:{name:"حائل",lat:27.5114,lon:41.7208},buraidah:{name:"بريدة",lat:26.3260,lon:43.9750},madinah:{name:"المدينة المنورة",lat:24.5247,lon:39.5692},makkah:{name:"مكة المكرمة",lat:21.3891,lon:39.8579},jazan:{name:"جازان",lat:16.8892,lon:42.5511},najran:{name:"نجران",lat:17.5650,lon:44.2289},arar:{name:"عرعر",lat:30.9753,lon:41.0381},sakaka:{name:"سكاكا",lat:29.9697,lon:40.2064}
-};
-var map=null,cityMarkers={},radarCircles={},radarData={},radarMode="current",radarRequestId=0,radarUpdatedAt=null,activeKey="riyadh",chirpsDataset=null,tripLine=null,tripMarkers=[];
+// Single source of truth: config/cities.json → src/platform/geo/cities.js (group "dashboard").
+var places=CityRegistry.placesFor("dashboard");
+var map=null,cityMarkers={},radarCircles={},radarData={},radarMode="current",radarRequestId=0,radarUpdatedAt=null,activeKey="riyadh",chirpsDataset=null,tripLine=null,tripMarkers=[],tripRequestId=0,tripAbort=null,weatherAbort=null,radarAbort=null;
+var REQUEST_TIMEOUT_MS=15000;
+function freshController(previous){if(previous)previous.abort();return typeof AbortController==="function"?new AbortController():null}
+function errorText(error){return typeof HttpClient!=="undefined"&&error&&error.kind?HttpClient.describeError(error):(error&&error.message?error.message:"خطأ غير معروف")}
 var $=function(id){return document.getElementById(id)};
 function setText(id,value){$(id).textContent=value}
 function number(v,d){return v===null||v===undefined||!isFinite(Number(v))?"—":Number(v).toFixed(d||0)}
@@ -133,6 +161,7 @@ function initMap(){
  if(!window.L){$("map").innerHTML='<div class="loading">تعذر تحميل مكتبة الخريطة. يمكنك استخدام بيانات الطقس أدناه.</div>';return}
  map=L.map("map",{scrollWheelZoom:false}).setView([23.8,45.2],5);
  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+ if(typeof SaudiMapFrame!=="undefined")SaudiMapFrame.frame(map,L,{url:"data/geo/saudi_boundary.geojson"});
  Object.keys(places).forEach(function(key){
   var p=places[key],cityMarker=L.marker([p.lat,p.lon]).addTo(map).bindPopup(p.name);
   cityMarker.on("click",function(){selectCity(key)});
@@ -153,43 +182,55 @@ function formatDuration(seconds){
  var minutes=Math.round(seconds/60),hours=Math.floor(minutes/60),remaining=minutes%60;
  return hours?hours+" ساعة و"+remaining+" دقيقة":remaining+" دقيقة";
 }
-function weatherAtEta(rows,eta){
- if(!Array.isArray(rows)||!rows.length)return null;
- var target=eta.getTime(),best=null,bestDelta=Infinity;
- rows.forEach(function(row){
-  var time=new Date(row.valid_time+"+03:00").getTime(),delta=Math.abs(time-target);
-  if(Number.isFinite(time)&&delta<bestDelta){best=row;bestDelta=delta}
- });
- return best&&bestDelta<=90*60*1000?best:null;
-}
+function weatherAtEta(rows,eta){return RouteItinerary.weatherAtEta(rows,eta)}
 function clearTripMap(){
  if(tripLine&&map)map.removeLayer(tripLine);
  tripLine=null;
  tripMarkers.forEach(function(marker){if(map)map.removeLayer(marker)});
  tripMarkers=[];
 }
+// Great-circle distance (haversine, mean Earth radius 6371 km). Used only as a labelled fallback.
+function greatCircleKm(a,b){var r=Math.PI/180,dLat=(b.lat-a.lat)*r,dLon=(b.lon-a.lon)*r,h=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dLon/2)*Math.sin(dLon/2);return 2*6371*Math.asin(Math.min(1,Math.sqrt(h)))}
 async function planTrip(){
  var originKey=$("tripOrigin").value,destinationKey=$("tripDestination").value;
  if(!places[originKey]||!places[destinationKey]||originKey===destinationKey){
   setText("tripStatus","اختر مدينتين مختلفتين.");return;
  }
+ var requestId=++tripRequestId;
+ tripAbort=freshController(tripAbort);
+ var signal=tripAbort?tripAbort.signal:undefined;
  $("planTrip").disabled=true;
  setText("tripStatus","جارٍ حساب مسار القيادة ثم جلب توقعات الطقس على نقاط الطريق…");
  $("tripOutput").innerHTML="";
  try{
   var origin=places[originKey],destination=places[destinationKey];
-  var route=await RoutingService.fetchRoute({lat:origin.lat,lon:origin.lon},{lat:destination.lat,lon:destination.lon});
+  var route;
+  try{
+   route=await RoutingService.fetchRoute({lat:origin.lat,lon:origin.lon},{lat:destination.lat,lon:destination.lon},{signal:signal,timeoutMs:REQUEST_TIMEOUT_MS});
+  }catch(routeError){
+   if(requestId!==tripRequestId||(routeError&&routeError.kind==="aborted"))throw routeError;
+   // OSRM public demo down or refused: show only a clearly labelled straight-line distance.
+   clearTripMap();
+   var crow=greatCircleKm(origin,destination);
+   $("tripOutput").innerHTML='<div class="trip-summary"><b>'+escapeHtml(origin.name)+' ← '+escapeHtml(destination.name)+'</b><br>المسافة المستقيمة بين المدينتين: '+number(crow,0)+' كم — <b>ليست مسار طريق</b>؛ طريق القيادة أطول عادة. لا يُقدَّر زمن قيادة ولا طقس على الطريق دون مسار.</div>';
+   setText("tripStatus","تعذر الحصول على مسار القيادة من خادم OSRM التجريبي العام ("+errorText(routeError)+"). هذا الخادم مجاني بلا ضمان توفر. أعد المحاولة لاحقاً.");
+   return;
+  }
+  if(requestId!==tripRequestId)return;
   var points=OsrmAdapter.sampleRoute(route,8);
-  var itinerary=RouteItinerary.resolveDepartureTime($("tripDeparture").value,new Date(),route.duration_s);
-  var weather=await WeatherService.fetchRouteWeatherBatch(points);
-  var startTime=itinerary.departure.getTime(),totalKm=route.distance_m/1000;
+  var now=new Date();
+  var itinerary=RouteItinerary.resolveDepartureTime($("tripDeparture").value,now,route.duration_s);
+  var weather=await WeatherService.fetchRouteWeatherBatch(points,{signal:signal,timeoutMs:REQUEST_TIMEOUT_MS,forecastDays:RouteItinerary.requiredForecastDays(now)});
+  if(requestId!==tripRequestId)return;
+  var totalKm=route.distance_m/1000;
   var rows=points.map(function(point,index){
-   var fraction=totalKm>0?point.distance_km/totalKm:index/Math.max(1,points.length-1);
-   var eta=new Date(startTime+route.duration_s*fraction*1000);
+   var eta=totalKm>0?RouteItinerary.etaAtDistance(itinerary.departure,route.duration_s,point.distance_km,totalKm):new Date(itinerary.departure.getTime()+route.duration_s*1000*index/Math.max(1,points.length-1));
    var result=weather.find(function(item){return item.location_id===point.id});
    var forecast=weatherAtEta(result&&result.hourly,eta);
-   return {point:point,eta:eta,forecast:forecast};
+   return {point:point,eta:eta,forecast:forecast,elevation:result&&Number.isFinite(result.elevation_m)?result.elevation_m:null};
   });
+  var unavailable=rows.filter(function(row){return !row.forecast}).length;
+  var unverifiedPoints=weather.filter(function(item){return (item.unverified_units&&item.unverified_units.length)||(item.unit_mismatches&&item.unit_mismatches.length)}).length;
   clearTripMap();
   if(map&&window.L){
    var latlngs=route.geometry.map(function(pair){return [pair[1],pair[0]]});
@@ -202,18 +243,19 @@ async function planTrip(){
    map.fitBounds(tripLine.getBounds(),{padding:[24,24]});
   }
   var table='<div class="trip-summary"><b>'+escapeHtml(origin.name)+' ← '+escapeHtml(destination.name)+'</b><br>المسافة: '+number(totalKm,1)+' كم · زمن القيادة التقديري: '+formatDuration(route.duration_s)+'<br>نقاط الطقس: '+rows.length+' · وقت الانطلاق: '+itinerary.departure.toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})+' بتوقيت السعودية. الوصول المتوقع: '+itinerary.arrival.toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})+' بتوقيت السعودية.</div>';
-  table+='<table class="trip-table"><thead><tr><th>النقطة</th><th>المسافة</th><th>وقت الوصول</th><th>الحرارة</th><th>احتمال المطر</th><th>الرياح</th></tr></thead><tbody>';
+  table+='<table class="trip-table"><thead><tr><th>النقطة</th><th>المسافة</th><th>وقت الوصول</th><th>الحرارة</th><th>احتمال المطر</th><th>الرياح</th><th>ارتفاع التضاريس</th></tr></thead><tbody>';
   table+=rows.map(function(row){
    var f=row.forecast;
-   return '<tr><td>'+escapeHtml(row.point.name)+'</td><td>'+number(row.point.distance_km,1)+' كم</td><td>'+row.eta.toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})+'</td><td>'+(f&&f.temperature!==null?number(f.temperature,0)+'°م':'غير متاح')+'</td><td>'+(f&&f.precipitation_probability!==null?Math.round(f.precipitation_probability)+'٪':'غير متاح')+'</td><td>'+(f&&f.wind_speed!==null?number(f.wind_speed,0)+' كم/س':'غير متاح')+'</td></tr>';
+   return '<tr><td>'+escapeHtml(row.point.name)+'</td><td>'+number(row.point.distance_km,1)+' كم</td><td>'+row.eta.toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})+'</td><td>'+(f&&f.temperature!==null?number(f.temperature,0)+'°م':'غير متاح')+'</td><td>'+(f&&f.precipitation_probability!==null?Math.round(f.precipitation_probability)+'٪':'غير متاح')+'</td><td>'+(f&&f.wind_speed!==null?number(f.wind_speed,0)+' كم/س':'غير متاح')+'</td><td>'+(row.elevation===null?'غير متاح':number(row.elevation,0)+' م')+'</td></tr>';
   }).join("");
-  table+='</tbody></table>';
+  table+='</tbody></table><div class="data-meta">ارتفاع التضاريس لكل نقطة من نموذج ارتفاع رقمي بدقة 90 م يستخدمه Open-Meteo، وليس مسحاً ميدانياً للطريق.</div>';
   $("tripOutput").innerHTML=table;
-  setText("tripStatus","تم حساب المسار وجلب ملخص الطقس للنقاط المتاحة. لا توجد بيانات مرور حي ضمن هذه النتيجة.");
+  setText("tripStatus","تم حساب المسار وجلب ملخص الطقس للنقاط المتاحة. زمن القيادة تقدير من OSRM وليس زمن مرور حياً، ولا تتوفر بيانات ازدحام أو حوادث أو إغلاقات."+(unavailable?" · لا يتوفر توقع ساعي مطابق لوقت الوصول في "+unavailable+" نقطة؛ عُرضت «غير متاح» بدلاً من تقدير مختلق.":"")+(unverifiedPoints?" · لم يتم التحقق من وحدات بعض القيم في "+unverifiedPoints+" نقطة؛ تُعرض كما وردت دون حكم.":""));
  }catch(error){
+  if(requestId!==tripRequestId)return;
   clearTripMap();
-  setText("tripStatus","تعذر حساب الرحلة أو جلب الطقس: "+(error&&error.message?error.message:"خطأ غير معروف")+". أعد المحاولة لاحقاً.");
- }finally{$("planTrip").disabled=false}
+  setText("tripStatus","تعذر حساب الرحلة أو جلب الطقس: "+errorText(error)+". أعد المحاولة لاحقاً.");
+ }finally{if(requestId===tripRequestId)$("planTrip").disabled=false}
 }
 function radarColor(item,mode){
  if(!item)return "#7b8794";
@@ -235,12 +277,27 @@ function radarPopup(key,item){
  var p=places[key];
  if(!item)return "<b>"+escapeHtml(p.name)+"</b><br>بيانات النموذج غير متاحة حالياً";
  return "<b>"+escapeHtml(p.name)+"</b><br>الحرارة: "+(item.current.temperature===null?"غير متاح":number(item.current.temperature,1)+"°م")+
-  "<br>الهطول الحالي: "+(item.current.precipitation===null?"غير متاح":number(item.current.precipitation,1)+" ملم")+
+  "<br>الهطول خلال آخر "+(item.valid_interval_seconds?Math.round(item.valid_interval_seconds/60):15)+" دقيقة: "+(item.current.precipitation===null?"غير متاح":number(item.current.precipitation,1)+" ملم")+
   "<br>المتوقع اليوم: "+(item.today.precipitation===null?"غير متاح":number(item.today.precipitation,1)+" ملم")+
   "<br>احتمال المطر: "+(item.today.precipitation_probability_max===null?"غير متاح":Math.round(item.today.precipitation_probability_max)+"٪")+
   "<br><small>نموذج Open-Meteo · ليس رصداً أرضياً أو تنبيهاً رسمياً</small>";
 }
+function renderComparison(){
+ var body=$("compareBody");if(!body)return;
+ var order=Object.keys(places),mode=$("compareSort")?$("compareSort").value:"registry";
+ var val=function(key){var d=radarData[key];if(!d)return null;return mode==="temperature"?d.current.temperature:mode==="max"?d.today.temperature_max:mode==="precip"?d.today.precipitation:mode==="elevation"?d.location.elevation_m:null};
+ if(mode!=="registry")order.sort(function(a,b){var x=val(a),y=val(b);if((x===null||x===undefined)&&(y===null||y===undefined))return 0;if(x===null||x===undefined)return 1;if(y===null||y===undefined)return -1;return y-x});
+ var cell=function(v,d){return v===null||v===undefined?"—":number(v,d)};
+ var rows=order.map(function(key){
+  var d=radarData[key],name=escapeHtml(places[key].name);
+  if(!d)return "<tr><td>"+name+"</td><td colspan='7'>غير متاحة</td></tr>";
+  var c=d.current||{},t=d.today||{},loc=d.location||{};
+  return "<tr><td>"+name+"</td><td>"+cell(c.temperature,1)+"</td><td>"+cell(t.temperature_max,0)+" / "+cell(t.temperature_min,0)+"</td><td>"+cell(c.relative_humidity,0)+"</td><td>"+cell(t.precipitation,1)+(t.precipitation_probability_max===null||t.precipitation_probability_max===undefined?"":" ("+number(t.precipitation_probability_max,0)+"%)")+"</td><td>"+cell(c.wind_speed,0)+" / "+cell(c.wind_gusts,0)+"</td><td>"+cell(c.pressure_msl,1)+"</td><td>"+cell(loc.elevation_m,0)+"</td></tr>";
+ });
+ body.innerHTML=rows.join("");
+}
 function renderRadar(){
+ renderComparison();
  Object.keys(places).forEach(function(key){
   var circle=radarCircles[key],item=radarData[key];
   if(!circle)return;
@@ -258,17 +315,28 @@ async function loadRadar(){
  setText("radarMeta","جارٍ تحديث ملخص الطقس للمدن الـ13 بطلب موحد…");
  try{
   var locations=keys.map(function(key){var p=places[key];return {id:key,name:p.name,lat:p.lat,lon:p.lon};});
-  var results=await WeatherService.fetchOverviewBatch(locations);
+  radarAbort=freshController(radarAbort);
+  var results=await WeatherService.fetchOverviewBatch(locations,{signal:radarAbort?radarAbort.signal:undefined,timeoutMs:REQUEST_TIMEOUT_MS});
   if(requestId!==radarRequestId)return;
   radarData={};
   results.forEach(function(result){if(result.data)radarData[result.location_id]=result.data;});
-  if(Object.keys(radarData).length)radarUpdatedAt=new Date().toLocaleString("ar-SA",{timeZone:"Asia/Riyadh"});
+  if(Object.keys(radarData).length)SourceState.remember("city_overview","all",radarData);
+  if(Object.keys(radarData).length){
+   var firstValid=Object.keys(radarData).map(function(key){return radarData[key].valid_time}).filter(Boolean).sort().pop();
+   var radarFresh=FreshnessPolicy.currentWeather(firstValid,new Date());
+   radarUpdatedAt="صلاحية "+(SaudiTime.saudiClock(SaudiTime.parseSaudiLocal(firstValid))||"غير معروفة")+" بتوقيت السعودية ("+SaudiTime.ageText(radarFresh.age_minutes)+")"+(radarFresh.status==="stale"?" ⚠️ قديمة":"")+" · جُلبت "+SaudiTime.saudiClock(new Date());
+  }
   renderRadar();
   var failed=keys.length-Object.keys(radarData).length;
   if(failed)setText("radarMeta",$("radarMeta").textContent+" · بيانات غير متاحة لـ "+failed+" مدينة؛ لا تُستبدل القيم المفقودة بأصفار.");
   if(!Object.keys(radarData).length)setText("radarMeta","تعذر الحصول على بيانات المدن حالياً. تحقق من الاتصال ثم أعد المحاولة. المصدر: Open-Meteo.");
  }catch(error){
-  if(requestId===radarRequestId)setText("radarMeta","تعذر تحديث طبقة المدن: "+(error&&error.message?error.message:"خطأ غير معروف")+". البيانات السابقة إن وجدت لا تُعد تحديثاً جديداً.");
+  if(requestId!==radarRequestId)return;
+  if(!Object.keys(radarData).length){
+   var cached=SourceState.onFailure("city_overview","all",error,{isStale:function(payload,now){var latest=Object.keys(payload).map(function(k){return payload[k].valid_time}).filter(Boolean).sort().pop();return FreshnessPolicy.currentWeather(latest,now).status!=="fresh"}});
+   if(cached.payload){radarData=cached.payload;renderRadar();setText("radarMeta","تعذر تحديث طبقة المدن ("+errorText(error)+"). "+SourceState.describe(cached));return}
+  }
+  setText("radarMeta","تعذر تحديث طبقة المدن: "+errorText(error)+". البيانات المعروضة إن وجدت من تحديث سابق وليست جديدة.");
  }finally{
   if(requestId===radarRequestId)$("refreshRadar").disabled=false;
  } 
@@ -290,8 +358,12 @@ function windDirectionLabel(degrees){
  return directions[index]+" · "+Math.round(Number(degrees))+"°";
 }
 function practicalInsight(data){
- var getValue=function(name){var item=(data.measurements||[]).find(function(x){return x.name===name});return item&&typeof item.value==="number"&&Number.isFinite(item.value)?item.value:null};
- var code=data.current_weather_code,day=data.daily&&data.daily[0],rain=day&&typeof day.precipitation_probability_max==="number"?day.precipitation_probability_max:null;
+ // Advice uses a value only when its unit was verified; unverified values are shown elsewhere but never judged here.
+ var skipped=[];
+ var verifiedField=function(scope,field){return typeof UnitPolicy!=="undefined"&&UnitPolicy.fieldVerified(data.quality,scope,field)};
+ var getValue=function(name){var item=(data.measurements||[]).find(function(x){return x.name===name});if(!item||typeof item.value!=="number"||!Number.isFinite(item.value))return null;if(item.unit_status!=="verified"){skipped.push(name);return null}return item.value};
+ var code=verifiedField("current","weather_code")?data.current_weather_code:null,day=data.daily&&data.daily[0];
+ var rain=day&&typeof day.precipitation_probability_max==="number"?(verifiedField("daily","precipitation_probability_max")?day.precipitation_probability_max:(skipped.push("precipitation_probability_max"),null)):null;
  var wind=getValue("wind_speed"),apparent=getValue("apparent_temperature"),parts=[];
  if(code!==null&&code!==undefined&&[61,63,65,80,81,82,95,96,99].includes(Number(code)))parts.push("رمز حالة الطقس في النموذج يشير إلى هطول أو عواصف؛ راجع التحديثات قبل الأنشطة الخارجية.");
  else if(rain!==null&&rain>=50)parts.push("احتمال المطر مرتفع في توقع اليوم؛ تابع التحديثات وخطط للأنشطة الخارجية وفق المستجدات.");
@@ -301,11 +373,87 @@ function practicalInsight(data){
  else if(apparent!==null&&apparent<=10)parts.push("الأجواء المحسوسة باردة؛ اختر ملابس مناسبة خصوصاً في الخارج.");
  if(wind!==null&&wind>=35)parts.push("الرياح نشطة بحسب النموذج؛ انتبه للأشياء الخفيفة أثناء الأنشطة الخارجية.");
  if(!parts.length)parts.push("لا تتوفر بيانات كافية لتكوين ملخص عملي موثوق الآن؛ راجع تفاصيل التوقعات ومصدرها.");
+ if(skipped.length)parts.push("لم تُستخدم "+skipped.length+" قيمة في هذا الملخص لعدم التحقق من وحدتها.");
  return parts.join(" ")+" هذا تفسير مبسط لمخرجات نموذج جوي وليس تنبيهاً رسمياً أو بديلاً عن تعليمات الجهات المختصة.";
 }
+// Valid time and age of the data, not only the fetch time. The "current" values are
+// model output for an interval; they are stale if older than 90 minutes.
+function dataTimeText(data,now){
+ var valid=data&&data.valid_time?SaudiTime.parseSaudiLocal(data.valid_time):null;
+ var fresh=FreshnessPolicy.currentWeather(valid,now);
+ var offsetMismatch=!!(data&&typeof data.utc_offset_seconds==="number"&&data.utc_offset_seconds!==10800);
+ // An age is shown only when it can be trusted: known valid time, Saudi offset, not in the future.
+ var ageTrusted=valid&&!offsetMismatch&&fresh.status!=="future"&&fresh.status!=="unknown";
+ var parts=[];
+ if(!valid)parts.push("وقت صلاحية البيانات غير متاح؛ لا يمكن حساب عمرها");
+ else parts.push("صلاحية البيانات: "+data.valid_time.replace("T"," ")+(offsetMismatch?" (بالإزاحة التي أعادتها الخدمة)":" بتوقيت السعودية")+(ageTrusted?" ("+SaudiTime.ageText(fresh.age_minutes)+")":""));
+ if(ageTrusted&&fresh.status==="stale")parts.push("⚠️ البيانات أقدم من "+FreshnessPolicy.POLICY.current_weather.max_age_minutes+" دقيقة (حد تشغيلي قابل للمراجعة)");
+ if(valid&&!offsetMismatch&&fresh.status==="future")parts.push("⚠️ وقت الصلاحية في المستقبل؛ لم يُحسب عمر للبيانات — تحقق من ساعة الجهاز");
+ if(offsetMismatch)parts.push("⚠️ الخدمة أعادت أوقاتاً بإزاحة غير توقيت السعودية؛ لم يُحسب عمر البيانات");
+ parts.push("النوع: ناتج نموذج وليس رصد محطة");
+ var q=data&&data.quality;
+ if(q&&q.unit_mismatches&&q.unit_mismatches.length)parts.push("حُجبت "+q.unit_mismatches.length+" قيمة لاختلاف الوحدة المعلنة");
+ if(q&&q.unverified_units&&q.unverified_units.length)parts.push("لم يتم التحقق من وحدة "+q.unverified_units.length+" حقلاً (لم تعلنها الخدمة)");
+ parts.push("آخر جلب: "+SaudiTime.saudiClock(now));
+ return parts.join(" · ");
+}
+// Forecasts are never "stale" because time passed since fetching: show their validity window and fetch time.
+function forecastWindowText(rows,field){
+ var w=FreshnessPolicy.forecastWindow(rows,field,new Date());
+ return "صلاحية التوقع: "+(w.valid_from||"—")+" إلى "+(w.valid_to||"—")+" بتوقيت السعودية · جُلب "+SaudiTime.saudiClock(new Date())+".";
+}
+// CHIRPS sample: period, last sample update, and position against the product's monthly release cycle.
+function chirpsAgeText(dataset,now){
+ var end=dataset&&dataset.date_range&&dataset.date_range.end;
+ if(!end)return " · تاريخ آخر يوم غير معروف";
+ var check=FreshnessPolicy.chirpsSample(end,now);
+ var updated=dataset.generated_at_utc?String(dataset.generated_at_utc).slice(0,10):"غير معروف";
+ var cycle=check.status==="behind_release_cycle"?"متأخرة "+check.days_behind+" يوماً عن آخر إصدار نهائي متوقع (حتى "+check.expected_latest+")":check.status==="current_for_cycle"?"مواكبة لآخر إصدار نهائي متوقع (حتى "+check.expected_latest+")":"تعذر تقييمها";
+ return " · آخر تحديث للعينة: "+updated+" · وفق دورة إصدار CHIRPS الشهرية العينة "+cycle+" (عينة تاريخية وليست بيانات حديثة)";
+}
+function renderWeatherData(data){
+  var measurement=function(name){var item=data.measurements.find(function(entry){return entry.name===name});return item?item.value:null};
+ setText("temp",number(measurement("temperature"),1));
+ setText("feels",number(measurement("apparent_temperature"),1));
+ setText("rain",number(measurement("precipitation"),1));
+ setText("rainLabel",data.valid_interval_seconds?"الهطول خلال آخر "+Math.round(data.valid_interval_seconds/60)+" دقيقة":"الهطول خلال الفترة الحالية");
+ setText("humidity",number(measurement("relative_humidity"),0));
+ setText("wind",number(measurement("wind_speed"),0));
+ setText("elevation",number(data.location&&data.location.elevation_m,0));
+ setText("pressureMsl",number(measurement("pressure_msl"),1));
+ setText("surfacePressure",number(measurement("surface_pressure"),1));
+ setText("dewPoint",number(measurement("dew_point"),1));
+ setText("cloudCover",measurement("cloud_cover")===null?"—":number(measurement("cloud_cover"),0)+"٪");
+ setText("visibility",measurement("visibility")===null?"—":number(measurement("visibility")/1000,1));
+ setText("windGusts",number(measurement("wind_gusts"),0));
+ setText("windDirection",windDirectionLabel(measurement("wind_direction")));
+ setText("uvIndex",number(data.daily&&data.daily[0]&&data.daily[0].uv_index_max,1));
+ setText("wetBulb",number(measurement("wet_bulb_temperature"),1));
+ setText("cape",number(measurement("cape"),0));
+ setText("freezingLevel",number(measurement("freezing_level_height"),0));
+ setText("boundaryLayer",number(measurement("boundary_layer_height"),0));
+ setText("soilTemp",number(measurement("soil_temperature_0_7cm"),1));
+ setText("soilMoisture",number(measurement("soil_moisture_0_7cm"),3));
+ setText("wind80",number(measurement("wind_speed_80m"),1));
+ setText("wind100",number(measurement("wind_speed_100m"),1));
+ setText("solarRadiation",number(measurement("shortwave_radiation"),0));
+ setText("solarSplit",number(measurement("direct_radiation"),0)+" / "+number(measurement("diffuse_radiation"),0));
+ setText("condition",weatherDescription(data.current_weather_code));
+ setText("daylight",data.is_day===true?"نهار":data.is_day===false?"ليل":"فترة اليوم غير متاحة");
+ setText("weatherInsight",practicalInsight(data));
+ renderHourly(data.hourly); renderDaily(data.daily);
+ drawChart(data.daily.map(function(row){return row.valid_date}),data.daily.map(function(row){return row.precipitation}));
+ setText("chartCaption","توقع نموذجي من Open-Meteo لمجموع الهطول لكل يوم تقويمي سعودي ("+data.daily.length+" أيام). "+forecastWindowText(data.daily,"valid_date")+" الأيام دون قيمة تُترك فارغة ولا تُرسم صفراً. لا يقارن مباشرة بتقدير CHIRPS.");
+ setText("loading","تم تحميل بيانات النموذج بنجاح.");
+ setText("updated",dataTimeText(data,new Date()));
+ setText("connection","● متصل");
+ $("quality").innerHTML='تنبيه منهجي: القيم الحالية (فترة 15 دقيقة) والتوقعات مستمدة من نماذج الطقس لدى Open-Meteo، لا تمثل هذه القيم رصداً مباشراً أو تنبيهاً رسمياً من المركز الوطني للأرصاد. الارتفاع تقدير تضاريسي من Copernicus DEM GLO-90 بدقة 90م، وليس قياساً مساحياً. الضغط عند مستوى سطح البحر أنسب لمقارنة الطقس بين المواقع، بينما ضغط سطح الموقع يتأثر بالارتفاع.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · <a href="https://open-meteo.com/en/docs/elevation-api" target="_blank" rel="noopener">Copernicus DEM GLO-90 elevation</a> · الإسناد وفق CC BY 4.0.';
+}
+// Unified data state badge (fresh / cached / stale / partial / unavailable / source error / not loaded).
+function showDataState(result){var el=$("dataState");if(!el)return;el.textContent=SourceState.describe(result);el.setAttribute("data-state",result?result.state:"not_loaded")}
 function renderHourly(rows){
  var target=$("hourlyForecast"),now=new Date();
- var upcoming=(rows||[]).filter(function(row){return row.valid_time&&new Date(row.valid_time).getTime()>=now.getTime()-60*60*1000}).slice(0,12);
+ var upcoming=(rows||[]).filter(function(row){var t=row.valid_time&&SaudiTime.parseSaudiLocal(row.valid_time);return t&&t.getTime()>=now.getTime()-60*60*1000}).slice(0,12);
  if(!upcoming.length){target.textContent="لا تتوفر توقعات ساعية في الاستجابة الحالية.";return}
  target.innerHTML=upcoming.map(function(row){
   var hour=row.valid_time.slice(11,16),rain=row.precipitation_probability===null?"—":Math.round(row.precipitation_probability)+"٪";
@@ -316,7 +464,9 @@ function renderDaily(rows){
  var target=$("dailyForecast"),dayNames=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
  if(!rows||!rows.length){target.textContent="لا تتوفر توقعات يومية في الاستجابة الحالية.";return}
  target.innerHTML=rows.slice(0,7).map(function(row,index){
-  var date=new Date(row.valid_date+"T12:00:00+03:00"),label=index===0?"اليوم":dayNames[date.getDay()];
+  // Weekday and "today/tomorrow" are computed on the Saudi calendar, not the viewer's time zone.
+  var offset=SaudiTime.daysBetween(SaudiTime.saudiDate(new Date()),row.valid_date),weekday=SaudiTime.saudiWeekday(row.valid_date);
+  var label=offset===0?"اليوم":offset===1?"غداً":(weekday===null?row.valid_date:dayNames[weekday]);
   var chance=row.precipitation_probability_max===null?"—":Math.round(row.precipitation_probability_max)+"٪";
   return '<div class="day"><b>'+escapeHtml(label)+'</b><small>'+escapeHtml(row.valid_date)+'</small><strong>'+escapeHtml(weatherDescription(row.weather_code))+'</strong><span>'+escapeHtml(number(row.temperature_max,0))+'° / '+escapeHtml(number(row.temperature_min,0))+'°</span><small>احتمال المطر '+escapeHtml(chance)+'</small><small>كمية متوقعة '+escapeHtml(number(row.precipitation,1))+' ملم</small><small>مؤشر UV '+escapeHtml(number(row.uv_index_max,1))+'</small><small>التبخر المرجعي ET₀ '+escapeHtml(number(row.et0_fao_evapotranspiration,1))+' ملم/يوم</small></div>';
  }).join("");
@@ -351,21 +501,51 @@ function drawChirpsChart(satRecords,rnlRecords){
  svg.innerHTML=parts.join("");
 }
 function renderChirps(){
- if(!chirpsDataset||!chirpsDataset.series){setText("chirpsState","تعذر تحميل ملف عينة CHIRPS المحفوظ في هذا الإصدار. تحقق من الاتصال، ثم أعد تحميل الصفحة. تحديث العينة يتم عبر مهمة البحث على فرع التطوير ولا ينشر تلقائياً إلى main.");return}
- var satNormalized=PrecipitationService.getCitySeries(chirpsDataset,activeKey,"sat");
- var rnlNormalized=PrecipitationService.getCitySeries(chirpsDataset,activeKey,"rnl");
+ if(!chirpsDataset||!chirpsDataset.series){setText("chirpsState","تعذر تحميل ملف عينة CHIRPS المحفوظ في هذا الإصدار. تحقق من الاتصال، ثم أعد تحميل الصفحة. ");return}
+ var satNormalized,rnlNormalized;
+ try{
+  satNormalized=PrecipitationService.getCitySeries(chirpsDataset,activeKey,"sat");
+  rnlNormalized=PrecipitationService.getCitySeries(chirpsDataset,activeKey,"rnl");
+ }catch(error){$("chirpsChart").innerHTML="";setText("chirpsState","لا توجد سلسلة CHIRPS صالحة لهذه المدينة في ملف العينة الحالي ("+error.message+"). لم تُعرض قيم بديلة.");return}
  var satRecords=satNormalized.observations.map(function(row){return {date:row.valid_date,precipitation_mm:row.value}});
  var rnlRecords=rnlNormalized.observations.map(function(row){return {date:row.valid_date,precipitation_mm:row.value}});
  if(!satRecords.length&&!rnlRecords.length){$("chirpsChart").innerHTML="";setText("chirpsState","لا توجد سجلات لهذه المدينة في ملف البيانات الحالي.");return}
  drawChirpsChart(satRecords,rnlRecords);
  var satCount=satRecords.filter(function(row){return row.precipitation_mm!==null}).length;
  var rnlCount=rnlRecords.filter(function(row){return row.precipitation_mm!==null}).length;
- setText("chirpsState","SAT: "+satCount+"/"+satRecords.length+" يوماً · RNL: "+rnlCount+"/"+rnlRecords.length+" يوماً متاحاً عند نقطة المدينة · الفترة: "+(chirpsDataset.date_range?chirpsDataset.date_range.start+" إلى "+chirpsDataset.date_range.end:"غير محددة")+".");
+ setText("chirpsState","SAT: "+satCount+"/"+satRecords.length+" يوماً · RNL: "+rnlCount+"/"+rnlRecords.length+" يوماً متاحاً عند نقطة المدينة · الفترة: "+(chirpsDataset.date_range?chirpsDataset.date_range.start+" إلى "+chirpsDataset.date_range.end:"غير محددة")+chirpsAgeText(chirpsDataset,new Date())+" · النوع: تقدير من الأقمار الصناعية والمحطات وليس رصداً مباشراً.");
+ renderChirpsAnalysis(satNormalized.observations);
  setText("chirpsMeta","SAT يستخدم IMERG Late V07 · RNL يستخدم ERA5 · الوحدة: ملم/يوم · تاريخ إنشاء العينة: "+(chirpsDataset.generated_at_utc||"غير متوفر")+" · التواريخ تسميات تفكيك يومي، وليست نافذة رصد موحدة.");
+}
+// Period totals (only for complete periods), dry/wet spells and a regional table.
+function renderChirpsAnalysis(observations){
+ var out=$("chirpsAnalysis");if(!out||typeof RainAggregate!=="object")return;
+ try{
+  var span=RainAggregate.span(observations),sp=RainAggregate.spells(observations,1);
+  if(!span){out.textContent="لا توجد أيام في العينة.";return}
+  var lines=["نافذة العينة (SAT): "+RainAggregate.describePeriod(span)+"؛ آخر تاريخ بقيمة: "+(span.last_valid_date||"لا يوجد")+"."];
+  RainAggregate.byMonth(observations).forEach(function(m){lines.push("الشهر "+RainAggregate.describePeriod(m)+".")});
+  RainAggregate.byYear(observations).forEach(function(y){lines.push("السنة "+RainAggregate.describePeriod(y)+".")});
+  var spellText=function(x,name){return x?name+" "+x.days+" يوم ("+x.start+" – "+x.end+")":name+": لا يوجد"};
+  lines.push("أطول فترة "+spellText(sp.longest_dry,"جافة")+" · أطول فترة "+spellText(sp.longest_wet,"ممطرة")+" (يوم ممطر ≥1 ملم؛ اليوم المفقود يقطع الفترة ولا يُعد جافاً). قِصر العينة يجعل هذه الفترات وصفاً للعينة فقط لا مؤشراً مناخياً.");
+  out.textContent=lines.join(" ");
+  renderChirpsRegions();
+ }catch(error){out.textContent="تعذر تحليل العينة: "+error.message+". لم تُعرض مجاميع."}
+}
+function renderChirpsRegions(){
+ var body=$("chirpsRegions");if(!body||!chirpsDataset)return;
+ body.innerHTML=Object.keys(places).map(function(key){
+  var name=escapeHtml(places[key].name);
+  try{
+   var obs=PrecipitationService.getCitySeries(chirpsDataset,key,"sat").observations,w=RainAggregate.span(obs);
+   if(!w)return "<tr><td>"+name+"</td><td colspan='4'>غير متاحة</td></tr>";
+   return "<tr><td>"+name+"</td><td>"+(w.complete?w.total_mm.toFixed(1):"جزئي "+w.valid_days+"/"+w.expected_days)+"</td><td>"+w.wet_days+"</td><td>"+(w.max_day_mm===null?"—":w.max_day_mm.toFixed(1))+"</td><td>"+escapeHtml(w.last_valid_date||"—")+"</td></tr>";
+  }catch(error){return "<tr><td>"+name+"</td><td colspan='4'>غير متاحة في العينة</td></tr>"}
+ }).join("");
 }
 async function loadChirps(){
  try{
-  var payload=await PrecipitationService.fetchDataset("./data/chirps_daily.json");
+  var payload=await PrecipitationService.fetchDataset("./data/chirps_daily.json",{timeoutMs:REQUEST_TIMEOUT_MS});
   chirpsDataset=payload;
   renderChirps();
  }catch(error){
@@ -375,6 +555,7 @@ async function loadChirps(){
 var weatherRequestId=0;
 function clearWeatherDisplay(){
  ["temp","feels","rain","humidity","wind","condition","daylight","elevation","pressureMsl","surfacePressure","dewPoint","cloudCover","windGusts","windDirection","uvIndex","wetBulb","cape","freezingLevel","boundaryLayer","soilTemp","soilMoisture","wind80","wind100","solarRadiation","solarSplit","weatherInsight"].forEach(function(id){setText(id,"—")});
+ setText("visibility","—");
  $("hourlyForecast").textContent="بانتظار بيانات الطقس."; $("dailyForecast").textContent="بانتظار بيانات الطقس.";
  $("rainChart").innerHTML="";
  setText("chartCaption","بانتظار بيانات المدينة المختارة.");
@@ -389,48 +570,29 @@ async function loadWeather(){
  $("refresh").disabled=true;$("connection").textContent="● جارٍ الاتصال";
  if(map){map.setView([p.lat,p.lon],7);if(cityMarkers[requestedKey])cityMarkers[requestedKey].openPopup()}
  try{
-  var data=await WeatherService.fetchWeather({id:requestedKey,name:p.name,lat:p.lat,lon:p.lon});
+  weatherAbort=freshController(weatherAbort);
+  var data=await WeatherService.fetchWeather({id:requestedKey,name:p.name,lat:p.lat,lon:p.lon},{signal:weatherAbort?weatherAbort.signal:undefined,timeoutMs:REQUEST_TIMEOUT_MS});
   if(requestId!==weatherRequestId||requestedKey!==activeKey)return;
-  var measurement=function(name){var item=data.measurements.find(function(entry){return entry.name===name});return item?item.value:null};
-  setText("temp",number(measurement("temperature"),1));
-  setText("feels",number(measurement("apparent_temperature"),1));
-  setText("rain",number(measurement("precipitation"),1));
-  setText("humidity",number(measurement("relative_humidity"),0));
-  setText("wind",number(measurement("wind_speed"),0));
-  setText("elevation",number(data.location&&data.location.elevation_m,0));
-  setText("pressureMsl",number(measurement("pressure_msl"),1));
-  setText("surfacePressure",number(measurement("surface_pressure"),1));
-  setText("dewPoint",number(measurement("dew_point"),1));
-  setText("cloudCover",measurement("cloud_cover")===null?"—":number(measurement("cloud_cover"),0)+"٪");
-  setText("windGusts",number(measurement("wind_gusts"),0));
-  setText("windDirection",windDirectionLabel(measurement("wind_direction")));
-  setText("uvIndex",number(data.daily&&data.daily[0]&&data.daily[0].uv_index_max,1));
-  setText("wetBulb",number(measurement("wet_bulb_temperature"),1));
-  setText("cape",number(measurement("cape"),0));
-  setText("freezingLevel",number(measurement("freezing_level_height"),0));
-  setText("boundaryLayer",number(measurement("boundary_layer_height"),0));
-  setText("soilTemp",number(measurement("soil_temperature_0_7cm"),1));
-  setText("soilMoisture",number(measurement("soil_moisture_0_7cm"),3));
-  setText("wind80",number(measurement("wind_speed_80m"),1));
-  setText("wind100",number(measurement("wind_speed_100m"),1));
-  setText("solarRadiation",number(measurement("shortwave_radiation"),0));
-  setText("solarSplit",number(measurement("direct_radiation"),0)+" / "+number(measurement("diffuse_radiation"),0));
-  setText("condition",weatherDescription(data.current_weather_code));
-  setText("daylight",data.is_day===true?"نهار":data.is_day===false?"ليل":"فترة اليوم غير متاحة");
-  setText("weatherInsight",practicalInsight(data));
-  renderHourly(data.hourly); renderDaily(data.daily);
-  drawChart(data.daily.map(function(row){return row.valid_date}),data.daily.map(function(row){return row.precipitation}));
-  setText("chartCaption","المصدر: Open-Meteo ("+data.daily.length+" يوماً). القيم التاريخية/المستقبلية نموذجية وليست قياسات محطة.");
-  setText("loading","تم تحميل بيانات النموذج بنجاح.");
-  setText("updated","آخر جلب: "+new Date().toLocaleString("ar-SA",{timeZone:"Asia/Riyadh"}));
-  setText("connection","● متصل");
-  $("quality").innerHTML='تنبيه منهجي: البيانات الحالية والتاريخية والتوقعات مستمدة من نماذج الطقس لدى Open-Meteo، لا تمثل هذه القيم رصداً مباشراً أو تنبيهاً رسمياً من المركز الوطني للأرصاد. الارتفاع تقدير تضاريسي من Copernicus DEM GLO-90 بدقة 90م، وليس قياساً مساحياً. الضغط عند مستوى سطح البحر أنسب لمقارنة الطقس بين المواقع، بينما ضغط سطح الموقع يتأثر بالارتفاع.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · <a href="https://open-meteo.com/en/docs/elevation-api" target="_blank" rel="noopener">Copernicus DEM GLO-90 elevation</a> · الإسناد وفق CC BY 4.0.';
+  SourceState.remember("weather_current",requestedKey,data);
+  var issues=(data.quality&&data.quality.unit_mismatches?data.quality.unit_mismatches.length:0)+(data.quality&&data.quality.unverified_units?data.quality.unverified_units.length:0);
+  var validAt=data.valid_time?SaudiTime.parseSaudiLocal(data.valid_time):null;
+  renderWeatherData(data);
+  showDataState(SourceState.onSuccess({issues:issues,dataStale:FreshnessPolicy.currentWeather(validAt,new Date()).status==="stale"}));
  }catch(error){
   if(requestId!==weatherRequestId||requestedKey!==activeKey)return;
-  clearWeatherDisplay();
-  setText("loading","تعذر جلب البيانات. تحقق من الاتصال ثم أعد المحاولة.");
-  $("loading").classList.add("error");setText("connection","● تعذر الاتصال");
-  setText("chartCaption","لم تُعرض بيانات بديلة أو تقديرات مصطنعة. "+error.message);
+  var fallback=SourceState.onFailure("weather_current",requestedKey,error,{isStale:function(payload,now){var v=payload&&payload.valid_time?SaudiTime.parseSaudiLocal(payload.valid_time):null;return FreshnessPolicy.currentWeather(v,now).status==="stale"}});
+  if(fallback.payload){
+   renderWeatherData(fallback.payload);
+   setText("loading","تعذر تحديث البيانات الآن ("+errorText(error)+")، فتُعرض آخر بيانات صالحة محفوظة مع وسمها.");
+   $("loading").classList.add("error");setText("connection","● تعذر الاتصال — بيانات محفوظة");
+   showDataState(fallback);
+  }else{
+   clearWeatherDisplay();
+   setText("loading","تعذر جلب البيانات. تحقق من الاتصال ثم أعد المحاولة.");
+   $("loading").classList.add("error");setText("connection","● تعذر الاتصال");
+   setText("chartCaption","لم تُعرض بيانات بديلة أو تقديرات مصطنعة. "+errorText(error));
+   showDataState(fallback);
+  }
  }finally{
   if(requestId===weatherRequestId)$("refresh").disabled=false;
  }
@@ -438,6 +600,7 @@ async function loadWeather(){
 $("place").addEventListener("change",function(e){selectCity(e.target.value)});
 $("refresh").addEventListener("click",loadWeather);
 $("radarMode").addEventListener("change",function(e){radarMode=e.target.value;renderRadar()});
+if($("compareSort"))$("compareSort").addEventListener("change",renderComparison);
 $("refreshRadar").addEventListener("click",loadRadar);
 initMap();initTripControls();$("planTrip").addEventListener("click",planTrip);loadWeather();loadChirps();loadRadar();
 })();

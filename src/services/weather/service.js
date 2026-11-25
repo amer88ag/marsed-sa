@@ -1,51 +1,53 @@
 (function (root, factory) {
-  const api = factory();
+  const http = (typeof module === "object" && module.exports)
+    ? require("../../platform/http/client.js")
+    : (root && root.HttpClient) || null;
+  const api = factory(http);
   if (typeof module === "object" && module.exports) module.exports = api;
   if (root) root.WeatherService = api;
-})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+})(typeof globalThis !== "undefined" ? globalThis : this, function (http) {
   "use strict";
-  async function fetchWeather(location, options) {
-    const config = options || {};
+  // Every call accepts: adapter, fetch, retrievedAt, signal (AbortSignal), timeoutMs.
+  // Return contracts are unchanged; failures reject with HttpClient.RequestError
+  // whose message keeps the historical "HTTP <status>" wording.
+  function resolve(config, required, label) {
     const adapter = config.adapter || (typeof OpenMeteoAdapter !== "undefined" ? OpenMeteoAdapter : null);
     const fetcher = config.fetch || (typeof fetch === "function" ? fetch : null);
-    if (!adapter || !fetcher) throw new Error("Weather service dependencies are unavailable");
-    const response = await fetcher(adapter.buildCurrentUrl(location), { headers: { Accept: "application/json" } });
-    if (!response.ok) throw new Error("HTTP " + response.status);
-    const payload = await response.json();
+    if (!adapter || !fetcher || !http || required.some(name => typeof adapter[name] !== "function")) {
+      throw new Error(label + " dependencies are unavailable");
+    }
+    return { adapter, fetcher };
+  }
+  function getJson(url, fetcher, config) {
+    return http.request(url, {
+      fetch: fetcher,
+      headers: { Accept: "application/json" },
+      signal: config.signal,
+      timeoutMs: config.timeoutMs,
+      retries: config.retries === undefined ? 1 : config.retries,
+      retryDelayMs: config.retryDelayMs
+    });
+  }
+  async function fetchWeather(location, options) {
+    const config = options || {};
+    const { adapter, fetcher } = resolve(config, ["buildCurrentUrl", "normalizeCurrent"], "Weather service");
+    const payload = await getJson(adapter.buildCurrentUrl(location), fetcher, config);
     return adapter.normalizeCurrent(payload, location, config.retrievedAt);
   }
   async function fetchOverview(location, options) {
     const config = options || {};
-    const adapter = config.adapter || (typeof OpenMeteoAdapter !== "undefined" ? OpenMeteoAdapter : null);
-    const fetcher = config.fetch || (typeof fetch === "function" ? fetch : null);
-    if (!adapter || !fetcher || typeof adapter.buildOverviewUrl !== "function" || typeof adapter.normalizeOverview !== "function") {
-      throw new Error("Weather overview dependencies are unavailable");
-    }
-    const response = await fetcher(adapter.buildOverviewUrl(location), { headers: { Accept: "application/json" } });
-    if (!response.ok) throw new Error("HTTP " + response.status);
-    return adapter.normalizeOverview(await response.json(), location, config.retrievedAt);
+    const { adapter, fetcher } = resolve(config, ["buildOverviewUrl", "normalizeOverview"], "Weather overview");
+    return adapter.normalizeOverview(await getJson(adapter.buildOverviewUrl(location), fetcher, config), location, config.retrievedAt);
   }
   async function fetchOverviewBatch(locations, options) {
     const config = options || {};
-    const adapter = config.adapter || (typeof OpenMeteoAdapter !== "undefined" ? OpenMeteoAdapter : null);
-    const fetcher = config.fetch || (typeof fetch === "function" ? fetch : null);
-    if (!adapter || !fetcher || typeof adapter.buildOverviewBatchUrl !== "function" || typeof adapter.normalizeOverviewBatch !== "function") {
-      throw new Error("Weather overview batch dependencies are unavailable");
-    }
-    const response = await fetcher(adapter.buildOverviewBatchUrl(locations), { headers: { Accept: "application/json" } });
-    if (!response.ok) throw new Error("HTTP " + response.status);
-    return adapter.normalizeOverviewBatch(await response.json(), locations, config.retrievedAt);
+    const { adapter, fetcher } = resolve(config, ["buildOverviewBatchUrl", "normalizeOverviewBatch"], "Weather overview batch");
+    return adapter.normalizeOverviewBatch(await getJson(adapter.buildOverviewBatchUrl(locations), fetcher, config), locations, config.retrievedAt);
   }
   async function fetchRouteWeatherBatch(locations, options) {
     const config = options || {};
-    const adapter = config.adapter || (typeof OpenMeteoAdapter !== "undefined" ? OpenMeteoAdapter : null);
-    const fetcher = config.fetch || (typeof fetch === "function" ? fetch : null);
-    if (!adapter || !fetcher || typeof adapter.buildRouteWeatherBatchUrl !== "function" || typeof adapter.normalizeRouteWeatherBatch !== "function") {
-      throw new Error("Route weather dependencies are unavailable");
-    }
-    const response = await fetcher(adapter.buildRouteWeatherBatchUrl(locations), { headers: { Accept: "application/json" } });
-    if (!response.ok) throw new Error("HTTP " + response.status);
-    return adapter.normalizeRouteWeatherBatch(await response.json(), locations, config.retrievedAt);
+    const { adapter, fetcher } = resolve(config, ["buildRouteWeatherBatchUrl", "normalizeRouteWeatherBatch"], "Route weather");
+    return adapter.normalizeRouteWeatherBatch(await getJson(adapter.buildRouteWeatherBatchUrl(locations, { forecastDays: config.forecastDays }), fetcher, config), locations, config.retrievedAt);
   }
   return { fetchWeather, fetchOverview, fetchOverviewBatch, fetchRouteWeatherBatch };
 });

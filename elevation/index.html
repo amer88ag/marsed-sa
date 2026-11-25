@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b46">
+<meta name="description" content="قياس الارتفاع التضاريسي عن سطح البحر لأي نقطة في السعودية على الخريطة.">
+<title>قياس الارتفاع | مرصد السعودية</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+:root{color-scheme:light;--navy:#102b46;--blue:#1769aa;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}
+header{background:linear-gradient(120deg,#102b46,#174d76);color:white;padding:18px max(16px,calc((100% - 1120px)/2))}
+header a{color:#d9eafa;text-decoration:none;font-size:13px}h1{font-size:24px;margin:12px 0 5px}header p{margin:0;color:#d0dfeb;font-size:13px}
+main{max-width:1120px;margin:auto;padding:18px 14px 36px}.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px}
+button,input{font:inherit}button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 13px;color:var(--ink);cursor:pointer}button.primary{background:var(--blue);border-color:var(--blue);color:white}button:disabled{opacity:.55;cursor:wait}
+.search{display:flex;gap:8px;flex:1;min-width:260px}.search input{width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
+.panel{background:white;border:1px solid var(--line);border-radius:15px;overflow:hidden;box-shadow:0 3px 14px #183b5710}
+#map{height:min(66vh,650px);min-height:380px;background:#e8eff4}.map-head{padding:13px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center}.map-head b{font-size:15px}.map-head span{font-size:11px;color:var(--muted)}
+.results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:13px}.metric{background:#f6f9fc;border:1px solid #e8eef3;border-radius:12px;padding:13px}.metric small{font-size:12px;color:var(--muted)}.metric strong{display:block;font-size:27px;margin:7px 0 2px}.metric em{font-size:11px;color:var(--muted);font-style:normal}
+.state{padding:0 14px 14px;font-size:12px;color:var(--muted);line-height:1.8}.notice{margin:0 13px 13px;padding:11px 12px;border-radius:10px;background:#fff7e8;color:#79500b;font-size:12px;line-height:1.8}
+@media(max-width:620px){main{padding:12px 10px 25px}#map{height:55vh;min-height:340px}.results{grid-template-columns:1fr 1fr}.metric:first-child{grid-column:1/-1}.search{min-width:100%}.map-head{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<header><a href="../">← العودة إلى مرصد السعودية</a><h1>قياس الارتفاع عن سطح البحر</h1><p>اختر أي نقطة على الخريطة لمعرفة ارتفاع تضاريسها بالمتر</p></header>
+<main>
+<div class="toolbar">
+<div class="search"><input id="coords" inputmode="decimal" placeholder="أدخل الإحداثيات: خط العرض، خط الطول" aria-label="الإحداثيات"><button id="searchPoint" class="primary">قياس النقطة</button></div>
+<button id="locate">موقعي الحالي</button><button id="copyResult" disabled>نسخ الإحداثيات والارتفاع</button><button id="reset">العودة إلى السعودية</button>
+</div>
+<section class="panel">
+<div class="map-head"><b>خريطة اختيار نقطة القياس</b><span>اضغط على الخريطة لتحديد الموقع</span></div>
+<div id="map" role="application" aria-label="خريطة لقياس الارتفاع التضاريسي"></div>
+<div class="results" aria-live="polite">
+<div class="metric"><small>الارتفاع عن سطح البحر</small><strong id="elevation">—</strong><em>متر · تقدير تضاريسي</em></div>
+<div class="metric"><small>خط العرض</small><strong id="latitude">—</strong><em>درجة شمالاً / جنوباً</em></div>
+<div class="metric"><small>خط الطول</small><strong id="longitude">—</strong><em>درجة شرقاً / غرباً</em></div>
+</div>
+<div class="state" id="status">حدد نقطة على الخريطة أو استخدم زر «موقعي الحالي» لبدء القياس.</div>
+<div class="notice">النتيجة مستخرجة من نموذج الارتفاع الرقمي Copernicus DEM GLO-90 بدقة مكانية 90 متر تقريباً؛ لذلك فهي تقدير لارتفاع سطح التضاريس وليست قراءة جهاز GPS مساحي أو قياساً ميدانياً، وقد لا تمثل تفاصيل المباني أو الفروق الصغيرة في الأرض.</div>
+</section>
+<p class="state">مصدر الارتفاع: Copernicus DEM 2021 GLO-90 (© DLR e.V. 2010-2014 و© Airbus Defence and Space GmbH 2014-2018، مقدّم ضمن برنامج COPERNICUS من المفوضية الأوروبية) عبر Open-Meteo Elevation API — Elevation data by Open-Meteo.com. الترخيص: CC BY 4.0. الدقة المكانية للنموذج نحو 90 متراً؛ القيمة ليست مسحاً ميدانياً ولا قياساً هندسياً لارتفاع المباني. <a href="https://open-meteo.com/en/docs/elevation-api" target="_blank" rel="noopener">توثيق خدمة الارتفاع</a> · <a href="https://doi.org/10.5270/ESA-c5d3d65" target="_blank" rel="noopener">مرجع Copernicus DEM</a>.</p>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="../src/platform/http/client.js"></script>
+<script src="../src/platform/geo/cities.js"></script>
+<script src="../src/platform/geo/map-frame.js"></script>
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id)};
+var map=L.map("map").setView([23.8,45.0],5),marker=null,requestId=0,activeAbort=null,lastResult=null,TIMEOUT_MS=12000;
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+if(typeof SaudiMapFrame!=="undefined")SaudiMapFrame.frame(map,L,{url:"../data/geo/saudi_boundary.geojson"});
+function status(message,isError){$("status").textContent=message;$("status").style.color=isError?"#b42318":""}
+function fmt(value){return Number(value).toFixed(5)}
+async function measure(lat,lon,zoom){
+ if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat < -90||lat > 90||lon < -180||lon > 180){status("الإحداثيات غير صحيحة. تحقق من خط العرض والطول.",true);return}
+ if(typeof SaudiMapFrame!=="undefined"&&!SaudiMapFrame.contains(lat,lon)){status("النقطة خارج نطاق المرصد (المملكة العربية السعودية وما حولها). اختر نقطة داخل النطاق.",true);return}
+ var id=++requestId;
+ // Cancel the previous point's request; the id check below also discards any late reply.
+ if(activeAbort)activeAbort.abort();
+ activeAbort=typeof AbortController==="function"?new AbortController():null;
+ lastResult=null;$("copyResult").disabled=true;
+ $("elevation").textContent="…";$("latitude").textContent=fmt(lat);$("longitude").textContent=fmt(lon);
+ $("coords").value=fmt(lat)+", "+fmt(lon);
+ if(marker)marker.setLatLng([lat,lon]);else marker=L.marker([lat,lon]).addTo(map);
+ if(zoom!==false)map.setView([lat,lon],Math.max(map.getZoom(),12));
+ marker.bindPopup("نقطة القياس المحددة").openPopup();
+ status("جارٍ طلب ارتفاع التضاريس من Copernicus DEM GLO-90…");
+ try{
+  var url="https://api.open-meteo.com/v1/elevation?latitude="+encodeURIComponent(lat)+"&longitude="+encodeURIComponent(lon);
+  var data=await HttpClient.request(url,{headers:{Accept:"application/json"},signal:activeAbort?activeAbort.signal:undefined,timeoutMs:TIMEOUT_MS});
+  if(id!==requestId)return;
+  var value=data&&Array.isArray(data.elevation)?data.elevation[0]:null;
+  if(value===null||value===undefined||!Number.isFinite(Number(value)))throw new Error("لم تُرجع الخدمة قيمة ارتفاع صالحة لهذه النقطة.");
+  $("elevation").textContent=Number(value).toLocaleString("ar-SA",{maximumFractionDigits:1});
+  lastResult={lat:lat,lon:lon,elevation:Number(value)};$("copyResult").disabled=false;
+  status("اكتمل القياس. القيمة تمثل ارتفاع نموذج التضاريس Copernicus DEM GLO-90 (دقة ~90 م) عند الإحداثيات المحددة، وليست قياساً ميدانياً. المصدر: Open-Meteo.");
+ }catch(error){if(id!==requestId||(error&&error.kind==="aborted"))return;$("elevation").textContent="—";status("تعذر جلب الارتفاع: "+(error&&error.kind?HttpClient.describeError(error):error.message)+" · حاول مرة أخرى.",true)}
+}
+map.on("click",function(event){measure(event.latlng.lat,event.latlng.lng)});
+$("searchPoint").addEventListener("click",function(){
+ var parts=$("coords").value.split(/[،,\s]+/).filter(Boolean).map(Number);
+ if(parts.length!==2||!parts.every(Number.isFinite)){status("أدخل إحداثيين بهذا الترتيب: خط العرض، خط الطول.",true);return}
+ measure(parts[0],parts[1]);
+});
+$("coords").addEventListener("keydown",function(event){if(event.key==="Enter")$("searchPoint").click()});
+$("locate").addEventListener("click",function(){
+ if(!navigator.geolocation){status("تحديد الموقع غير مدعوم في هذا المتصفح.",true);return}
+ $("locate").disabled=true;status("بانتظار إذن الوصول إلى موقعك…");
+ navigator.geolocation.getCurrentPosition(function(position){$("locate").disabled=false;measure(position.coords.latitude,position.coords.longitude)},function(error){$("locate").disabled=false;status(error.code===1?"لم تسمح بالوصول إلى الموقع. يمكنك اختيار نقطة يدوياً على الخريطة.":"تعذر تحديد الموقع الحالي. اختر نقطة يدوياً على الخريطة.",true)},{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
+});
+$("reset").addEventListener("click",function(){map.setView([23.8,45.0],5)});
+function copyText(text){
+ if(navigator.clipboard&&typeof navigator.clipboard.writeText==="function")return navigator.clipboard.writeText(text);
+ return new Promise(function(resolve,reject){
+  var area=document.createElement("textarea");area.value=text;area.setAttribute("readonly","");area.style.position="fixed";area.style.opacity="0";
+  document.body.appendChild(area);area.select();
+  try{document.execCommand("copy")?resolve():reject(new Error("copy failed"))}catch(e){reject(e)}finally{document.body.removeChild(area)}
+ });
+}
+$("copyResult").addEventListener("click",function(){
+ if(!lastResult)return;
+ var text=fmt(lastResult.lat)+", "+fmt(lastResult.lon)+" · الارتفاع: "+lastResult.elevation+" م (Copernicus DEM GLO-90، دقة ~90 م، عبر Open-Meteo)";
+ copyText(text).then(function(){status("نُسخت الإحداثيات والارتفاع.")},function(){status("تعذر النسخ تلقائياً. انسخ القيم يدوياً: "+text,true)});
+});
+var params=new URLSearchParams(location.search),lat=Number(params.get("lat")),lon=Number(params.get("lon"));
+if(params.has("lat")&&params.has("lon")&&Number.isFinite(lat)&&Number.isFinite(lon))measure(lat,lon); 
+})();
+</script>
+</body>
+</html>
