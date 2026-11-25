@@ -16,7 +16,9 @@ const TILE_SCENARIOS = { VIIRS_SNPP_CorrectedReflectance_TrueColor: [textured, t
 const hourly = n => { const t=[],v=[]; const s=Date.now(); for(let i=0;i<n;i++){const d=new Date(s+3*3600e3+(i-2)*3600e3);t.push(d.toISOString().slice(0,13)+":00");v.push(20+i%5)} return {time:t,temperature_2m:v,precipitation_probability:v,precipitation:v.map(()=>0),weather_code:v.map(()=>1),wind_speed_10m:v}; };
 (async () => {
   const browser = await chromium.launch({ executablePath: "/usr/bin/google-chrome" });
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+  // VIEWPORT=desktop → 1280×800; default mobile 390×844.
+  const desktop = process.env.VIEWPORT === "desktop";
+  const ctx = await browser.newContext(desktop ? { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 } : { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
   await ctx.route("**/*", async route => {
     const url = new URL(route.request().url());
     if (url.hostname === "local.test") {
@@ -64,8 +66,14 @@ const hourly = n => { const t=[],v=[]; const s=Date.now(); for(let i=0;i<n;i++){
     await page.goto(url, { waitUntil: "domcontentloaded" });
     let out; try { out = await action(page); } catch (e) { out = "ACTION FAILED " + e.message; }
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-    await page.screenshot({ path: name + ".png", fullPage: false });
-    results.push({ name, out: String(out).replace(/\s+/g, " ").slice(0, 4000), errors, overflowPx: overflow });
+    // Elements wider than the viewport that are not inside a horizontal scroller (clipping check).
+    const clipped = await page.evaluate(() => Array.from(document.querySelectorAll("body *")).filter(el => {
+      const r = el.getBoundingClientRect(); if (!r.width || r.right <= window.innerWidth + 1 && r.left >= -1) return false;
+      for (let a = el.parentElement; a; a = a.parentElement) { const o = getComputedStyle(a).overflowX; if (o === "auto" || o === "scroll" || o === "hidden") return false; }
+      return true; }).slice(0, 5).map(el => el.tagName + (el.id ? "#" + el.id : "") + (el.className && typeof el.className === "string" ? "." + el.className.split(" ")[0] : "")));
+    const leafletLoaded = await page.evaluate(() => typeof window.L === "object");
+    await page.screenshot({ path: name + (desktop ? "-desktop" : "") + ".png", fullPage: false });
+    results.push({ name, viewport: desktop ? "1280x800" : "390x844", out: String(out).replace(/\s+/g, " ").slice(0, 4000), errors, overflowPx: overflow, clipped, leafletLoaded });
     await page.close();
   }
   console.log(JSON.stringify(results, null, 1));

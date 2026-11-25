@@ -65,3 +65,25 @@ test('overview request includes the fields used by the city comparison table', (
   assert.match(html, /id="compareBody"/);
   assert.match(html, /«—» تعني قيمة غير متاحة ولا تُعد صفراً/);
 });
+
+test('every external Leaflet file is pinned with the published SRI hash', () => {
+  const HASH = { 'leaflet.js': 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=', 'leaflet.css': 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=' };
+  for (const file of ['index.html', 'satellite/index.html', 'elevation/index.html', 'seasons/index.html', 'satellite/coverage.html', 'admin/index.html']) {
+    const html = fs.readFileSync(file, 'utf8');
+    for (const tag of html.match(/<(?:script|link)[^>]+unpkg\.com[^>]*>/g) || []) {
+      if (/rel="preconnect"/.test(tag)) continue;
+      const name = (tag.match(/leaflet\.(?:js|css)/) || [])[0];
+      assert.ok(name, file + ': unexpected external file ' + tag);
+      assert.ok(tag.includes('integrity="' + HASH[name] + '"'), file + ': ' + name + ' missing SRI');
+      assert.match(tag, /crossorigin=""/);
+    }
+  }
+});
+
+test('every page declares Arabic RTL and every new-tab link uses noopener', () => {
+  for (const file of ['index.html', 'satellite/index.html', 'elevation/index.html', 'seasons/index.html', 'satellite/coverage.html', 'admin/index.html']) {
+    const html = fs.readFileSync(file, 'utf8');
+    assert.match(html, /<html lang="ar" dir="rtl">/, file);
+    for (const a of html.match(/<a [^>]*target="_blank"[^>]*>/g) || []) assert.match(a, /noopener/, file + ': ' + a);
+  }
+});
