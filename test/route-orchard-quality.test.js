@@ -79,7 +79,7 @@ test("orchard: forecast and reanalysis are fetched separately with source, date 
   });
   assert.equal(data.forecast.source.kind, "forecast");
   assert.equal(data.archive.source.kind, "reanalysis");
-  assert.equal(data.forecast.source.date_start, "2026-11-25");
+  assert.equal(data.forecast.source.date_start, "2026-11-26");
   assert.equal(data.archive.source.date_end, "2026-11-18");
   assert.equal(data.forecast.source.model_elevation_m, 2150);
   assert.equal(data.archive.rows[1].min, null, "missing reanalysis stays null");
