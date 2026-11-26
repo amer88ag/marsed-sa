@@ -61,7 +61,7 @@
       ?options.channelThreshold:8;
     const count=grid.rows*grid.cols;
     const downstream=Array(count).fill(null),slope=Array(count).fill(null);
-    const boundary=Array(count).fill(false),valid=grid.elevations.map(v=>v!==null);
+    const boundary=Array(count).fill(false),touchesMissing=Array(count).fill(false),valid=grid.elevations.map(v=>v!==null);
     for(let r=0;r<grid.rows;r++)for(let c=0;c<grid.cols;c++){
       const index=r*grid.cols+c;
       if(!valid[index])continue;
@@ -116,7 +116,7 @@
       if(seen.has(index)){termination="cycle_guard";break}
       seen.add(index);path.push(index);
       const next=result.cells[index].downstreamIndex;
-      if(next===null){termination=result.cells[index].isLocalSink?"local_sink":result.cells[index].isBoundary?"grid_boundary":"no_lower_neighbor";break}
+      if(next===null){termination=result.cells[index].isLocalSink?"local_sink":result.cells[index].isDataEdge?"missing_data_edge":result.cells[index].isBoundary?"grid_boundary":"no_lower_neighbor";break}
       index=next;
     }
     return {indices:path,termination,complete:termination!=="step_limit"&&termination!=="cycle_guard"};
