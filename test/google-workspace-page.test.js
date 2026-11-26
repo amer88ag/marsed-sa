@@ -20,3 +20,13 @@ test("Google geospatial workspace has local project persistence and draw modes",
 test("Google geospatial workspace does not require Google API keys",()=>{
   assert.doesNotMatch(page,/AIza[0-9A-Za-z_-]{30,}/);
 });
+
+test("selected feature panel supports rename, metric measurements, coordinate copy and single-feature export",()=>{
+  assert.match(page,/id="selectedDetails"/);
+  assert.match(page,/function updateSelectedDetails/);
+  assert.match(page,/المساحة التقريبية/);
+  assert.match(page,/المحيط/);
+  assert.match(page,/نسخ الإحداثيات/);
+  assert.match(page,/تصدير العنصر المحدد/);
+  assert.match(page,/navigator\.clipboard\.writeText/);
+});
