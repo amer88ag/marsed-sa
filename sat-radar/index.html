@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b46">
+<meta name="description" content="رادار الأقمار الصناعية — مواقع الأقمار فوق موقعك ومساراتها ومرورها القادم، محسوبة من العناصر المدارية المنشورة.">
+<title>رادار الأقمار الصناعية | مرصد السعودية</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+:root{--navy:#102b46;--blue:#1769aa;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}
+.top{background:linear-gradient(120deg,#102b46,#174d76);color:white;padding:22px max(16px,calc((100% - 1280px)/2))}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px}.brand h1{font-size:clamp(22px,3vw,30px);margin:0}.brand p{color:#c6d8e7;margin:7px 0 0;font-size:13px}
+.wrap{max-width:1280px;margin:auto;padding:18px 16px 42px}.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.nav a,.btn{display:inline-block;border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:white;color:var(--ink);text-decoration:none;font:inherit;cursor:pointer}.btn.primary{background:var(--blue);border-color:var(--blue);color:white}.panel{background:white;border:1px solid var(--line);border-radius:15px;overflow:hidden;margin-bottom:14px;box-shadow:0 3px 14px #183b5710}.head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}.head h2{font-size:16px;margin:0}.head small{color:var(--muted)}
+.controls{display:flex;align-items:end;gap:10px;flex-wrap:wrap;padding:13px}.controls label{display:grid;gap:5px;font-size:12px;color:var(--muted)}select,input{font:inherit;border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:white;color:var(--ink)}.status{padding:10px 14px;font-size:12px;color:var(--muted);line-height:1.7}.status.error{color:#b42318}.legend{padding:0 14px 13px;font-size:11px;color:var(--muted);line-height:1.8}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.item{padding:14px 16px}.item h3{font-size:14px;margin:0 0 7px}.item p{font-size:12px;color:var(--muted);line-height:1.8;margin:0 0 9px}.item a{color:var(--blue);font-size:12px;text-decoration:none}.tag{display:inline-block;border-radius:20px;padding:4px 8px;background:#eef6fc;color:#285b80;font-size:10px;margin:2px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.wrap{padding:13px 10px 32px}.top{padding:18px 14px}.controls label{flex:1;min-width:135px}.controls button{flex:1}}
+
+#satRadarMap{height:min(62vh,600px);min-height:320px;background:#0e2236}
+.layout{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px}.list{max-height:min(48vh,460px);overflow:auto}.sat{display:block;width:100%;text-align:start;border:0;border-bottom:1px solid var(--line);background:white;padding:9px 12px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}.sat:hover,.sat[aria-pressed="true"]{background:#eef6fc}.sat small{display:block;color:var(--muted);font-size:11px;margin-top:2px}.sat .up{color:#1a7f37;font-weight:600}
+.card{padding:12px 14px;font-size:13px;line-height:1.9}.card dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:6px 0}.card dt{color:var(--muted)}.card dd{margin:0}
+.dot{width:8px;height:8px;border-radius:50%;background:#ffd166;border:1px solid #6b4e00}.dot.up{background:#2ecc71;border-color:#0b5d2a;width:11px;height:11px}.dot.sel{background:#ff4d6d;border-color:#7a0019;width:13px;height:13px}
+.state{font-size:12px;padding:3px 9px;border-radius:12px;background:#eef6fc;color:#285b80}.state[data-state="stale"],.state[data-state="partial"],.state[data-state="cached"]{background:#fff4e5;color:#8a5700}.state[data-state="unavailable"],.state[data-state="source_error"]{background:#fdecea;color:#b42318}
+.controls label{max-width:100%;min-width:0}.controls select,.controls input{max-width:100%;min-width:0;width:100%}
+.tabs{display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid var(--line)}.tabs button{font:inherit;font-size:12px;border:1px solid var(--line);border-radius:16px;padding:5px 10px;background:white;cursor:pointer}.tabs button[aria-pressed="true"]{background:var(--blue);color:white;border-color:var(--blue)}
+@media(max-width:860px){.layout{grid-template-columns:1fr}.list{max-height:none}#satRadarMap{height:50vh;min-height:300px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand"><div><h1>رادار الأقمار الصناعية</h1><p>أين الأقمار الآن فوق موقعك، ومساراتها، ومرورها القادم</p></div><span id="dataState" class="state" data-state="not_loaded">لم يتم جلبها بعد</span></div></header>
+<main class="wrap">
+<nav class="nav"><a href="../">الرئيسية</a><a href="../flights/">رادار الطيران</a><a href="../earth-memory/">ذاكرة الأرض</a><a href="../satellite/">صور الأقمار اليومية</a></nav>
+<section class="panel">
+<div class="head"><h2>الأقمار فوق الموقع</h2><small id="sourceLine">المصدر: CelesTrak · الحساب: SGP4</small></div>
+<div class="controls">
+<label>المكان<select id="place"></select></label>
+<label>المجموعة<select id="group"></select></label>
+<label>بحث بالاسم أو الرقم<input id="search" type="search" autocomplete="off" placeholder="ISS أو 25544"></label>
+<button class="btn" type="button" id="useMyLocation">موقعي الحالي</button>
+</div>
+<div id="status" class="status" aria-live="polite">جارٍ التهيئة…</div>
+<div class="layout">
+<div id="satRadarMap" role="application" aria-label="خريطة الأقمار الصناعية"></div>
+<div><div id="card" class="card">اختر قمراً من الخريطة أو القائمة لعرض بطاقته ومساره ومروره القادم.</div>
+<div class="tabs" role="group" aria-label="تصفية القائمة"><button type="button" id="tabUp" aria-pressed="true">فوق الأفق الآن</button><button type="button" id="tabAll" aria-pressed="false">كل المجموعة</button></div>
+<div id="list" class="list" role="list" aria-label="الأقمار"></div></div>
+</div>
+<div class="legend">المواقع <b>محسوبة</b> بنموذج SGP4 من العناصر المدارية المنشورة لدى CelesTrak، وليست رصداً بصرياً أو رادارياً. تقل الدقة كلما ابتعد الوقت عن تاريخ العناصر (epoch)، ويظهر عمرها في بطاقة كل قمر، ويوسم القمر «قديم» إذا تجاوز عمر عناصره 7 أيام. «فوق الأفق» يعني ارتفاعاً زاوياً فوق 0° من موقعك، ولا يعني أن القمر مرئي بالعين؛ فالرؤية تحتاج قمراً مضاءً بالشمس وسماءً مظلمة، وهذا غير محسوب في هذه المرحلة. المسار المرسوم 90 دقيقة ماضية (رمادي) و90 دقيقة قادمة (أزرق). تُحدَّث المواقع كل ثانيتين بالحساب في جهازك دون طلبات شبكة، وتُنزَّل العناصر مرة كل ساعتين على الأكثر التزاماً بسياسة CelesTrak. الجهة المالكة غير متاحة في هذه المرحلة.</div>
+</section>
+<footer class="status">العناصر المدارية: <a href="https://celestrak.org" target="_blank" rel="noopener">CelesTrak</a> (T.S. Kelso). الحساب: مكتبة satellite.js (MIT). الخريطة © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>.</footer>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="../vendor/satellite.js/6.0.1/satellite.min.js"></script>
+<script src="../src/platform/http/client.js"></script>
+<script src="../src/platform/time/saudi-time.js"></script>
+<script src="../src/platform/data/source-state.js"></script>
+<script src="../src/platform/geo/cities.js"></script>
+<script src="../src/services/space/sat-radar.js"></script>
+<script>
+(function(){
+"use strict";
+var R=SatRadar,places=CityRegistry.placesFor("dashboard"),observer=null,map=null,markers={},tracks=[],obsMarker=null,data=null,selected=null,mode="up",tick=null,reqId=0,abort=null;
+function $(id){return document.getElementById(id)}
+function esc(t){return String(t).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function n(v,d){return v===null||v===undefined||!isFinite(v)?"غير متاح":Number(v).toLocaleString("en-US",{maximumFractionDigits:d===undefined?0:d})}
+// Signed numbers inside Arabic text are isolated so the minus sign stays on the left.
+function num(v,d,unit){return v===null||v===undefined||!isFinite(v)?"غير متاح":'<bdi dir="ltr">'+Number(v).toLocaleString("en-US",{maximumFractionDigits:d===undefined?0:d})+(unit||"")+'</bdi>'}
+function latText(v){return isFinite(v)?num(Math.abs(v),2,"°")+" "+(v>=0?"شمالاً":"جنوباً"):"غير متاح"}
+function lonText(v){return isFinite(v)?num(Math.abs(v),2,"°")+" "+(v>=0?"شرقاً":"غرباً"):"غير متاح"}
+function saTime(iso){return new Date(iso).toLocaleString("ar-SA-u-nu-latn-ca-gregory",{timeZone:"Asia/Riyadh",weekday:"short",hour:"numeric",minute:"2-digit",second:"2-digit"})}
+function status(t,e){$("status").textContent=t;$("status").classList.toggle("error",!!e)}
+function setState(s,l){$("dataState").setAttribute("data-state",s);$("dataState").textContent=l}
+var DIRS=["شمال","شمال شرقي","شرق","جنوب شرقي","جنوب","جنوب غربي","غرب","شمال غربي"];
+function dir(deg){return deg===null||!isFinite(deg)?"غير متاح":DIRS[Math.round(deg/45)%8]+" ("+num(deg,0,"°")+")"}
+Object.keys(places).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=places[k].name;$("place").appendChild(o)});
+Object.keys(R.GROUPS).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=R.GROUPS[k].label;$("group").appendChild(o)});
+function setObserver(lat,lon,name){observer={lat:lat,lon:lon,name:name};if(map){if(obsMarker)map.removeLayer(obsMarker);obsMarker=L.circleMarker([lat,lon],{radius:7,color:"#fff",weight:2,fillColor:"#1769aa",fillOpacity:1}).addTo(map).bindTooltip(name)}}
+if(window.L){map=L.map("satRadarMap",{minZoom:1,maxZoom:7,worldCopyJump:true}).setView([24,45],2);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map)}
+setObserver(places[$("place").value].lat,places[$("place").value].lon,places[$("place").value].name);
+function filtered(){var q=$("search").value.trim().toUpperCase();if(!data)return [];return data.satellites.filter(function(s){return !q||s.name.toUpperCase().indexOf(q)!==-1||String(s.id)===q})}
+function compute(){
+ var now=new Date();
+ return filtered().map(function(s){return {s:s,p:R.positionAt(s,now,observer)}}).filter(function(x){return x.p});
+}
+function draw(){
+ if(!data)return;
+ var rows=compute(),keep={},up=rows.filter(function(x){return x.p.elevation_deg>0});
+ rows.forEach(function(x){
+  keep[x.s.id]=1;var cls="dot"+(x.s.id===selected?" sel":x.p.elevation_deg>0?" up":"");
+  var m=markers[x.s.id];
+  if(!m&&map){m=markers[x.s.id]=L.marker([x.p.lat,x.p.lon],{icon:L.divIcon({className:"",html:'<div class="'+cls+'"></div>',iconSize:[12,12],iconAnchor:[6,6]}),title:x.s.name}).addTo(map);m.on("click",function(){select(x.s.id)})}
+  else if(m){m.setLatLng([x.p.lat,x.p.lon]);m.setIcon(L.divIcon({className:"",html:'<div class="'+cls+'"></div>',iconSize:[12,12],iconAnchor:[6,6]}))}
+ });
+ Object.keys(markers).forEach(function(id){if(!keep[id]){map.removeLayer(markers[id]);delete markers[id]}});
+ var list=(mode==="up"?up:rows).slice().sort(function(a,b){return b.p.elevation_deg-a.p.elevation_deg});
+ $("list").innerHTML=list.length?list.slice(0,200).map(function(x){var stale=R.epochAgeDays(x.s,new Date())>R.EPOCH_STALE_DAYS;return '<button type="button" class="sat" role="listitem" data-id="'+x.s.id+'" aria-pressed="'+(x.s.id===selected)+'">'+esc(x.s.name)+(x.p.elevation_deg>0?' <span class="up">فوق الأفق '+num(x.p.elevation_deg,0,"°")+'</span>':'')+'<small>ارتفاع '+n(x.p.height_km)+' كم · '+dir(x.p.azimuth_deg)+(stale?' · عناصر قديمة':'')+'</small></button>'}).join(""):'<div class="card">'+(mode==="up"?"لا يوجد قمر من هذه المجموعة فوق أفق "+esc(observer.name)+" الآن. جرّب «كل المجموعة» أو مجموعة أخرى.":"لا نتائج تطابق البحث.")+'</div>';
+ Array.prototype.forEach.call($("list").querySelectorAll(".sat"),function(b){b.addEventListener("click",function(){select(Number(b.getAttribute("data-id")))})});
+ if(selected)renderCard(false);
+ return {up:up.length,total:rows.length};
+}
+function clearTracks(){tracks.forEach(function(l){map.removeLayer(l)});tracks=[]}
+function renderCard(withTrack){
+ var s=data&&data.satellites.find(function(x){return x.id===selected});if(!s){$("card").textContent="القمر غير موجود في المجموعة الحالية.";return}
+ var now=new Date(),p=R.positionAt(s,now,observer);
+ if(!p){$("card").innerHTML="<b>"+esc(s.name)+"</b><br>تعذر حساب موقع هذا القمر من عناصره الحالية (قد يكون عاد إلى الغلاف الجوي أو عناصره غير صالحة).";return}
+ var age=R.epochAgeDays(s,now),h=R.headingAt(s,now);
+ if(withTrack){
+  var pass=R.nextPass(s,observer,now,24,0);s._pass=pass;
+  if(map){clearTracks();var tr=R.groundTrack(s,now,90,90,60);tr.past.forEach(function(seg){tracks.push(L.polyline(seg,{color:"#9aa5b1",weight:2}).addTo(map))});tr.future.forEach(function(seg){tracks.push(L.polyline(seg,{color:"#1769aa",weight:2}).addTo(map))})}
+ }
+ var pass=s._pass,passText=pass===undefined?"—":!pass?"لا مرور فوق 0° خلال 24 ساعة القادمة":(pass.in_progress_at_start?"يمر الآن؛ ":"")+"يظهر "+saTime(pass.rise)+(pass.culmination?" · أعلى ارتفاع "+num(pass.max_elevation_deg,0,"°")+" الساعة "+saTime(pass.culmination):"")+(pass.set?" · يغيب "+saTime(pass.set):" · لم يغب ضمن نافذة الحساب");
+ $("card").innerHTML="<b>"+esc(s.name)+"</b><dl>"+
+  "<dt>رقم NORAD</dt><dd>"+s.id+"</dd>"+
+  "<dt>المعرّف الدولي</dt><dd>"+esc(s.object_id||"غير متاح")+(s.launch_year?" (أُطلق "+s.launch_year+")":"")+"</dd>"+
+  "<dt>النوع</dt><dd>"+esc(R.GROUPS[s.group].type)+" <small>حسب المجموعة</small></dd>"+
+  "<dt>الجهة المالكة</dt><dd>غير متاحة في هذه المرحلة</dd>"+
+  "<dt>الارتفاع عن الأرض</dt><dd>"+n(p.height_km)+" كم</dd>"+
+  "<dt>السرعة المدارية</dt><dd>"+n(p.speed_kms,2)+" كم/ث ("+n(p.speed_kms*3600)+" كم/س)</dd>"+
+  "<dt>اتجاه الحركة</dt><dd>"+dir(h)+"</dd>"+
+  "<dt>الموقع تحته</dt><dd>"+latText(p.lat)+"، "+lonText(p.lon)+"</dd>"+
+  "<dt>من "+esc(observer.name)+"</dt><dd>ارتفاع زاوي "+num(p.elevation_deg,1,"°")+(p.elevation_deg>0?" (فوق الأفق)":" (تحت الأفق)")+" · "+dir(p.azimuth_deg)+" · المسافة "+n(p.range_km)+" كم</dd>"+
+  "<dt>المرور القادم</dt><dd>"+passText+"</dd>"+
+  "<dt>تاريخ العناصر</dt><dd>"+saTime(s.epoch)+" (عمرها "+(age<1?n(age*24)+" ساعة":n(age,1)+" يوم")+(age>R.EPOCH_STALE_DAYS?" — قديمة، والدقة أقل":"")+")</dd></dl>"+
+  "<small>الأوقات بتوقيت السعودية. المرور محسوب هندسياً من موقعك، ولا يعني أن القمر مرئي بالعين.</small>";
+}
+function select(id){selected=id;renderCard(true);draw()}
+async function load(force){
+ var id=++reqId,group=$("group").value;
+ if(abort)abort.abort();abort=typeof AbortController==="function"?new AbortController():null;
+ clearInterval(tick);if(map){Object.keys(markers).forEach(function(k){map.removeLayer(markers[k])});markers={};clearTracks()}
+ selected=null;data=null;$("card").textContent="اختر قمراً من الخريطة أو القائمة لعرض بطاقته ومساره ومروره القادم.";
+ status("جارٍ تحميل العناصر المدارية لمجموعة «"+R.GROUPS[group].label+"»…");
+ try{
+  var r=await R.loadGroup(group,{signal:abort?abort.signal:undefined,force:!!force});
+  if(id!==reqId)return;data=r;
+  var label={fresh:"حديثة",partial:"جزئية",cached:"مخزنة مؤقتاً",stale:"قديمة"}[r.state]||r.state;
+  setState(r.state,label);
+  var fetched=new Date(r.fetched_at);
+  $("sourceLine").textContent="المصدر: CelesTrak · نُزّلت "+saTime(r.fetched_at)+(r.reason==="policy_2h"?" (نسخة محفوظة؛ لا تحديث قبل مرور ساعتين)":r.state==="stale"?" (آخر نسخة صالحة؛ تعذر التحديث)":"");
+  var c=draw();
+  status(r.satellites.length+" قمراً في المجموعة"+(r.rejected?" ("+r.rejected+" سجلاً غير صالح لم يُستخدم)":"")+" · "+c.up+" فوق أفق "+observer.name+" الآن.");
+  tick=setInterval(function(){if(!document.hidden){var c2=draw();if(c2)status(data.satellites.length+" قمراً في المجموعة · "+c2.up+" فوق أفق "+observer.name+" الآن.")}},2000);
+ }catch(error){
+  if(id!==reqId||(error&&error.kind==="aborted"))return;
+  var unavailable=error.kind!=="source_error";
+  setState(unavailable?"unavailable":"source_error",unavailable?"غير متاحة":"خطأ في المصدر");
+  status(unavailable?"تعذر الوصول إلى CelesTrak ولا توجد نسخة محفوظة صالحة. لا تُعرض مواقع مفترضة.":"استجاب CelesTrak ببيانات غير صالحة. لا تُعرض مواقع مفترضة.",true);
+ }
+}
+$("place").addEventListener("change",function(){var p=places[$("place").value];setObserver(p.lat,p.lon,p.name);if(selected)renderCard(true);draw()});
+$("group").addEventListener("change",function(){load(false)});
+$("search").addEventListener("input",function(){if(map){Object.keys(markers).forEach(function(k){map.removeLayer(markers[k])});markers={}}draw()});
+$("tabUp").addEventListener("click",function(){mode="up";$("tabUp").setAttribute("aria-pressed","true");$("tabAll").setAttribute("aria-pressed","false");draw()});
+$("tabAll").addEventListener("click",function(){mode="all";$("tabAll").setAttribute("aria-pressed","true");$("tabUp").setAttribute("aria-pressed","false");draw()});
+$("useMyLocation").addEventListener("click",function(){
+ if(!navigator.geolocation){status("المتصفح لا يدعم تحديد الموقع.",true);return}
+ navigator.geolocation.getCurrentPosition(function(pos){setObserver(Math.round(pos.coords.latitude*100)/100,Math.round(pos.coords.longitude*100)/100,"موقعك");if(selected)renderCard(true);draw()},function(){status("لم يُسمح بتحديد الموقع؛ اختر مدينة.",true)},{maximumAge:600000,timeout:10000});
+});
+load(false);
+})();
+</script>
+</body>
+</html>
