@@ -115,7 +115,7 @@ function render(){
    const latlngs=f.coordinates.map(p=>[p.lat,p.lon]);
    if(f.type==="point")layer=L.circleMarker(latlngs[0],{radius:8,color,fillColor:color,fillOpacity:.8});
    else if(f.type==="line")layer=L.polyline(latlngs,{color,weight:4});
-   else layer=L.polygon(latlngs,{color,fillColor:color,fillOpacity:.18,weight:3});
+   else layer=L.polygon([latlngs,...(f.holes||[]).map(ring=>ring.map(p=>[p.lat,p.lon]))],{color,fillColor:color,fillOpacity:.18,weight:3});
    layer.bindTooltip(f.name);layer.on("click",()=>select(f.id));layer.addTo(map);rendered.push(layer);
    const row=document.createElement("div");row.className="feature"+(f.id===selectedId?" selected":"");row.onclick=()=>select(f.id);
    const info=document.createElement("div"),strong=document.createElement("strong"),small=document.createElement("small");
@@ -193,10 +193,10 @@ function parseGeoJson(textContent){
   else if(geometry.type==="MultiPoint"){coords.forEach((p,i)=>addGeometry({type:"Point",coordinates:p},name+" ("+(i+1)+")"));return}
   else if(geometry.type==="LineString"){type="line";points=convert(coords)}
   else if(geometry.type==="MultiLineString"){coords.forEach((p,i)=>addGeometry({type:"LineString",coordinates:p},name+" ("+(i+1)+")"));return}
-  else if(geometry.type==="Polygon"){type="polygon";points=convert(coords&&coords[0])}
+  else if(geometry.type==="Polygon"){type="polygon";points=convert(coords&&coords[0]);var holes=(coords||[]).slice(1).map(convert)}
   else if(geometry.type==="MultiPolygon"){coords.forEach((p,i)=>addGeometry({type:"Polygon",coordinates:p},name+" ("+(i+1)+")"));return}
   else return;
-  const f=Geo.normalizeFeature({id:id(),name,type,coordinates:points});if(f)out.push(f);
+  const f=Geo.normalizeFeature({id:id(),name,type,coordinates:points,...(type==="polygon"?{holes}: {})});if(f)out.push(f);
  }
  function visit(item){
   if(!item)return;
@@ -226,7 +226,7 @@ function parseGpx(textContent){
  const valid=out.filter(Boolean);if(valid.length>MAX_IMPORT_FEATURES)throw new Error("ملف GPX يحتوي على أكثر من 5000 عنصر؛ قسّمه إلى ملفات أصغر.");return valid;
 }
 function toGeoJson(items){
- return {type:"FeatureCollection",features:items.map(f=>({type:"Feature",properties:{name:f.name,source:"Marsed Saudi"},geometry:{type:f.type==="point"?"Point":f.type==="line"?"LineString":"Polygon",coordinates:f.type==="point"?[f.coordinates[0].lon,f.coordinates[0].lat]:f.type==="line"?f.coordinates.map(p=>[p.lon,p.lat]):[f.coordinates.concat([f.coordinates[0]]).map(p=>[p.lon,p.lat])]}}))};
+ return {type:"FeatureCollection",features:items.map(f=>({type:"Feature",properties:{name:f.name,source:"Marsed Saudi"},geometry:{type:f.type==="point"?"Point":f.type==="line"?"LineString":"Polygon",coordinates:f.type==="point"?[f.coordinates[0].lon,f.coordinates[0].lat]:f.type==="line"?f.coordinates.map(p=>[p.lon,p.lat]):[f.coordinates,...(f.holes||[])].map(ring=>ring.concat([ring[0]]).map(p=>[p.lon,p.lat]))}}))};
 }
 function toGpx(items){
  const esc=s=>String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
@@ -259,8 +259,9 @@ function parseKml(xml){
    if(item.type==="polygon")coordNode=node.getElementsByTagNameNS("*","outerBoundaryIs")[0]?.getElementsByTagNameNS("*","coordinates")[0];
    else coordNode=node.getElementsByTagNameNS("*","coordinates")[0];
    const coords=Geo.parseCoordinateText(coordNode&&coordNode.textContent);if(!coords)continue;
+   const holes=item.type==="polygon"?Array.from(node.getElementsByTagNameNS("*","innerBoundaryIs")).map(boundary=>Geo.parseCoordinateText(boundary.getElementsByTagNameNS("*","coordinates")[0]?.textContent)).filter(Boolean):[];
    const label=geometries.length>1?name+" ("+(index+1)+")":name;
-   const f=Geo.normalizeFeature({id:id(),name:label,type:item.type,coordinates:coords});if(f)out.push(f);
+   const f=Geo.normalizeFeature({id:id(),name:label,type:item.type,coordinates:coords,...(item.type==="polygon"?{holes}:{})});if(f)out.push(f);
    if(out.length>MAX_IMPORT_FEATURES)throw new Error("ملف KML يحتوي على أكثر من 5000 عنصر؛ قسّمه إلى ملفات أصغر.");
   }
  }
