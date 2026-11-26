@@ -110,3 +110,14 @@ test("manual drawing obeys the same workspace feature and vertex limits as impor
   assert.match(page,/workspaceVertexCount\(\)\+draft\.length\+1>MAX_IMPORT_VERTICES/);
   assert.match(page,/100 ألف نقطة إحداثية/);
 });
+
+
+test("selecting a feature updates existing map layers without rebuilding the full map",()=>{
+  assert.match(page,/layer\.featureId=f\.id/);
+  assert.match(page,/row\.dataset\.featureId=f\.id/);
+  const match=page.match(/function select\(featureId\)\{([\s\S]*?)\n\}/);
+  assert.ok(match,"select handler exists");
+  assert.match(match[1],/layer\.setStyle\(/);
+  assert.match(match[1],/querySelectorAll\("\.feature"\)/);
+  assert.doesNotMatch(match[1],/render\(\)/);
+});
