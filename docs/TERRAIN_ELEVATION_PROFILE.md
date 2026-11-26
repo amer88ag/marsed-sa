@@ -5,7 +5,7 @@ The elevation explorer supports both single-point lookup and a sampled profile a
 ## Method
 - The user selects two or more map vertices.
 - The profile service resamples the great-circle path at up to 40 evenly spaced distances (the page currently requests 24).
-- A single multi-coordinate request is sent to the Open-Meteo Elevation API.
+- A single multi-coordinate request is sent to the Open-Meteo Elevation API. Its official documentation allows up to 100 coordinate pairs per request; this page currently uses 24 samples and the reusable service caps at 40.\n- The response contract is one JSON object with an `elevation` array, including for a single-point request.\n- Official API reference: https://open-meteo.com/en/docs/elevation-api
 - The response is accepted only when the elevation array length matches the requested sample count.
 - Missing or invalid elevations remain null; they are never converted to zero.
 - The page reports known minimum/maximum elevations, endpoint elevation difference, cumulative horizontal distance, and segment grade only where both adjacent elevations are available.
