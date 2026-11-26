@@ -41,3 +41,13 @@ test("rate limits and refresh policy are handled",()=>{
  assert.match(page,/response\.status===429/);
  assert.match(page,/setInterval\(\(\)=>\{if\(document\.visibilityState==="visible"\)refresh\(\)\},300000\)/);
 });
+
+test("selected aircraft details do not recenter the map during automatic refresh",()=>{
+ assert.match(page,/function showDetail\(a,pan=true\)/);
+ assert.match(page,/if\(a\)showDetail\(a,false\)/);
+ assert.match(page,/if\(pan && Number\.isFinite\(a\.latitude\)/);
+});
+test("empty live feed is distinguished from provider failure",()=>{
+ assert.match(page,/اكتمل الاتصال بالمصدر، لكن لم تُرصد طائرات/);
+ assert.match(page,/تعذر جلب بيانات الطيران/);
+});
