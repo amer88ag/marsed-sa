@@ -36,3 +36,12 @@ test("parses KML coordinate tuples and rejects malformed input",()=>{
   assert.equal(Geo.parseCoordinateText("181,24,0"),null);
   assert.equal(Geo.parseCoordinateText("bad"),null);
 });
+
+test("measures line length and polygon area/perimeter in metric units",()=>{
+  const line=Geo.measureFeature({type:"line",coordinates:[{lat:24,lon:46},{lat:24,lon:47}]});
+  assert.ok(line.lengthM>100000&&line.lengthM<110000);
+  const square=Geo.measureFeature({type:"polygon",coordinates:[{lat:0,lon:0},{lat:0,lon:0.01},{lat:0.01,lon:0.01},{lat:0.01,lon:0}]});
+  assert.ok(square.areaM2>1200000&&square.areaM2<1300000);
+  assert.ok(square.perimeterM>4400&&square.perimeterM<4500);
+  assert.equal(Geo.measureFeature({type:"point",coordinates:[{lat:1,lon:2}]}).areaM2,null);
+});
