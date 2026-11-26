@@ -31,7 +31,8 @@ button,input{font:inherit}button{border:1px solid var(--line);background:#fff;bo
 <div class="search"><input id="coords" inputmode="decimal" placeholder="أدخل الإحداثيات: خط العرض، خط الطول" aria-label="الإحداثيات"><button id="searchPoint" class="primary">قياس النقطة</button></div>
 <button id="locate">موقعي الحالي</button><button id="copyResult" disabled>نسخ الإحداثيات والارتفاع</button><button id="reset">العودة إلى السعودية</button>
 </div>
-<div class="path-tools" aria-label="أدوات المسار التضاريسي"><button id="pathStart" class="primary">رسم مسار الارتفاع</button><button id="pathFinish" disabled>إنهاء وقياس المسار</button><button id="pathUndo" disabled>تراجع عن آخر نقطة</button><button id="pathClear" disabled>مسح المسار</button><button id="profileCsv" disabled>تصدير المقطع CSV</button><span class="path-help" id="pathHelp">ارسم مساراً بالنقر على نقطتين أو أكثر على الخريطة.</span></div>\n<div class="flow-tools"><button id="flowAnalyze" class="primary">تحليل اتجاه جريان المياه حول النقطة المحددة</button><button id="flowClear" disabled>مسح طبقة الجريان</button><span class="path-help">اختر نقطة قياس أولاً، ثم حلّل شبكة تضاريس محلية 9 × 9.</span></div><p class="flow-status" id="flowStatus" aria-live="polite">تحليل استرشادي للتضاريس فقط؛ لا يمثل توقعاً للسيول أو تحديداً رسمياً لمجاري الأودية.</p>
+<div class="path-tools" aria-label="أدوات المسار التضاريسي"><button id="pathStart" class="primary">رسم مسار الارتفاع</button><button id="pathFinish" disabled>إنهاء وقياس المسار</button><button id="pathUndo" disabled>تراجع عن آخر نقطة</button><button id="pathClear" disabled>مسح المسار</button><button id="profileCsv" disabled>تصدير المقطع CSV</button><span class="path-help" id="pathHelp">ارسم مساراً بالنقر على نقطتين أو أكثر على الخريطة.</span></div>
+<div class="flow-tools"><button id="flowAnalyze" class="primary">تحليل اتجاه جريان المياه حول النقطة المحددة</button><button id="flowClear" disabled>مسح طبقة الجريان</button><span class="path-help">اختر نقطة قياس أولاً، ثم حلّل شبكة تضاريس محلية 9 × 9.</span></div><p class="flow-status" id="flowStatus" aria-live="polite">تحليل استرشادي للتضاريس فقط؛ لا يمثل توقعاً للسيول أو تحديداً رسمياً لمجاري الأودية.</p>
 <section class="panel">
 <div class="map-head"><b>خريطة اختيار نقطة القياس</b><span>اضغط على الخريطة لتحديد الموقع</span></div>
 <div id="map" role="application" aria-label="خريطة لقياس الارتفاع التضاريسي"></div>
@@ -52,13 +53,15 @@ button,input{font:inherit}button{border:1px solid var(--line);background:#fff;bo
 <script src="../src/platform/geo/cities.js"></script>
 <script src="../src/platform/geo/map-frame.js"></script>
 <script src="../src/platform/geo/measure.js"></script>
-<script src="../src/platform/geo/elevation-profile.js"></script>\n<script src="../src/platform/geo/terrain-flow.js"></script>
+<script src="../src/platform/geo/elevation-profile.js"></script>
+<script src="../src/platform/geo/terrain-flow.js"></script>
 <script>
 (function(){
 "use strict";
 var $=function(id){return document.getElementById(id)};
 var map=L.map("map").setView([23.8,45.0],5),marker=null,requestId=0,activeAbort=null,lastResult=null,TIMEOUT_MS=12000;
-var pathMode=false,pathPoints=[],pathMarkers=[],pathLine=null,profileRequestId=0,lastProfile=null;\nvar flowRequestId=0,flowLayer=L.layerGroup().addTo(map),flowPathLayer=L.layerGroup().addTo(map),lastFlow=null;
+var pathMode=false,pathPoints=[],pathMarkers=[],pathLine=null,profileRequestId=0,lastProfile=null;
+var flowRequestId=0,flowLayer=L.layerGroup().addTo(map),flowPathLayer=L.layerGroup().addTo(map),lastFlow=null;
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
 if(typeof SaudiMapFrame!=="undefined")SaudiMapFrame.frame(map,L,{url:"../data/geo/saudi_boundary.geojson"});
 function status(message,isError){$("status").textContent=message;$("status").style.color=isError?"#b42318":""}
