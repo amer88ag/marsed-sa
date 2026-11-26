@@ -17,12 +17,22 @@
     if(points.some(p=>!p))return null;
     if(feature.type==="point"&&points.length!==1)return null;
     if(feature.type==="line"&&points.length<2)return null;
+    const closeRing=ring=>{
+      const result=ring.map(point);
+      if(result.some(p=>!p))return null;
+      if(result.length>1&&result[0].lat===result[result.length-1].lat&&result[0].lon===result[result.length-1].lon)result.pop();
+      return result.length>=3?result:null;
+    };
+    let holes=[];
     if(feature.type==="polygon"){
       if(points.length>1&&points[0].lat===points[points.length-1].lat&&points[0].lon===points[points.length-1].lon)points.pop();
       if(points.length<3)return null;
+      const rawHoles=Array.isArray(feature.holes)?feature.holes:[];
+      holes=rawHoles.map(closeRing);
+      if(holes.some(ring=>!ring))return null;
     }
     return {id:String(feature.id||"feature").slice(0,80),
-      name:String(feature.name||"عنصر جغرافي").slice(0,160),type:feature.type,coordinates:points};
+      name:String(feature.name||"عنصر جغرافي").slice(0,160),type:feature.type,coordinates:points,...(feature.type==="polygon"?{holes}:{})};
   }
   function centroid(feature){
     const f=normalizeFeature(feature);if(!f)return null;
@@ -51,12 +61,19 @@
     for(let i=1;i<pts.length;i++)perimeterM+=distanceM(pts[i-1],pts[i]);
     if(f.type==="point")return {lengthM:0,perimeterM:null,areaM2:null};
     if(f.type==="polygon"){
-      perimeterM+=distanceM(pts[pts.length-1],pts[0]);
-      let sum=0;for(let i=0;i<pts.length;i++){
-        const a=pts[i],b=pts[(i+1)%pts.length];
-        sum+=(b.lon-a.lon)*Math.PI/180*(2+Math.sin(a.lat*Math.PI/180)+Math.sin(b.lat*Math.PI/180));
-      }
-      return {lengthM:null,perimeterM,areaM2:Math.abs(sum)*6371008.8*6371008.8/2};
+      const ringMetrics=ring=>{
+        let perimeter=0,sum=0;
+        for(let i=0;i<ring.length;i++){
+          const a=ring[i],b=ring[(i+1)%ring.length];
+          perimeter+=distanceM(a,b);
+          sum+=(b.lon-a.lon)*Math.PI/180*(2+Math.sin(a.lat*Math.PI/180)+Math.sin(b.lat*Math.PI/180));
+        }
+        return {perimeter,area:Math.abs(sum)*6371008.8*6371008.8/2};
+      };
+      const outer=ringMetrics(pts),inner=(f.holes||[]).map(ringMetrics);
+      perimeterM=outer.perimeter+inner.reduce((sum,r)=>sum+r.perimeter,0);
+      const areaM2=Math.max(0,outer.area-inner.reduce((sum,r)=>sum+r.area,0));
+      return {lengthM:null,perimeterM,areaM2};
     }
     return {lengthM:perimeterM,perimeterM:null,areaM2:null};
   }
@@ -68,7 +85,12 @@
       let geometry="";
       if(f.type==="point")geometry="<Point><coordinates>"+coords+"</coordinates></Point>";
       if(f.type==="line")geometry="<LineString><tessellate>1</tessellate><coordinates>"+coords+"</coordinates></LineString>";
-      if(f.type==="polygon"){const ring=f.coordinates.concat([f.coordinates[0]]).map(p=>p.lon+","+p.lat+",0").join(" ");geometry="<Polygon><outerBoundaryIs><LinearRing><coordinates>"+ring+"</coordinates></LinearRing></outerBoundaryIs></Polygon>";}
+      if(f.type==="polygon"){
+        const toRing=points=>points.concat([points[0]]).map(p=>p.lon+","+p.lat+",0").join(" ");
+        const outer="<outerBoundaryIs><LinearRing><coordinates>"+toRing(f.coordinates)+"</coordinates></LinearRing></outerBoundaryIs>";
+        const inner=(f.holes||[]).map(ring=>"<innerBoundaryIs><LinearRing><coordinates>"+toRing(ring)+"</coordinates></LinearRing></innerBoundaryIs>").join("");
+        geometry="<Polygon>"+outer+inner+"</Polygon>";
+      }
       return "<Placemark><name>"+xml(f.name)+"</name><description>"+xml(f.type)+"</description>"+geometry+"</Placemark>";
     }).join("");
     return '<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>مساحة العمل الجغرافية</name>'+placemarks+"</Document></kml>";
