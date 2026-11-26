@@ -45,3 +45,19 @@ test("measures line length and polygon area/perimeter in metric units",()=>{
   assert.ok(square.perimeterM>4400&&square.perimeterM<4500);
   assert.equal(Geo.measureFeature({type:"point",coordinates:[{lat:1,lon:2}]}).areaM2,null);
 });
+
+test("polygon interior rings are validated, subtracted from area and added to perimeter",()=>{
+  const outer=[{lat:0,lon:0},{lat:0,lon:.02},{lat:.02,lon:.02},{lat:.02,lon:0}];
+  const hole=[{lat:.005,lon:.005},{lat:.005,lon:.015},{lat:.015,lon:.015},{lat:.015,lon:.005}];
+  const full=Geo.measureFeature({type:"polygon",coordinates:outer});
+  const cut=Geo.measureFeature({type:"polygon",coordinates:outer,holes:[hole]});
+  assert.ok(cut.areaM2<full.areaM2);
+  assert.ok(cut.areaM2>full.areaM2*.7);
+  assert.ok(cut.perimeterM>full.perimeterM);
+  assert.equal(Geo.normalizeFeature({type:"polygon",coordinates:outer,holes:[[{lat:0,lon:0}]]}),null);
+});
+test("KML export retains polygon interior boundaries",()=>{
+  const kml=Geo.toKml([{type:"polygon",name:"حدود مع ثقب",coordinates:[{lat:0,lon:0},{lat:0,lon:2},{lat:2,lon:2}],holes:[[{lat:.2,lon:.2},{lat:.2,lon:.5},{lat:.5,lon:.5}]]}]);
+  assert.match(kml,/<innerBoundaryIs>/);
+  assert.match(kml,/<outerBoundaryIs>/);
+});
