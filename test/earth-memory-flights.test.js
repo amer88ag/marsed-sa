@@ -168,3 +168,9 @@ test('flights page: honest scope, attribution, pause when hidden, location round
   for (const s of ['flight-radar.js', 'adsb-v2/adapter.js', 'ODbL', 'airplanes.live', 'visibilitychange', 'غير متاحة</b> في هذه المرحلة', 'وليس رادار مراقبة جوية', 'لا تستخدم هذه الصفحة للملاحة', 'مقرّب لمنزلتين عشريتين', 'غياب طائرة لا يعني أنها غير موجودة']) assert.ok(html.includes(s), s);
   assert.doesNotMatch(html, /api[_-]?key|apikey|Authorization/i);
 });
+
+test('earth memory page: default "after" avoids today\'s incomplete mosaic and explains black areas', () => {
+  const html = fs.readFileSync('earth-memory/index.html', 'utf8');
+  assert.match(html, /cap===today\?\(G\.adjacentAvailableDate\(cap,periods,-1,cap\)\|\|cap\):cap/);
+  assert.match(html, /المناطق السوداء تعني لا بيانات/);
+});

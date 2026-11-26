@@ -49,7 +49,7 @@
 </div>
 <div class="head"><h2>نفس اليوم عبر السنين</h2><small id="yearsCaption">اختر سنة لعرضها في «قبل»</small></div>
 <div class="years" id="years" role="group" aria-label="السنوات المتاحة"></div>
-<div class="legend">الخريطتان متزامنتان: التحريك والتكبير في إحداهما ينعكسان على الأخرى. كل تاريخ معروض مأخوذ من قائمة تواريخ الطبقة لدى NASA. إن لم تتوفر صورة في اليوم المطلوب يُستخدم أقرب يوم متاح خلال 7 أيام ويُذكر الفرق، وإلا تُعطَّل السنة. الصور فسيفساء يومية من عدة مرورات، وقد تغطيها السحب أو تظهر فيها فجوات، وأقصى تكبير أصلي لها المستوى 9. ليست صوراً عالية الدقة لمبنى أو شارع، ولا تثبت وحدها سبب أي تغير.</div>
+<div class="legend">الخريطتان متزامنتان: التحريك والتكبير في إحداهما ينعكسان على الأخرى. كل تاريخ معروض مأخوذ من قائمة تواريخ الطبقة لدى NASA. إن لم تتوفر صورة في اليوم المطلوب يُستخدم أقرب يوم متاح خلال 7 أيام ويُذكر الفرق، وإلا تُعطَّل السنة. الصور فسيفساء يومية من عدة مرورات، وقد تغطيها السحب أو تظهر فيها فجوات. المناطق السوداء تعني لا بيانات (مرور لم يحدث أو لم يُعالج بعد، وهذا شائع في صورة اليوم الجاري)، وليست أرضاً، وأقصى تكبير أصلي لها المستوى 9. ليست صوراً عالية الدقة لمبنى أو شارع، ولا تثبت وحدها سبب أي تغير.</div>
 </section>
 <footer class="status">صور الأقمار من <a href="https://www.earthdata.nasa.gov/" target="_blank" rel="noopener">NASA Earthdata</a> / <a href="https://gibs.earthdata.nasa.gov/" target="_blank" rel="noopener">GIBS</a>. مرصد السعودية مشروع مستقل.</footer>
 </main>
@@ -125,7 +125,10 @@ async function loadAvailability(){
   var first=G.earliestAvailableDate(periods);
   if(!cap||!first){status("availability","لم تُرجع الخدمة تواريخ متاحة لهذه الطبقة.",true);return}
   ["A","B"].forEach(function(s){$("date"+s).min=first;$("date"+s).max=cap;$("date"+s).disabled=false});
-  if(!G.validDate($("dateB").value)||$("dateB").value>cap||!G.isDateAvailable($("dateB").value,periods))$("dateB").value=cap;
+  // Today's UTC mosaic is still being assembled (black gaps where passes are pending),
+  // so the default "after" is the latest listed day before today; today stays selectable.
+  var today=G.productDateCap(new Date()),defaultB=cap===today?(G.adjacentAvailableDate(cap,periods,-1,cap)||cap):cap;
+  if(!G.validDate($("dateB").value)||$("dateB").value>cap||!G.isDateAvailable($("dateB").value,periods))$("dateB").value=defaultB;
   var a=G.validDate($("dateA").value)&&G.isDateAvailable($("dateA").value,periods)?{date:$("dateA").value}:E.yearsBefore($("dateB").value,10,periods,cap,7)||{date:first};
   $("dateA").value=a.date;
   status("availability","الأرشيف المتاح لهذه الطبقة: من "+first+" إلى "+cap+" (بفجوات أحياناً).");
