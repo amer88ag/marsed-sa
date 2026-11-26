@@ -54,3 +54,16 @@ test('terrain profile exposes cumulative ascent/descent and CSV export',()=>{
   assert.match(page,/marsed-terrain-profile\.csv/);
   assert.match(page,/lastProfile\.rows/);
 });
+
+test('local terrain flow overlay is wired to the elevation map and DEM source',()=>{
+  assert.match(page,/id="flowAnalyze"/);
+  assert.match(page,/id="flowClear"/);
+  assert.match(page,/id="flowStatus"/);
+  assert.match(page,/terrain-flow\.js/);
+  assert.match(page,/TerrainFlow\.createGrid/);
+  assert.match(page,/TerrainFlow\.elevationUrl/);
+  assert.match(page,/TerrainFlow\.analyze/);
+  assert.match(page,/TerrainFlow\.traceDownstream/);
+  assert.match(page,/شبكة تضاريس محلية 9 × 9/);
+  assert.match(page,/ليست شبكة هيدرولوجية معايرة/);
+});
