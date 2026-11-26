@@ -121,3 +121,10 @@ test("selecting a feature updates existing map layers without rebuilding the ful
   assert.match(match[1],/querySelectorAll\("\.feature"\)/);
   assert.doesNotMatch(match[1],/render\(\)/);
 });
+
+
+test("workspace GeoJSON import and export use the shared round-trip helpers",()=>{
+  assert.match(page,/Geo\.fromGeoJson\(data,id\)/);
+  assert.match(page,/function toGeoJson\(items\)\{return Geo\.toGeoJson\(items\)\}/);
+  assert.match(page,/ملف GeoJSON غير صالح/);
+});
