@@ -33,7 +33,7 @@ test("required provider attribution and share-alike licence are visible and docu
 });
 test("commercial schedules, delays and gates are not fabricated",()=>{
  assert.match(page,/جداول الوصول والمغادرة وأرقام البوابات تحتاج موصلاً مستقلاً/);
- assert.match(page,/لا تعرضها كتخمينات/);
+ assert.match(page,/لا تعرضها كتخمينات|لا يتم اختلاقها|لا تُستنتج/);
  assert.match(page,/لا تستخدم هذه الصفحة للملاحة أو السلامة الجوية/);
 });
 test("rate limits and refresh policy are handled",()=>{
