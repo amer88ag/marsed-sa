@@ -86,11 +86,11 @@ function status(t,error=false){$("status").textContent=t;$("status").classList.t
 function boxFromMap(){const b=map.getBounds();return [b.getSouth(),b.getWest(),b.getNorth(),b.getEast()]}
 function chosenBox(){return $("area").value==="custom"?boxFromMap():areas[$("area").value].bbox}
 function markerIcon(track){return L.divIcon({className:"",html:'<div class="air-icon" style="transform:rotate('+(Number(track)||0)+'deg)">✈</div>',iconSize:[26,26],iconAnchor:[13,13]})}
-function showDetail(a){
+function showDetail(a,pan=true){
  selected=a.icao24;const box=$("detail");box.hidden=false;
  const fields=[["نداء الرحلة",a.callsign||"غير متاح"],["رمز ICAO24",a.icao24],["بلد المصدر",a.origin_country||"غير متاح"],["الارتفاع البارومتري",a.baro_altitude==null?"غير متاح":fmt(a.baro_altitude)+" م"],["الارتفاع الهندسي",a.geo_altitude==null?"غير متاح":fmt(a.geo_altitude)+" م"],["السرعة الأرضية",a.velocity==null?"غير متاح":fmt(kmh(a.velocity),1)+" كم/س"],["الاتجاه",a.true_track==null?"غير متاح":fmt(a.true_track)+"°"],["معدل الصعود/الهبوط",a.vertical_rate==null?"غير متاح":fmt(a.vertical_rate,1)+" م/ث"],["الحالة",a.on_ground?"على الأرض":"في الجو"],["آخر اتصال",a.last_contact?new Date(a.last_contact*1000).toLocaleString("ar-SA"):"غير متاح"]];
  box.innerHTML='<h3>تفاصيل الطائرة المحددة</h3><div class="detail-grid">'+fields.map(([k,v])=>'<div>'+k+'<b>'+String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))+'</b></div>').join("")+'</div>';
- map.setView([a.latitude,a.longitude],Math.max(map.getZoom(),8));
+ if(pan && Number.isFinite(a.latitude) && Number.isFinite(a.longitude))map.setView([a.latitude,a.longitude],Math.max(map.getZoom(),8));
 }
 function render(){
  const query=$("search").value.trim().toLowerCase(),filter=$("filter").value;
@@ -102,7 +102,7 @@ function render(){
  const current=new Set(aircraft.filter(a=>Number.isFinite(a.latitude)&&Number.isFinite(a.longitude)).map(a=>a.icao24));
  markers.forEach((m,id)=>{if(!current.has(id)){map.removeLayer(m);markers.delete(id)}});
  aircraft.forEach(a=>{if(!Number.isFinite(a.latitude)||!Number.isFinite(a.longitude))return;let m=markers.get(a.icao24);if(!m){m=L.marker([a.latitude,a.longitude],{icon:markerIcon(a.true_track)}).addTo(map);m.on("click",()=>showDetail(a));markers.set(a.icao24,m)}else{m.setLatLng([a.latitude,a.longitude]);m.setIcon(markerIcon(a.true_track));m.off("click");m.on("click",()=>showDetail(a))}});
- if(selected){const a=aircraft.find(x=>x.icao24===selected);if(a)showDetail(a)}
+ if(selected){const a=aircraft.find(x=>x.icao24===selected);if(a)showDetail(a,false)}
 }
 async function refresh(){
  if(busy)return;busy=true;status("جارٍ جلب مواقع الطائرات من FlyItalyADSB…");
@@ -115,7 +115,8 @@ async function refresh(){
   const data=await response.json();const rows=Array.isArray(data.aircraft)?data.aircraft:[];
   aircraft=rows.map(a=>({icao24:a.icao24,callsign:a.callsign,origin_country:"غير متاح من المصدر",longitude:a.longitude,latitude:a.latitude,baro_altitude:typeof a.altitude_feet==="number"?a.altitude_feet*0.3048:null,geo_altitude:null,on_ground:a.on_ground,velocity:typeof a.speed_knots==="number"?a.speed_knots*0.514444:null,true_track:a.true_track,vertical_rate:typeof a.vertical_rate_fpm==="number"?a.vertical_rate_fpm*0.00508:null,last_contact:typeof data.source_time==="number"?data.source_time-(a.seen_seconds||0):null,registration:a.registration,aircraft_type:a.aircraft_type,squawk:a.squawk})).filter(a=>a.icao24);
   lastUpdated=new Date();render();
-  status("آخر تحديث: "+lastUpdated.toLocaleString("ar-SA")+" · المصدر: FlyItalyADSB · عدد الطائرات: "+fmt(data.count)+" · النطاق: "+fmt(area,1)+" درجة²");
+  if(!aircraft.length){status("اكتمل الاتصال بالمصدر، لكن لم تُرصد طائرات في هذا النطاق حالياً. قد تتغير التغطية مع الوقت.");}
+  else{status("آخر تحديث: "+lastUpdated.toLocaleString("ar-SA")+" · المصدر: FlyItalyADSB · عدد الطائرات: "+fmt(data.count)+" · النطاق: "+fmt(area,1)+" درجة²");}
  }catch(e){status(e.message||"تعذر الاتصال بمصدر الطيران.",true)}
  finally{busy=false}
 }
