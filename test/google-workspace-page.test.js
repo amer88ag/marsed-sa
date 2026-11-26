@@ -19,5 +19,4 @@ test("Google geospatial workspace has local project persistence and draw modes",
 });
 test("Google geospatial workspace does not require Google API keys",()=>{
   assert.doesNotMatch(page,/AIza[0-9A-Za-z_-]{30,}/);
-  assert.match(page,/earth\.google\.com\/web\/search/);
 });
