@@ -5,6 +5,8 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
   function point(lat, lon) {
+    if (lat == null || lon == null || typeof lat === "boolean" || typeof lon === "boolean" ||
+        (typeof lat === "string" && !lat.trim()) || (typeof lon === "string" && !lon.trim())) return null;
     const latitude = Number(lat), longitude = Number(lon);
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
         latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
