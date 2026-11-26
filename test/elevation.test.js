@@ -44,3 +44,13 @@ test('terrain profile drawing, sampled elevation and result chart are wired into
   assert.match(page,/id="profileRows"/);
   assert.match(page,/بيانات مفقودة/);
 });
+
+test('terrain profile exposes cumulative ascent/descent and CSV export',()=>{
+  assert.match(page,/id="profileAscent"/);
+  assert.match(page,/id="profileDescent"/);
+  assert.match(page,/id="profileMaxUp"/);
+  assert.match(page,/id="profileMaxDown"/);
+  assert.match(page,/id="profileCsv"/);
+  assert.match(page,/marsed-terrain-profile\.csv/);
+  assert.match(page,/lastProfile\.rows/);
+});
