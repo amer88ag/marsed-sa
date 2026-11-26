@@ -1,0 +1,24 @@
+/* Saudi Observatory — unified design system */
+:root{--obs-ink:#15283a;--obs-muted:#65778a;--obs-line:#dce5ed;--obs-bg:#f2f6fa;--obs-navy:#102b46;--obs-blue:#1769aa;--obs-blue-2:#0f568e;--obs-teal:#16a3a0;--obs-card:#fff;--obs-shadow:0 8px 26px rgba(16,43,70,.07);--obs-radius:18px;color-scheme:light}
+html{scroll-behavior:smooth}body{background:var(--obs-bg)!important;color:var(--obs-ink)!important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif!important;line-height:1.55}
+button,input,select,textarea{font:inherit}a{transition:color .16s ease,background .16s ease,border-color .16s ease}
+header.top,body>header{position:relative;background:linear-gradient(118deg,#0b2138 0%,#123b5d 58%,#17618a 100%)!important;color:#fff!important;padding:24px max(16px,calc((100% - 1380px)/2))!important;border:0!important;box-shadow:0 8px 24px rgba(8,31,52,.12)}
+header.top:after,body>header:after{content:"";display:block;position:absolute;inset:auto 0 0;height:3px;background:linear-gradient(90deg,#19aaa4,#55a8d8,#8dc8e8);opacity:.85}
+header h1,.brand h1{font-weight:800!important;letter-spacing:-.35px}header p,.brand p{color:#c6dbea!important;line-height:1.75}.brand{max-width:1380px;margin:auto}
+.global-nav{max-width:1380px;margin:14px auto 18px;padding:8px;display:flex;align-items:center;gap:7px;overflow-x:auto;white-space:nowrap;background:#fff;border:1px solid var(--obs-line);border-radius:15px;box-shadow:0 3px 12px rgba(16,43,70,.045);scrollbar-width:thin}
+.global-nav a{flex:0 0 auto;text-decoration:none;color:#43576a;font-size:13px;font-weight:700;padding:9px 13px;border-radius:10px}
+.global-nav a:hover,.global-nav a[aria-current=page]{background:#eaf4fb;color:var(--obs-blue)}
+main,.wrap{max-width:1380px!important}
+.panel,.hero,.card,.metric,.source,.season,.item{border-color:var(--obs-line)!important;border-radius:var(--obs-radius)!important;box-shadow:var(--obs-shadow)!important}
+.panel-head,.head,.map-head,.section-head{background:linear-gradient(180deg,#fff,#f9fbfd);border-color:var(--obs-line)!important;padding:15px 18px!important}
+.panel-head h2,.head h2,.map-head b,.section-head b{font-weight:800!important;color:#20384e}
+.btn,button,.nav a{border-radius:11px;transition:transform .15s ease,box-shadow .15s ease,background .15s ease}.btn:hover,button:hover{box-shadow:0 4px 12px rgba(16,43,70,.09)}
+.btn.primary,button.primary{background:linear-gradient(135deg,var(--obs-blue),var(--obs-blue-2))!important;border-color:var(--obs-blue)!important}
+input,select,textarea{border-color:#d5e0e9!important;border-radius:11px!important;min-height:42px}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:3px solid rgba(23,105,170,.22);outline-offset:2px}
+.status,.data-state,.data-state-badge,.tag,.state{border-radius:30px}
+#map,#satMap,#flightMap{border-radius:0 0 14px 14px}
+.metric{background:linear-gradient(180deg,#fff,#f8fbfd)!important;padding:14px!important}.metric small{color:var(--obs-muted);font-weight:650}.metric strong{color:#153b5a;font-variant-numeric:tabular-nums}
+.notice,.map-note,.legend,.data-meta,.status{line-height:1.8}table{border-collapse:separate;border-spacing:0}th{background:#f3f7fa!important;color:#52677a!important}td,th{border-color:#e7edf2!important}footer,.foot{color:#6b7c8d}
+@media(max-width:760px){header.top,body>header{padding:19px 14px!important}.brand{align-items:flex-start}.global-nav{margin:10px 9px 13px;padding:6px;border-radius:12px;gap:4px}.global-nav a{font-size:12px;padding:9px 11px}main,.wrap{padding-left:10px!important;padding-right:10px!important}.panel-head,.head,.map-head,.section-head{padding:13px 14px!important}.panel,.hero{border-radius:14px!important}.toolbar{gap:7px}.toolbar .btn{font-size:12px;padding:9px 10px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}
