@@ -1,11 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#102b46"/><stop offset="1" stop-color="#1769aa"/></linearGradient><radialGradient id="glow"><stop stop-color="#38bdf8" stop-opacity=".28"/><stop offset="1" stop-color="#38bdf8" stop-opacity="0"/></radialGradient></defs>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071b30"/><stop offset="1" stop-color="#123f63"/></linearGradient>
+ <linearGradient id="beam" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#36e0b4" stop-opacity=".05"/><stop offset="1" stop-color="#36e0b4" stop-opacity=".75"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="9"/></filter>
+</defs>
 <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-<circle cx="256" cy="256" r="205" fill="url(#glow)"/>
-<g fill="none" stroke="#d9f2ff" stroke-width="13" opacity=".95"><circle cx="256" cy="256" r="160"/><circle cx="256" cy="256" r="108" opacity=".8"/><circle cx="256" cy="256" r="55" opacity=".7"/><path d="M96 256h320M256 96v320" opacity=".55"/></g>
-<path d="M256 256 370 138" stroke="#42d7ff" stroke-width="18" stroke-linecap="round"/>
-<path d="M256 256 370 138A160 160 0 0 1 416 256Z" fill="#27b8e8" opacity=".2"/>
-<circle cx="256" cy="256" r="18" fill="#fff"/>
-<g transform="translate(365 130) rotate(42)"><path d="M0-30 12 2 0-4-12 2Z" fill="#fff"/><path d="M0-4v22" stroke="#fff" stroke-width="6" stroke-linecap="round"/></g>
-<circle cx="256" cy="96" r="8" fill="#42d7ff"/><circle cx="416" cy="256" r="8" fill="#42d7ff"/>
+<circle cx="256" cy="256" r="184" fill="none" stroke="#6ca5c7" stroke-opacity=".18" stroke-width="2"/>
+<circle cx="256" cy="256" r="145" fill="none" stroke="#6ca5c7" stroke-opacity=".28" stroke-width="3"/>
+<circle cx="256" cy="256" r="102" fill="none" stroke="#6ca5c7" stroke-opacity=".32" stroke-width="3"/>
+<circle cx="256" cy="256" r="58" fill="none" stroke="#6ca5c7" stroke-opacity=".35" stroke-width="3"/>
+<path d="M72 256H440M256 72V440M126 126 386 386M386 126 126 386" stroke="#6ca5c7" stroke-opacity=".17" stroke-width="2"/>
+<path d="M256 256 386 126A184 184 0 0 1 440 256Z" fill="url(#beam)"/>
+<path d="M256 256 386 126" stroke="#49efc2" stroke-width="9" stroke-linecap="round"/>
+<path d="M256 256 386 126" stroke="#49efc2" stroke-width="23" stroke-linecap="round" opacity=".35" filter="url(#glow)"/>
+<path d="m202 185 26-16 18-34 14 4-5 34 48 44-8 13-55-26-27 29-12-4 12-37-21 3-12 13-9-5 10-25Z" fill="#fff"/>
+<circle cx="256" cy="256" r="12" fill="#49efc2"/>
+<circle cx="386" cy="126" r="10" fill="#fff" stroke="#49efc2" stroke-width="5"/>
+<circle cx="350" cy="300" r="7" fill="#ffcf70"/>
+<circle cx="190" cy="330" r="6" fill="#ffcf70"/>
 </svg>
