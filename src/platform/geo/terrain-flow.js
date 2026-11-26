@@ -93,7 +93,9 @@
       flowAccumulation:accumulation[index],
       isChannel:accumulation[index]!==null&&accumulation[index]>=threshold,
       isBoundary:boundary[index],isDataEdge:touchesMissing[index],
-      isLocalSink:valid[index]&&downstream[index]===null&&!boundary[index]&&!touchesMissing[index]
+      isLocalSink:valid[index]&&downstream[index]===null&&!boundary[index]&&!touchesMissing[index],
+      lat:Array.isArray(input.points)&&input.points[index]?input.points[index].lat:null,
+      lon:Array.isArray(input.points)&&input.points[index]?input.points[index].lon:null
     }));
     return {
       rows:grid.rows,cols:grid.cols,cellSizeXM:grid.cellSizeXM,cellSizeYM:grid.cellSizeYM,
