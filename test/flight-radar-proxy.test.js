@@ -13,6 +13,7 @@ test("flight radar browser service uses same-origin proxy, not cross-origin prov
 });
 
 test("flight radar proxy allowlists providers and validates coordinates and radius", () => {
+  assert.match(proxy, /opendata\.adsb\.fi/);
   assert.match(proxy, /adsb\.lol/);
   assert.match(proxy, /airplanes\.live/);
   assert.match(proxy, /invalid_provider/);
@@ -89,4 +90,18 @@ test("proxy runtime: rejects malformed upstream payload and handles upstream out
   handler = loadHandler(async () => { throw new Error("offline"); });
   res = response(); await handler(request({ provider: "airplaneslive", lat: 24, lon: 46, radius: 54 }), res); assert.equal(res.statusCode, 502);
   assert.equal(res.body.error, "provider_unreachable");
+});
+
+
+test("proxy runtime: adsb.fi uses its documented public v3 endpoint", async () => {
+  let requested = "";
+  const handler = loadHandler(async url => {
+    requested = url;
+    return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({ ac: [] }) };
+  });
+  const res = response();
+  await handler(request({ provider: "adsbfi", lat: "24.7136", lon: "46.6753", radius: "54" }), res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(requested, "https://opendata.adsb.fi/api/v3/lat/24.7136/lon/46.6753/dist/54");
+  assert.deepEqual(Array.from(res.body.ac), []);
 });
