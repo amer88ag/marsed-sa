@@ -9,7 +9,7 @@ const square = [
 
 test("polygon area and perimeter are positive and close to expected small-square values", () => {
   const area = Geo.area(square), perimeter = Geo.perimeter(square);
-  assert.ok(area > 120000 && area < 125000, "area " + area);
+  assert.ok(area > 1230000 && area < 1240000, "area " + area);
   assert.ok(perimeter > 4400 && perimeter < 4500, "perimeter " + perimeter);
 });
 
