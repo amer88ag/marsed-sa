@@ -1,21 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
 <defs>
- <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071b30"/><stop offset="1" stop-color="#123f63"/></linearGradient>
- <linearGradient id="beam" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#36e0b4" stop-opacity=".05"/><stop offset="1" stop-color="#36e0b4" stop-opacity=".75"/></linearGradient>
- <filter id="glow"><feGaussianBlur stdDeviation="9"/></filter>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071b30"/><stop offset="1" stop-color="#174d76"/></linearGradient>
+ <linearGradient id="dish" x1="0" y1="0" x2=".2" y2="1"><stop stop-color="#fff"/><stop offset=".65" stop-color="#dce8f0"/><stop offset="1" stop-color="#91a9b9"/></linearGradient>
+ <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#eff7fc"/><stop offset="1" stop-color="#8099aa"/></linearGradient>
+ <filter id="shadow"><feGaussianBlur stdDeviation="8"/></filter>
 </defs>
 <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-<circle cx="256" cy="256" r="184" fill="none" stroke="#6ca5c7" stroke-opacity=".18" stroke-width="2"/>
-<circle cx="256" cy="256" r="145" fill="none" stroke="#6ca5c7" stroke-opacity=".28" stroke-width="3"/>
-<circle cx="256" cy="256" r="102" fill="none" stroke="#6ca5c7" stroke-opacity=".32" stroke-width="3"/>
-<circle cx="256" cy="256" r="58" fill="none" stroke="#6ca5c7" stroke-opacity=".35" stroke-width="3"/>
-<path d="M72 256H440M256 72V440M126 126 386 386M386 126 126 386" stroke="#6ca5c7" stroke-opacity=".17" stroke-width="2"/>
-<path d="M256 256 386 126A184 184 0 0 1 440 256Z" fill="url(#beam)"/>
-<path d="M256 256 386 126" stroke="#49efc2" stroke-width="9" stroke-linecap="round"/>
-<path d="M256 256 386 126" stroke="#49efc2" stroke-width="23" stroke-linecap="round" opacity=".35" filter="url(#glow)"/>
-<path d="m202 185 26-16 18-34 14 4-5 34 48 44-8 13-55-26-27 29-12-4 12-37-21 3-12 13-9-5 10-25Z" fill="#fff"/>
-<circle cx="256" cy="256" r="12" fill="#49efc2"/>
-<circle cx="386" cy="126" r="10" fill="#fff" stroke="#49efc2" stroke-width="5"/>
-<circle cx="350" cy="300" r="7" fill="#ffcf70"/>
-<circle cx="190" cy="330" r="6" fill="#ffcf70"/>
+<circle cx="256" cy="228" r="196" fill="#38bdf8" opacity=".08"/>
+<ellipse cx="258" cy="424" rx="145" ry="22" fill="#020d18" opacity=".3" filter="url(#shadow)"/>
+<!-- dish reflector -->
+<path d="M76 215 Q256 55 436 215 Q405 351 256 365 Q107 351 76 215Z" fill="#071522" opacity=".8" transform="translate(0 18)"/>
+<path d="M76 215 Q256 55 436 215 Q405 351 256 365 Q107 351 76 215Z" fill="url(#dish)" stroke="#f8fcff" stroke-width="8"/>
+<path d="M102 216 Q256 92 410 216" fill="none" stroke="#fff" stroke-width="5" opacity=".8"/>
+<path d="M96 223 Q256 337 416 223" fill="none" stroke="#829aaa" stroke-width="5" opacity=".7"/>
+<!-- reflector support ribs -->
+<g stroke="#8299a8" stroke-width="5" opacity=".9" fill="none">
+ <path d="M112 216 256 357 400 216M160 162 256 357 352 162M210 121 256 357 302 121"/>
+</g>
+<!-- feed support and receiver -->
+<path d="M256 350 256 177" stroke="url(#metal)" stroke-width="18" stroke-linecap="round"/>
+<path d="M238 182 256 139 274 182Z" fill="#f6fbff" stroke="#9eb3c0" stroke-width="5"/>
+<rect x="244" y="130" width="24" height="28" rx="7" fill="#fff" stroke="#8fa6b6" stroke-width="5"/>
+<!-- mast and mount -->
+<path d="M225 354 208 426H304L287 354Z" fill="url(#metal)" stroke="#9bb0be" stroke-width="7"/>
+<path d="M256 363V430" stroke="#6f8798" stroke-width="11"/>
+<path d="M188 430H324" stroke="#e6f0f6" stroke-width="15" stroke-linecap="round"/>
+<path d="M218 396H294" stroke="#d5e3eb" stroke-width="8" stroke-linecap="round"/>
+<!-- radar signal arcs -->
+<g fill="none" stroke="#43e0c0" stroke-width="7" stroke-linecap="round" opacity=".95">
+ <path d="M180 96Q256 38 332 96"/>
+ <path d="M207 119Q256 83 305 119"/>
+</g>
+<circle cx="256" cy="84" r="7" fill="#fff"/>
 </svg>
