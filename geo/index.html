@@ -48,6 +48,7 @@ input,select{font:inherit;border:1px solid var(--line);border-radius:9px;padding
 <button class="btn" id="exportKmz">تصدير KMZ</button>
 <button class="btn" id="exportGeoJson">تصدير GeoJSON</button>
 <button class="btn" id="exportGpx">تصدير GPX</button>
+<button class="btn" id="exportCsv">تصدير CSV</button>
 <label class="btn" for="importFile">استيراد KML / KMZ / GeoJSON / GPX</label><input id="importFile" type="file" accept=".kml,.kmz,.geojson,.json,.gpx,application/geo+json,application/gpx+xml,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" hidden>
 </div>
 <div id="status" class="status" role="status" aria-live="polite">ابدأ بإضافة موقع أو رسم مسار أو حدود أرض، أو استورد ملف KML/KMZ من Google Earth.</div>
@@ -165,6 +166,16 @@ $("exportKml").onclick=()=>{if(!features.length){status("لا توجد عناص�
 $("exportKmz").onclick=async()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}if(!window.JSZip){status("مكتبة ضغط KMZ غير متاحة؛ استخدم تصدير KML.",true);return}try{const zip=new JSZip();zip.file("doc.kml",Geo.toKml(features));const blob=await zip.generateAsync({type:"blob",compression:"DEFLATE"});download("marsed-google-workspace.kmz",blob);status("تم تجهيز ملف KMZ للتنزيل.")}catch(e){status("تعذر إنشاء ملف KMZ.",true)}};
 $("exportGeoJson").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-workspace.geojson",new Blob([JSON.stringify(toGeoJson(features),null,2)],{type:"application/geo+json;charset=utf-8"}));status("تم تجهيز GeoJSON للتنزيل.")};
 $("exportGpx").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-workspace.gpx",new Blob([toGpx(features)],{type:"application/gpx+xml;charset=utf-8"}));status("تم تجهيز GPX؛ تُصدّر المضلعات كمسارات مغلقة لأن GPX لا يعرّف مضلعاً.")};
+function csvCell(value){return '"'+String(value==null?"":value).replace(/"/g,'""')+'"'}
+function toCsv(items){
+ const rows=[["اسم العنصر","النوع","رقم النقطة","خط العرض","خط الطول","المساحة م²","المحيط م","طول المسار م"]];
+ items.forEach(f=>{
+  const m=Geo.measureFeature(f)||{};
+  f.coordinates.forEach((p,index)=>rows.push([f.name,f.type,index+1,p.lat.toFixed(7),p.lon.toFixed(7),index===0&&m.areaM2!==null?m.areaM2.toFixed(2):"",index===0&&m.perimeterM!==null?m.perimeterM.toFixed(2):"",index===0&&m.lengthM!==null?m.lengthM.toFixed(2):""]));
+ });
+ return "\uFEFF"+rows.map(row=>row.map(csvCell).join(",")).join("\r\n");
+}
+$("exportCsv").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-workspace.csv",new Blob([toCsv(features)],{type:"text/csv;charset=utf-8"}));status("تم تجهيز CSV مع الإحداثيات والقياسات للتنزيل.")};
 function parseGeoJson(textContent){
  const data=JSON.parse(textContent),out=[];
  function addGeometry(geometry,name){
@@ -222,7 +233,17 @@ function parseKml(xml){
  const doc=new DOMParser().parseFromString(xml,"application/xml");if(doc.querySelector("parsererror"))throw new Error("ملف KML غير صالح.");
  const placemarks=Array.from(doc.getElementsByTagNameNS("*","Placemark"));const out=[];
  for(const pm of placemarks){
-  const nameNode=Array.from(pm.children).find(x=>x.localName==="name"),name=safeName(nameNode&&nameNode.textContent);
+  const nameNode=Array.from(pm.children).find(x=>x.localName==="name");
+  const folders=[];let parent=pm.parentElement;
+  while(parent&&parent!==doc.documentElement){
+   if(parent.localName==="Folder"||parent.localName==="Document"){
+    const folderName=Array.from(parent.children).find(x=>x.localName==="name");
+    if(folderName&&folderName.textContent.trim())folders.unshift(folderName.textContent.trim());
+   }
+   parent=parent.parentElement;
+  }
+  const rawName=[...folders,nameNode&&nameNode.textContent].filter(Boolean).join(" / ");
+  const name=safeName(rawName);
   const geometries=[];
   for(const node of Array.from(pm.getElementsByTagNameNS("*","Point")))geometries.push({node,type:"point"});
   for(const node of Array.from(pm.getElementsByTagNameNS("*","LineString")))geometries.push({node,type:"line"});
