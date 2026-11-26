@@ -1,4 +1,5 @@
 const PROVIDERS = Object.freeze({
+  adsbfi: "https://opendata.adsb.fi/api/v3/lat/",
   adsblol: "https://api.adsb.lol/v2/point/",
   airplaneslive: "https://api.airplanes.live/v2/point/"
 });
@@ -21,7 +22,9 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "invalid_parameters" });
   }
 
-  const url = base + lat.toFixed(4) + "/" + lon.toFixed(4) + "/" + radius;
+  const url = provider === "adsbfi"
+    ? base + lat.toFixed(4) + "/lon/" + lon.toFixed(4) + "/dist/" + radius
+    : base + lat.toFixed(4) + "/" + lon.toFixed(4) + "/" + radius;
   try {
     const upstream = await fetch(url, {
       headers: { Accept: "application/json" },
