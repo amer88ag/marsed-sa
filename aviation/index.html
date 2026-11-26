@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b46"><title>رادار الطيران العالمي | مرصد السعودية</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+:root{--navy:#102b46;--blue:#1769aa;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}
+header{background:linear-gradient(120deg,#102b46,#174d76);color:#fff;padding:20px max(16px,calc((100% - 1320px)/2))}header a{color:#d9eafa;text-decoration:none;font-size:13px}h1{font-size:clamp(22px,3vw,29px);margin:10px 0 5px}header p{margin:0;color:#c6d8e7;font-size:13px}
+main{max-width:1320px;margin:auto;padding:16px 14px 40px}.panel{background:white;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:13px;box-shadow:0 3px 14px #183b5710}
+.controls{display:flex;gap:8px;align-items:end;flex-wrap:wrap;padding:12px}.controls label{display:grid;gap:5px;font-size:12px;color:var(--muted);flex:1;min-width:130px}
+input,select,button{font:inherit;border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:white;color:var(--ink)}button{cursor:pointer}.primary{background:var(--blue);border-color:var(--blue);color:#fff}.status{padding:10px 13px;font-size:12px;color:var(--muted);line-height:1.8}.status.error{color:#b42318}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:13px}#map{height:min(70vh,720px);min-height:400px;background:#e8eff4}.head{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:8px;align-items:center}.head b{font-size:14px}.head small{font-size:11px;color:var(--muted)}
+.sidebar{padding:12px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:#f5f8fb;border:1px solid #e7edf2;border-radius:10px;padding:10px}.stat small{color:var(--muted);font-size:11px}.stat strong{display:block;font-size:22px;margin-top:5px}
+.list{display:grid;gap:7px;max-height:440px;overflow:auto;margin-top:12px}.flight{border:1px solid var(--line);border-radius:10px;padding:9px;text-align:right;width:100%;background:#fff}.flight.active{border-color:var(--blue);background:#eef6fc}.flight b{display:block;font-size:13px}.flight small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.detail{padding:12px;border-top:1px solid var(--line);font-size:12px;line-height:1.9}.detail strong{font-size:14px}.muted{color:var(--muted)}.notice{padding:10px 13px;background:#fff8e8;color:#79500b;font-size:11px;line-height:1.8}
+@media(max-width:850px){.layout{grid-template-columns:1fr}#map{height:52vh;min-height:340px}.sidebar{order:2}.list{max-height:260px}} 
+</style></head><body>
+<header><a href="../">← العودة إلى المرصد</a><h1>رادار الطيران العالمي</h1><p>متابعة الطائرات التي تبث بيانات ADS-B حول أي موقع، مع تفاصيل الرحلة المتاحة</p></header>
+<main>
+<section class="panel"><div class="controls">
+<label>خط العرض<input id="lat" type="number" step="any" value="24.7136"></label>
+<label>خط الطول<input id="lon" type="number" step="any" value="46.6753"></label>
+<label>نطاق البحث<select id="range"><option value="50">50 كم</option><option value="100" selected>100 كم</option><option value="150">150 كم</option><option value="250">250 كم</option></select></label>
+<label>تحديث تلقائي<select id="interval"><option value="0">متوقف</option><option value="30">كل 30 ثانية</option><option value="60" selected>كل دقيقة</option><option value="120">كل دقيقتين</option></select></label>
+<button class="primary" id="locate">استخدم موقعي</button><button class="primary" id="refresh">تحديث الطائرات</button>
+</div><div id="status" class="status" role="status" aria-live="polite">جاهز لجلب حركة الطيران. أدخل إحداثيات الموقع أو استخدم موقعك.</div></section>
+<div class="layout"><section class="panel"><div class="head"><b>حركة الطائرات على الخريطة</b><small id="updated">لم يتم التحديث</small></div><div id="map" role="application" aria-label="خريطة حركة الطائرات"></div><div class="notice">المواقع المعروضة تعتمد على بث ADS-B المستقبَل من شبكة المصدر؛ قد لا تظهر الطائرات التي لا تبث أو لا تغطيها محطات الاستقبال. لا تمثل الخريطة رادار مراقبة جوية رسمياً.</div></section>
+<aside class="panel sidebar"><div class="stats"><div class="stat"><small>الطائرات المستقبلة</small><strong id="count">—</strong></div><div class="stat"><small>نطاق البحث</small><strong id="distance">100 كم</strong></div></div><div class="head" style="padding:12px 0;border:0"><b>الطائرات القريبة</b><small id="feed">ADS-B</small></div><div id="list" class="list"><div class="muted">لا توجد بيانات بعد.</div></div><div id="detail" class="detail muted">اختر طائرة لعرض التفاصيل المتاحة.</div></aside></div>
+<section class="panel"><div class="head"><b>المطارات والرحلات المجدولة</b><small>مرحلة ربط مستقلة</small></div><div class="status">حركة الطائرات في الجو متاحة من بث ADS-B. جداول الإقلاع والوصول، حالات التأخير والإلغاء، البوابات والصالات ليست ضمن بث ADS-B؛ لن نعرضها كتفاصيل مؤكدة قبل ربط مزود جداول رحلات يسمح بالعرض العام. يمكن حالياً اختيار أي طائرة ومشاهدة رقم النداء والمسار والارتفاع والسرعة عند توفرها.</div></section>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="../src/providers/aviation/airplanes-live/adapter.js"></script>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id),map=L.map("map").setView([24.7136,46.6753],8);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+let markers=new Map(),selected=null,timer=null,controller=null,sequence=0,last=[];
+function fmt(v,d=0){return v==null?"غير متاح":new Intl.NumberFormat("ar-SA",{maximumFractionDigits:d}).format(v)}
+function status(s,error){$("status").textContent=s;$("status").classList.toggle("error",!!error)}
+function details(a){
+ selected=a.hex;$("detail").innerHTML="";
+ const rows=[["نداء الرحلة",a.flight],["رقم التسجيل",a.registration],["نوع الطائرة",a.aircraftType],["الارتفاع",a.altitudeFt==null?"غير متاح":fmt(a.altitudeFt)+" قدم"],["السرعة الأرضية",a.groundSpeedKt==null?"غير متاح":fmt(a.groundSpeedKt)+" عقدة"],["الاتجاه",a.trackDeg==null?"غير متاح":fmt(a.trackDeg)+"°"],["معدل الصعود/الهبوط",a.verticalRateFpm==null?"غير متاح":fmt(a.verticalRateFpm)+" قدم/دقيقة"],["رمز الاستجابة",a.squawk],["آخر استقبال",a.seenSeconds==null?"غير متاح":fmt(a.seenSeconds)+" ثانية"],["الإحداثيات",a.latitude.toFixed(5)+", "+a.longitude.toFixed(5)]];
+ const title=document.createElement("strong");title.textContent=a.flight||a.hex;$("detail").append(title);
+ rows.forEach(([k,v])=>{const p=document.createElement("div");p.textContent=k+": "+(v||"غير متاح");$("detail").append(p)});
+ renderList();
+}
+function renderList(){
+ const list=$("list");list.replaceChildren();
+ if(!last.length){const p=document.createElement("div");p.className="muted";p.textContent="لا توجد طائرات مستقبلة ضمن النطاق حالياً.";list.append(p);return}
+ last.slice().sort((a,b)=>(a.seenSeconds||999)-(b.seenSeconds||999)).forEach(a=>{
+ const b=document.createElement("button");b.type="button";b.className="flight"+(a.hex===selected?" active":"");
+ const title=document.createElement("b");title.textContent=(a.flight||"رحلة غير معروفة")+" · "+a.hex;
+ const sub=document.createElement("small");sub.textContent="ارتفاع "+(a.altitudeFt==null?"—":fmt(a.altitudeFt)+" قدم")+" · سرعة "+(a.groundSpeedKt==null?"—":fmt(a.groundSpeedKt)+" عقدة");
+ b.append(title,sub);b.onclick=()=>{details(a);map.setView([a.latitude,a.longitude],10);const marker=markers.get(a.hex);if(marker)marker.openPopup()};list.append(b);
+ });
+}
+async function refresh(){
+ const lat=Number($("lat").value),lon=Number($("lon").value),distance=Number($("range").value);
+ if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180){status("أدخل إحداثيات صحيحة.",true);return}
+ if(controller)controller.abort();controller=new AbortController();const id=++sequence;
+ status("جارٍ جلب بيانات الطائرات من مصدر ADS-B…");
+ try{
+ const result=await AirTrafficAdapter.fetchNearby(lat,lon,{distanceKm:distance,signal:controller.signal});
+ if(id!==sequence)return;last=result.aircraft;
+ const present=new Set(last.map(a=>a.hex));
+ for(const [hex,m] of markers){if(!present.has(hex)){map.removeLayer(m);markers.delete(hex)}}
+ last.forEach(a=>{
+  let m=markers.get(a.hex);
+  const label=(a.flight||a.hex)+" · "+(a.altitudeFt==null?"ارتفاع غير متاح":fmt(a.altitudeFt)+" قدم");
+  if(!m){m=L.marker([a.latitude,a.longitude],{title:label}).addTo(map);m.on("click",()=>details(a));markers.set(a.hex,m)}
+  else m.setLatLng([a.latitude,a.longitude]);
+  m.bindPopup(label);
+ });
+ $("count").textContent=fmt(last.length);$("distance").textContent=distance+" كم";$("updated").textContent="آخر جلب: "+new Date(result.retrievedAt).toLocaleTimeString("ar-SA");
+ $("feed").textContent=result.source;renderList();
+ status(last.length?"تم جلب "+fmt(last.length)+" طائرة ضمن النطاق.":"لم يرصد المصدر طائرات ضمن النطاق حالياً.");
+ }catch(e){if(e.name==="AbortError")return;status("تعذر جلب بيانات الطيران: "+(e.status===429?"تجاوز حد الطلبات؛ انتظر قبل التحديث.":e.message||"خطأ اتصال") ,true)}
+}
+function schedule(){if(timer)clearInterval(timer);const n=Number($("interval").value);if(n>0)timer=setInterval(refresh,n*1000)}
+$("refresh").onclick=refresh;$("interval").onchange=schedule;
+$("locate").onclick=()=>{if(!navigator.geolocation){status("تحديد الموقع غير مدعوم في هذا المتصفح.",true);return}status("بانتظار إذن الموقع…");navigator.geolocation.getCurrentPosition(p=>{$("lat").value=p.coords.latitude.toFixed(5);$("lon").value=p.coords.longitude.toFixed(5);map.setView([p.coords.latitude,p.coords.longitude],9);refresh()},e=>status("لم يتم الحصول على الموقع: "+e.message,true),{enableHighAccuracy:false,timeout:12000,maximumAge:300000})};
+refresh();schedule();
+})();
+</script></body></html>
