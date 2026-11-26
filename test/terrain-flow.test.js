@@ -112,3 +112,11 @@ test("flow result retains source coordinates for map rendering",()=>{
  assert.equal(result.cells[4].lat,24.7);
  assert.equal(result.cells[4].lon,46.6);
 });
+
+test("cells touching missing elevation data are not falsely labelled local sinks",()=>{
+ const result=Flow.analyze({...grid,elevations:[10,10,10,10,0,null,10,10,10]});
+ assert.equal(result.cells[4].isDataEdge,true);
+ assert.equal(result.cells[4].isLocalSink,false);
+ const trace=Flow.traceDownstream(result,4);
+ assert.equal(trace.termination,"missing_data_edge");
+});
