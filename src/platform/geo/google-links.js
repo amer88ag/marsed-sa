@@ -34,6 +34,23 @@
       .replace(/</g, "&lt;").replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;").replace(/'/g, "&apos;");
   }
+  function toPolygonKml(points, name) {
+    const valid = (Array.isArray(points) ? points : []).map(function (item) {
+      return item && point(item.lat, item.lon);
+    });
+    if (valid.length > 1 && valid[0].lat === valid[valid.length - 1].lat &&
+        valid[0].lon === valid[valid.length - 1].lon) valid.pop();
+    if (valid.length < 3 || valid.some(function (item) { return !item; })) return null;
+    const ring = valid.concat([valid[0]]).map(function (p) {
+      return p.lon + "," + p.lat + ",0";
+    }).join(" ");
+    return '<?xml version="1.0" encoding="UTF-8"?>' +
+      '<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>' +
+      xml(name || "قياس مساحة - مرصد السعودية") +
+      '</name><Placemark><name>' + xml(name || "المساحة المحددة") +
+      '</name><Polygon><outerBoundaryIs><LinearRing><coordinates>' +
+      ring + '</coordinates></LinearRing></outerBoundaryIs></Polygon></Placemark></Document></kml>';
+  }
   function toKml(points) {
     const valid = (Array.isArray(points) ? points : []).filter(function (item) {
       return item && point(item.lat, item.lon);
@@ -50,5 +67,5 @@
       placemarks + "</Document></kml>";
   }
   return { point: point, mapsSearchUrl: mapsSearchUrl, earthSearchUrl: earthSearchUrl,
-    directionsUrl: directionsUrl, toKml: toKml };
+    directionsUrl: directionsUrl, toKml: toKml, toPolygonKml: toPolygonKml };
 });
