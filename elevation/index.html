@@ -219,7 +219,8 @@ $("profileCsv").addEventListener("click",function(){
    row.elevationM===null?"":row.elevationM.toFixed(1),row.gradePercent===null?"":row.gradePercent.toFixed(3)];
   lines.push(values.join(","));
  });
- var csv="\\uFEFF"+lines.join("\\r\\n"),blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+ var csv="\\uFEFF"+lines.join("\\r
+"),blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");
  a.href=url;a.download="marsed-terrain-profile.csv";document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
 });
 map.on("click",function(event){if(pathMode){addPathPoint(event.latlng.lat,event.latlng.lng);return}measure(event.latlng.lat,event.latlng.lng)});
