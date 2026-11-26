@@ -18,7 +18,8 @@ test("samples a path at bounded, evenly spaced cumulative distances",()=>{
 test("supports multi-vertex paths and caps requests at forty samples",()=>{
   const samples=Profile.samplePath([line[0],{lat:24.75,lon:46.7},line[1]],100);
   assert.equal(samples.length,40);
-  assert.ok(Math.abs(samples[0].lat-line[0].lat)<1e-8);\n  assert.ok(Math.abs(samples[39].lon-line[1].lon)<1e-8);
+  assert.ok(Math.abs(samples[0].lat-line[0].lat)<1e-8);
+  assert.ok(Math.abs(samples[39].lon-line[1].lon)<1e-8);
 });
 
 test("rejects invalid, repeated and underspecified paths",()=>{
