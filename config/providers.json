@@ -167,5 +167,24 @@
       "health_status": "not_monitored",
       "notes": "Illustrative boundaries only; not an official GEOSA boundary. Condition: label as illustrative wherever displayed."
     }
+      ,{
+      "id": "flyitalyadsb",
+      "name": "FlyItalyADSB",
+      "official_url": "https://flyitalyadsb.com/",
+      "domain": "aviation",
+      "products": [
+        "live-aircraft-positions",
+        "aircraft-tracks",
+        "observed-flight-history"
+      ],
+      "auth_mode": "credentials",
+      "license_status": "approved_with_conditions",
+      "license": "CC BY-SA 4.0 for data and adapted datasets; commercial app use allowed within plan limits; real-time API/feed redistribution to third parties requires written agreement",
+      "attribution": "Flight data: FlyItalyADSB (flyitalyadsb.com), CC BY-SA 4.0",
+      "coverage": "Community receiver coverage; not guaranteed complete",
+      "rate_limit": "Free plan: 30 requests/minute, 300,000/month, radius up to 500 km; verify current plan limits",
+      "health_status": "not_monitored",
+      "notes": "Server-side proxy only. Store FLYITALYADSB_API_KEY as a Vercel environment secret; never expose it in browser code. Best-effort data, no SLA, not for aviation safety or navigation."
+    }
   ]
 }

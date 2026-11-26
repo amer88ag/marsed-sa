@@ -209,6 +209,25 @@
       ],
       "data_class": "model_output",
       "safety_notice": "المواعيد إرشادية بحسب المصادر والمنطقة والصنف؛ مؤشرات الطقس نموذجية وليست قياسات مزرعة أو أوامر ري أو إنذارات صقيع."
+    },
+    {
+      "id": "air-traffic",
+      "title": "رادار الطيران العالمي",
+      "category": "mobility",
+      "description": "متابعة الطائرات التي تبث بيانات ADS-B على خريطة تفاعلية حول المدن والمطارات المختارة.",
+      "status": "research",
+      "ui_entry": "air/index.html",
+      "provider_ids": [
+        "flyitalyadsb"
+      ],
+      "capabilities": [
+        "live_aircraft_positions",
+        "aircraft_state_vectors",
+        "airport_area_tracking",
+        "aircraft_search"
+      ],
+      "data_class": "crowdsourced_adsb_observations",
+      "safety_notice": "التغطية المجتمعية غير شاملة وقد تتأخر البيانات. المصدر FlyItalyADSB بترخيص CC BY-SA 4.0؛ يتطلب مفتاحاً خادمياً ونسبة المصدر. لا يوفر جداول الرحلات التجارية أو التأخير أو البوابات، ولا يستخدم للملاحة أو السلامة الجوية."
     }
   ]
 }
