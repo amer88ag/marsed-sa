@@ -165,15 +165,21 @@ function parseKml(xml){
  const doc=new DOMParser().parseFromString(xml,"application/xml");if(doc.querySelector("parsererror"))throw new Error("ملف KML غير صالح.");
  const placemarks=Array.from(doc.getElementsByTagNameNS("*","Placemark"));const out=[];
  for(const pm of placemarks){
-  const nameNode=pm.getElementsByTagNameNS("*","name")[0],name=safeName(nameNode&&nameNode.textContent);
-  const pointNode=pm.getElementsByTagNameNS("*","Point")[0],lineNode=pm.getElementsByTagNameNS("*","LineString")[0],polyNode=pm.getElementsByTagNameNS("*","Polygon")[0];
-  let type,coordText;
-  if(pointNode){type="point";const c=pointNode.getElementsByTagNameNS("*","coordinates")[0];coordText=c&&c.textContent}
-  else if(lineNode){type="line";const c=lineNode.getElementsByTagNameNS("*","coordinates")[0];coordText=c&&c.textContent}
-  else if(polyNode){type="polygon";const c=polyNode.getElementsByTagNameNS("*","outerBoundaryIs")[0]?.getElementsByTagNameNS("*","coordinates")[0];coordText=c&&c.textContent}
-  else continue;
-  const coords=Geo.parseCoordinateText(coordText);if(!coords)continue;
-  const f=Geo.normalizeFeature({id:id(),name,type,coordinates:coords});if(f)out.push(f);
+  const nameNode=Array.from(pm.children).find(x=>x.localName==="name"),name=safeName(nameNode&&nameNode.textContent);
+  const geometries=[];
+  for(const node of Array.from(pm.getElementsByTagNameNS("*","Point")))geometries.push({node,type:"point"});
+  for(const node of Array.from(pm.getElementsByTagNameNS("*","LineString")))geometries.push({node,type:"line"});
+  for(const node of Array.from(pm.getElementsByTagNameNS("*","Polygon")))geometries.push({node,type:"polygon"});
+  geometries.sort((a,b)=>a.node.compareDocumentPosition(b.node)&Node.DOCUMENT_POSITION_FOLLOWING?-1:1);
+  for(let index=0;index<geometries.length;index++){
+   const item=geometries[index],node=item.node;let coordNode;
+   if(item.type==="polygon")coordNode=node.getElementsByTagNameNS("*","outerBoundaryIs")[0]?.getElementsByTagNameNS("*","coordinates")[0];
+   else coordNode=node.getElementsByTagNameNS("*","coordinates")[0];
+   const coords=Geo.parseCoordinateText(coordNode&&coordNode.textContent);if(!coords)continue;
+   const label=geometries.length>1?name+" ("+(index+1)+")":name;
+   const f=Geo.normalizeFeature({id:id(),name:label,type:item.type,coordinates:coords});if(f)out.push(f);
+   if(out.length>=5000)break;
+  }
   if(out.length>=5000)break;
  }
  return out;
