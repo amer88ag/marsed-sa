@@ -21,7 +21,7 @@
       if(points.length>1&&points[0].lat===points[points.length-1].lat&&points[0].lon===points[points.length-1].lon)points.pop();
       if(points.length<3)return null;
     }
-    return {id:String(feature.id||("feature-"+Math.random().toString(36).slice(2,9)),).slice(0,80),
+    return {id:String(feature.id||"feature").slice(0,80),
       name:String(feature.name||"عنصر جغرافي").slice(0,160),type:feature.type,coordinates:points};
   }
   function centroid(feature){
