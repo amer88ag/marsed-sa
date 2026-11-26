@@ -163,7 +163,7 @@ async function finishProfile(){
   setPathHelp("اكتمل تحليل المسار. هذه تقديرات تضاريسية بدقة نموذجية ~90 م وليست قياسات هندسية.");
  }catch(error){if(id!==profileRequestId)return;$("profileStatus").textContent="تعذر إنشاء المقطع التضاريسي: "+(error&&error.kind?HttpClient.describeError(error):error.message);setPathHelp("فشل طلب بيانات الارتفاع؛ يمكنك المحاولة مجدداً.",true)}
 }
-$("pathStart").addEventListener("click",function(){profileRequestId++;clearPath();pathMode=true;updatePathControls();setPathHelp("وضع الرسم نشط: انقر نقطتين أو أكثر على الخريطة.")});
+$("pathStart").addEventListener("click",function(){profileRequestId++;clearPath();lastProfile=null;$("profileCsv").disabled=true;$("profileMetrics").hidden=true;$("profileChart").hidden=true;$("profileTableWrap").hidden=true;$("profileStatus").textContent="جارٍ رسم مسار جديد.";pathMode=true;updatePathControls();setPathHelp("وضع الرسم نشط: انقر نقطتين أو أكثر على الخريطة.")});
 $("pathFinish").addEventListener("click",finishProfile);
 $("pathUndo").addEventListener("click",function(){if(!pathPoints.length)return;pathPoints.pop();var marker=pathMarkers.pop();if(marker)map.removeLayer(marker);if(pathLine)map.removeLayer(pathLine);pathLine=pathPoints.length>1?L.polyline(pathPoints.map(function(p){return [p.lat,p.lon]}),{color:"#075985",weight:4,dashArray:"7 5"}).addTo(map):null;updatePathControls();setPathHelp("عدد النقاط المتبقية: "+pathPoints.length)});
 $("pathClear").addEventListener("click",function(){profileRequestId++;clearPath();lastProfile=null;$("profileMetrics").hidden=true;$("profileChart").hidden=true;$("profileTableWrap").hidden=true;$("profileCsv").disabled=true;$("profileStatus").textContent="تم مسح المسار. ارسم مساراً جديداً للبدء."});
