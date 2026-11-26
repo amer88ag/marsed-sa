@@ -173,10 +173,10 @@ function csvCell(value){
  return '"'+text.replace(/"/g,'""')+'"';
 }
 function toCsv(items){
- const rows=[["اسم العنصر","النوع","رقم النقطة","خط العرض","خط الطول","المساحة م²","المحيط م","طول المسار م"]];
+ const rows=[["اسم العنصر","النوع","الحلقة","رقم النقطة","خط العرض","خط الطول","المساحة م²","المحيط م","طول المسار م"]];
  items.forEach(f=>{
-  const m=Geo.measureFeature(f)||{};
-  f.coordinates.forEach((p,index)=>rows.push([f.name,f.type,index+1,p.lat.toFixed(7),p.lon.toFixed(7),index===0&&m.areaM2!=null?m.areaM2.toFixed(2):"",index===0&&m.perimeterM!=null?m.perimeterM.toFixed(2):"",index===0&&m.lengthM!=null?m.lengthM.toFixed(2):""]));
+  const m=Geo.measureFeature(f)||{},rings=f.type==="polygon"?[f.coordinates,...(f.holes||[])]:[f.coordinates];
+  rings.forEach((ring,ringIndex)=>ring.forEach((p,index)=>rows.push([f.name,f.type,ringIndex===0?"الخارجية":"الثقب "+ringIndex,index+1,p.lat.toFixed(7),p.lon.toFixed(7),ringIndex===0&&index===0&&m.areaM2!=null?m.areaM2.toFixed(2):"",ringIndex===0&&index===0&&m.perimeterM!=null?m.perimeterM.toFixed(2):"",ringIndex===0&&index===0&&m.lengthM!=null?m.lengthM.toFixed(2):""])));
  });
  return "\uFEFF"+rows.map(row=>row.map(csvCell).join(",")).join("\r\n");
 }
