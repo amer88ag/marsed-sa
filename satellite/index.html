@@ -14,7 +14,7 @@
 .brand{display:flex;align-items:center;justify-content:space-between;gap:12px}.brand h1{font-size:clamp(22px,3vw,30px);margin:0}.brand p{color:#c6d8e7;margin:7px 0 0;font-size:13px}
 .wrap{max-width:1280px;margin:auto;padding:18px 16px 42px}.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.nav a,.btn{display:inline-block;border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:white;color:var(--ink);text-decoration:none;font:inherit;cursor:pointer}.btn.primary{background:var(--blue);border-color:var(--blue);color:white}.panel{background:white;border:1px solid var(--line);border-radius:15px;overflow:hidden;margin-bottom:14px;box-shadow:0 3px 14px #183b5710}.head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}.head h2{font-size:16px;margin:0}.head small{color:var(--muted)}
 .controls{display:flex;align-items:end;gap:10px;flex-wrap:wrap;padding:13px}.controls label{display:grid;gap:5px;font-size:12px;color:var(--muted)}select,input{font:inherit;border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:white;color:var(--ink)}#satMap{height:min(68vh,650px);min-height:380px;background:#e8eff4}.status{padding:10px 14px;font-size:12px;color:var(--muted);line-height:1.7}.status.error{color:#b42318}.legend{padding:0 14px 13px;font-size:11px;color:var(--muted);line-height:1.8}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.item{padding:14px 16px}.item h3{font-size:14px;margin:0 0 7px}.item p{font-size:12px;color:var(--muted);line-height:1.8;margin:0 0 9px}.item a{color:var(--blue);font-size:12px;text-decoration:none}.tag{display:inline-block;border-radius:20px;padding:4px 8px;background:#eef6fc;color:#285b80;font-size:10px;margin:2px}
-@media(max-width:700px){.grid{grid-template-columns:1fr}.wrap{padding:13px 10px 32px}.top{padding:18px 14px}#satMap{height:58vh;min-height:340px}.controls label{flex:1;min-width:135px}.controls button{flex:1}}
+.measure-tools{padding:13px 14px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap}.measure-tools .btn:disabled{opacity:.45;cursor:not-allowed}.measure-readout{width:100%;font-size:12px;color:var(--muted);line-height:1.8}.measure-warning{font-size:11px;color:#8a4b08;background:#fff8e8;border:1px solid #f2dfb4;border-radius:9px;padding:8px 10px;width:100%}.measure-tools .btn.active{background:#e8f2fb;border-color:#1769aa;color:#145b91}@media(max-width:700px){.grid{grid-template-columns:1fr}.wrap{padding:13px 10px 32px}.top{padding:18px 14px}#satMap{height:58vh;min-height:340px}.controls label{flex:1;min-width:135px}.controls button{flex:1}}
 </style>
 </head>
 <body>
@@ -36,6 +36,14 @@
 <button class="btn primary" id="refreshImage" type="button">تحديث الصورة</button>
 </div>
 <div id="satMap" role="application" aria-label="خريطة صور الأقمار الصناعية فوق السعودية"></div>
+<div class="measure-tools" aria-label="أدوات قياس المساحة">
+ <button class="btn" id="measureStart" type="button">ابدأ تحديد المساحة</button>
+ <button class="btn" id="measureUndo" type="button" disabled>تراجع عن آخر نقطة</button>
+ <button class="btn" id="measureClear" type="button" disabled>مسح القياس</button>
+ <button class="btn primary" id="measureExport" type="button" disabled>تصدير الحدود إلى Google Earth (KML)</button>
+ <div class="measure-readout" id="measureReadout" aria-live="polite">يمكنك تحديد حدود مزرعة أو أرض بالنقر على زواياها في الخريطة.</div>
+ <div class="measure-warning">النتيجة حساب جغرافي تقريبي من نقاط النقر؛ دقتها تتأثر بدقة الصورة ومقياسها ومكان النقر. ليست رفعاً مساحياً أو مساحة صك معتمدة.</div>
+</div>
 <div id="imageStatus" class="status" aria-live="polite">جارٍ تهيئة عارض صور الأقمار الصناعية…</div>
 <div class="legend">الصور المرئية تعتمد على ضوء النهار وقد تظهر أجزاء بلا بيانات عند غياب مرور فضائي أو تأخر المعالجة. التاريخ المختار هو تاريخ المنتج الفضائي وليس وقتاً لحظياً مضموناً. طبقات GIBS اليومية فسيفساء تجمع عدة مرورات للقمر خلال اليوم، ولا تحمل خدمة WMTS وقت مرور لكل منطقة، لذلك لا يعرض المرصد وقت مرور ولا يقدّم الصورة على أنها حية.</div>
 </section>
@@ -75,10 +83,12 @@
 <script src="../src/platform/geo/cities.js"></script>
 <script src="../src/platform/geo/map-frame.js"></script>
 <script src="../src/services/satellite/nasa-gibs.js"></script>
+<script src="../src/platform/geo/google-links.js"></script>
+<script src="../src/platform/geo/measure.js"></script>
 <script>
 (function(){
 "use strict";
-var map=null,layer=null,activeKey="viirsTrue",availablePeriods=[],availabilityRequestId=0,renderRequestId=0,currentTileErrors=0,availabilityAbort=null;
+var map=null,layer=null,activeKey="viirsTrue",availablePeriods=[],availabilityRequestId=0,renderRequestId=0,currentTileErrors=0,availabilityAbort=null,measureMode=false,measurePoints=[],measureShape=null,measureVertices=null;
 function $(id){return document.getElementById(id)}
 function setStatus(message,isError){$("imageStatus").textContent=message;$("imageStatus").classList.toggle("error",!!isError)}
 function clearImage(){if(layer&&map){map.removeLayer(layer);layer=null}}
@@ -135,10 +145,69 @@ function moveDate(offset){
  if(!candidate){setStatus("لا يوجد تاريخ متاح إضافي في هذا الاتجاه ضمن فترات وخطوات الطبقة.",true);return}
  $("imageDate").value=candidate;loadLayer();
 }
+function setMeasureStatus(){
+ var count=measurePoints.length;
+ $("measureUndo").disabled=count===0;
+ $("measureClear").disabled=count===0;
+ $("measureExport").disabled=count<3;
+ if(count<3){
+  $("measureReadout").textContent="النقاط المحددة: "+count+" · أضف "+(3-count)+" نقاط أخرى على الأقل لحساب المساحة.";
+  return;
+ }
+ var area=GeoMeasure.area(measurePoints),perimeter=GeoMeasure.perimeter(measurePoints),formatted=GeoMeasure.formatArea(area);
+ $("measureReadout").textContent="عدد النقاط: "+count+" · المساحة التقريبية: "+formatted.value.toLocaleString("ar-SA",{maximumFractionDigits:2})+" "+formatted.unit+" · المحيط: "+(perimeter/1000).toLocaleString("ar-SA",{maximumFractionDigits:3})+" كم";
+}
+function redrawMeasure(){
+ if(measureShape){map.removeLayer(measureShape);measureShape=null}
+ if(measureVertices){map.removeLayer(measureVertices);measureVertices=null}
+ if(measurePoints.length>=3)measureShape=L.polygon(measurePoints.map(function(p){return [p.lat,p.lon]}),{color:"#f59e0b",weight:3,fillColor:"#fbbf24",fillOpacity:.2}).addTo(map);
+ else if(measurePoints.length===2)measureShape=L.polyline(measurePoints.map(function(p){return [p.lat,p.lon]}),{color:"#f59e0b",weight:3,dashArray:"6 5"}).addTo(map);
+ measureVertices=L.layerGroup();
+ measurePoints.forEach(function(p,i){
+  L.circleMarker([p.lat,p.lon],{radius:5,color:"#ffffff",weight:2,fillColor:"#b45309",fillOpacity:1})
+   .bindTooltip("النقطة "+(i+1)).addTo(measureVertices);
+ });
+ measureVertices.addTo(map);
+ setMeasureStatus();
+}
+function addMeasurePoint(latlng){
+ var p={lat:latlng.lat,lon:latlng.lng};
+ if(measurePoints.length&&GeoMeasure.distance(measurePoints[measurePoints.length-1],p)<1)return;
+ measurePoints.push(p);redrawMeasure();
+}
+function toggleMeasure(){
+ measureMode=!measureMode;
+ $("measureStart").classList.toggle("active",measureMode);
+ $("measureStart").textContent=measureMode?"إنهاء تحديد النقاط":"متابعة تحديد المساحة";
+ $("measureReadout").textContent=measureMode?"وضع التحديد نشط: انقر على زوايا الأرض بالترتيب.":"تم إيقاف التحديد مؤقتاً؛ يمكنك متابعة الرسم لاحقاً.";
+ map.getContainer().style.cursor=measureMode?"crosshair":"";
+}
+function clearMeasure(){
+ measureMode=false;measurePoints=[];
+ $("measureStart").classList.remove("active");$("measureStart").textContent="ابدأ تحديد المساحة";
+ map.getContainer().style.cursor="";
+ redrawMeasure();
+}
+function exportMeasureKml(){
+ if(measurePoints.length<3)return;
+ var kml=GoogleGeoLinks.toPolygonKml(measurePoints,"حدود المساحة المحددة - مرصد السعودية");
+ if(!kml)return;
+ var blob=new Blob([kml],{type:"application/vnd.google-earth.kml+xml;charset=utf-8"});
+ var url=URL.createObjectURL(blob),link=document.createElement("a");
+ link.href=url;link.download="marsed-sa-measured-area.kml";
+ document.body.appendChild(link);link.click();link.remove();
+ setTimeout(function(){URL.revokeObjectURL(url)},1000);
+}
 function init(){
  if(!window.L){setStatus("تعذر تحميل مكتبة الخريطة. تحقق من الاتصال.",true);return}
  map=L.map("satMap",{scrollWheelZoom:true,minZoom:4,maxZoom:10}).setView([23.8,45.2],5);
  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+ map.on("click",function(event){if(measureMode)addMeasurePoint(event.latlng)});
+ $("measureStart").addEventListener("click",toggleMeasure);
+ $("measureUndo").addEventListener("click",function(){measurePoints.pop();redrawMeasure()});
+ $("measureClear").addEventListener("click",clearMeasure);
+ $("measureExport").addEventListener("click",exportMeasureKml);
+
  // Vector outline sits in Leaflet's overlay pane, above the imagery tiles. Illustrative, not an official boundary.
  if(typeof SaudiMapFrame!=="undefined")SaudiMapFrame.frame(map,L,{url:"../data/geo/saudi_boundary.geojson"});
  $("layer").addEventListener("change",refreshAvailability);
