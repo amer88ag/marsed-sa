@@ -57,3 +57,12 @@ test("KML import retains nested folder path in feature names",()=>{
   assert.match(page,/folders\.unshift/);
   assert.match(page,/folders,nameNode&&nameNode\.textContent/);
 });
+
+test("CSV export handles null measurements and neutralizes spreadsheet formulas in text cells",()=>{
+  assert.match(page,/m\.areaM2!=null\?m\.areaM2\.toFixed\(2\)/);
+  assert.match(page,/m\.perimeterM!=null\?m\.perimeterM\.toFixed\(2\)/);
+  assert.match(page,/m\.lengthM!=null\?m\.lengthM\.toFixed\(2\)/);
+  assert.match(page,/typeof value==="string"/);
+  assert.match(page,/\^\[\\\\t\\\\r \]\*\[=\+@-\]/);
+  assert.match(page,/text="'"+text/);
+});
