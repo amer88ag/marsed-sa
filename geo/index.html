@@ -194,11 +194,18 @@ function parseGpx(textContent){
  const doc=new DOMParser().parseFromString(textContent,"application/xml");if(doc.querySelector("parsererror"))throw new Error("ملف GPX غير صالح.");
  const out=[],elements=Array.from(doc.getElementsByTagNameNS("*","wpt"));
  for(const wpt of elements){const p=Geo.point({lat:wpt.getAttribute("lat"),lon:wpt.getAttribute("lon")});if(p)out.push(Geo.normalizeFeature({id:id(),name:safeName(wpt.getElementsByTagNameNS("*","name")[0]?.textContent||"نقطة GPX"),type:"point",coordinates:[p]}))}
- const paths=[...Array.from(doc.getElementsByTagNameNS("*","rte")),...Array.from(doc.getElementsByTagNameNS("*","trk"))];
- for(const pathNode of paths){
-  const pts=Array.from(pathNode.getElementsByTagNameNS("*","rtept")).concat(Array.from(pathNode.getElementsByTagNameNS("*","trkpt")));
-  const coords=pts.map(p=>Geo.point({lat:p.getAttribute("lat"),lon:p.getAttribute("lon")})).filter(Boolean);
-  if(coords.length>=2)out.push(Geo.normalizeFeature({id:id(),name:safeName(pathNode.getElementsByTagNameNS("*","name")[0]?.textContent||"مسار GPX"),type:"line",coordinates:coords}));
+ const routes=Array.from(doc.getElementsByTagNameNS("*","rte"));
+ for(const route of routes){
+  const coords=Array.from(route.children).filter(x=>x.localName==="rtept").map(p=>Geo.point({lat:p.getAttribute("lat"),lon:p.getAttribute("lon")})).filter(Boolean);
+  if(coords.length>=2)out.push(Geo.normalizeFeature({id:id(),name:safeName(route.getElementsByTagNameNS("*","name")[0]?.textContent||"مسار GPX"),type:"line",coordinates:coords}));
+ }
+ const tracks=Array.from(doc.getElementsByTagNameNS("*","trk"));
+ for(const track of tracks){
+  const segments=Array.from(track.getElementsByTagNameNS("*","trkseg"));
+  segments.forEach((segment,index)=>{
+   const coords=Array.from(segment.children).filter(x=>x.localName==="trkpt").map(p=>Geo.point({lat:p.getAttribute("lat"),lon:p.getAttribute("lon")})).filter(Boolean);
+   if(coords.length>=2){const base=safeName(track.getElementsByTagNameNS("*","name")[0]?.textContent||"مسار GPX");out.push(Geo.normalizeFeature({id:id(),name:segments.length>1?base+" ("+(index+1)+")":base,type:"line",coordinates:coords}))}
+  });
  }
  return out.filter(Boolean).slice(0,5000);
 }
