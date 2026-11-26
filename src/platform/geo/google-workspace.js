@@ -105,5 +105,44 @@
     }
     return points;
   }
-  return {point,normalizeFeature,centroid,mapsUrl,earthUrl,directionsUrl,toKml,parseCoordinateText,measureFeature};
+  function toGeoJson(features){
+    const valid=(Array.isArray(features)?features:[]).map(normalizeFeature).filter(Boolean);
+    return {type:"FeatureCollection",features:valid.map(f=>({
+      type:"Feature",properties:{name:f.name,source:"Marsed Saudi"},
+      geometry:{type:f.type==="point"?"Point":f.type==="line"?"LineString":"Polygon",
+        coordinates:f.type==="point"?[f.coordinates[0].lon,f.coordinates[0].lat]:
+          f.type==="line"?f.coordinates.map(p=>[p.lon,p.lat]):
+          [f.coordinates,...(f.holes||[])].map(ring=>ring.concat([ring[0]]).map(p=>[p.lon,p.lat]))}
+    }))};
+  }
+  function fromGeoJson(input,makeId){
+    const data=typeof input==="string"?JSON.parse(input):input,out=[];
+    const nextId=typeof makeId==="function"?makeId:()=> "geojson-"+(out.length+1);
+    function addGeometry(geometry,name){
+      if(!geometry||!geometry.type)return;
+      const coords=geometry.coordinates;
+      const convert=arr=>Array.isArray(arr)?arr.map(pair=>Array.isArray(pair)&&pair.length>=2?{lat:pair[1],lon:pair[0]}:null):[];
+      if(geometry.type==="GeometryCollection"){
+        (geometry.geometries||[]).forEach((g,i)=>addGeometry(g,name+" ("+(i+1)+")"));return;
+      }
+      let type,points,holes=[];
+      if(geometry.type==="Point"){type="point";points=convert([coords]);}
+      else if(geometry.type==="MultiPoint"){(coords||[]).forEach((p,i)=>addGeometry({type:"Point",coordinates:p},name+" ("+(i+1)+")"));return;}
+      else if(geometry.type==="LineString"){type="line";points=convert(coords);}
+      else if(geometry.type==="MultiLineString"){(coords||[]).forEach((p,i)=>addGeometry({type:"LineString",coordinates:p},name+" ("+(i+1)+")"));return;}
+      else if(geometry.type==="Polygon"){type="polygon";points=convert(coords&&coords[0]);holes=(coords||[]).slice(1).map(convert);}
+      else if(geometry.type==="MultiPolygon"){(coords||[]).forEach((p,i)=>addGeometry({type:"Polygon",coordinates:p},name+" ("+(i+1)+")"));return;}
+      else return;
+      const feature=normalizeFeature({id:nextId(),name,type,coordinates:points,...(type==="polygon"?{holes}:{})});
+      if(feature)out.push(feature);
+    }
+    function visit(item){
+      if(!item)return;
+      if(item.type==="FeatureCollection"){(item.features||[]).forEach(visit);return;}
+      if(item.type==="Feature"){const props=item.properties||{};addGeometry(item.geometry,String(props.name||props.title||"عنصر GeoJSON"));return;}
+      addGeometry(item,String(item.name||"عنصر GeoJSON"));
+    }
+    visit(data);return out;
+  }
+  return {point,normalizeFeature,centroid,mapsUrl,earthUrl,directionsUrl,toKml,parseCoordinateText,measureFeature,toGeoJson,fromGeoJson};
 });
