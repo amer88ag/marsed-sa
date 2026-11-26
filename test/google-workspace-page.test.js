@@ -37,6 +37,6 @@ test("GeoJSON and GPX import/export controls and parsers are present",()=>{
   assert.match(page,/function parseGeoJson/);assert.match(page,/FeatureCollection/);
   assert.match(page,/MultiPolygon/);assert.match(page,/function parseGpx/);
   assert.match(page,/getElementsByTagNameNS\("\*","wpt"\)/);
-  assert.match(page,/getElementsByTagNameNS\("\*","trk"\)/);
+  assert.match(page,/getElementsByTagNameNS\("\*","trk"\)/);assert.match(page,/getElementsByTagNameNS\("\*","trkseg"\)/);
   assert.match(page,/function toGeoJson/);assert.match(page,/function toGpx/);
 });
