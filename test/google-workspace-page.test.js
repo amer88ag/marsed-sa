@@ -4,6 +4,7 @@ const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const path=require("node:path");
 const page=fs.readFileSync(path.join(__dirname,"../geo/index.html"),"utf8");
+const geoModule=fs.readFileSync(path.join(__dirname,"../src/platform/geo/google-workspace.js"),"utf8");
 
 test("Google geospatial workspace exposes Maps and Earth actions",()=>{
   for(const id of ["openMaps","openEarth","openDirections","exportKml","exportKmz","importFile"])assert.match(page,new RegExp('id="'+id+'"'));
@@ -34,11 +35,11 @@ test("selected feature panel supports rename, metric measurements, coordinate co
 test("GeoJSON and GPX import/export controls and parsers are present",()=>{
   for(const id of ["exportGeoJson","exportGpx"])assert.match(page,new RegExp('id="'+id+'"'));
   assert.match(page,/\.geojson/);assert.match(page,/\.gpx/);
-  assert.match(page,/function parseGeoJson/);assert.match(page,/FeatureCollection/);
-  assert.match(page,/MultiPolygon/);assert.match(page,/function parseGpx/);
+  assert.match(page,/function parseGeoJson/);assert.match(geoModule,/function fromGeoJson/);
+  assert.match(geoModule,/FeatureCollection/);assert.match(geoModule,/MultiPolygon/);assert.match(page,/function parseGpx/);
   assert.match(page,/getElementsByTagNameNS\("\*","wpt"\)/);
   assert.match(page,/getElementsByTagNameNS\("\*","trk"\)/);assert.match(page,/getElementsByTagNameNS\("\*","trkseg"\)/);
-  assert.match(page,/function toGeoJson/);assert.match(page,/function toGpx/);
+  assert.match(page,/function toGeoJson/);assert.match(geoModule,/function toGeoJson/);assert.match(page,/function toGpx/);
 });
 
 test("CSV export includes coordinate rows and metric measurement columns",()=>{
