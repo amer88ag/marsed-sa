@@ -61,7 +61,7 @@ button,input{font:inherit}button{border:1px solid var(--line);background:#fff;bo
 var $=function(id){return document.getElementById(id)};
 var map=L.map("map").setView([23.8,45.0],5),marker=null,requestId=0,activeAbort=null,lastResult=null,TIMEOUT_MS=12000;
 var pathMode=false,pathPoints=[],pathMarkers=[],pathLine=null,profileRequestId=0,lastProfile=null;
-var flowRequestId=0,flowLayer=typeof L.layerGroup==="function"?L.layerGroup().addTo(map):{clearLayers:function(){},addLayer:function(){}},flowPathLayer=typeof L.layerGroup==="function"?L.layerGroup().addTo(map):{clearLayers:function(){},addLayer:function(){}},lastFlow=null;
+var flowRequestId=0,flowLayers=[],flowPathLayers=[],lastFlow=null;
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
 if(typeof SaudiMapFrame!=="undefined")SaudiMapFrame.frame(map,L,{url:"../data/geo/saudi_boundary.geojson"});
 function status(message,isError){$("status").textContent=message;$("status").style.color=isError?"#b42318":""}
@@ -167,7 +167,7 @@ async function finishProfile(){
  }catch(error){if(id!==profileRequestId)return;$("profileStatus").textContent="تعذر إنشاء المقطع التضاريسي: "+(error&&error.kind?HttpClient.describeError(error):error.message);setPathHelp("فشل طلب بيانات الارتفاع؛ يمكنك المحاولة مجدداً.",true)}
 }
 
-async function analyzeLocalFlow(){
+function clearFlowLayers(){flowLayers.concat(flowPathLayers).forEach(function(layer){map.removeLayer(layer)});flowLayers=[];flowPathLayers=[]}\nasync function analyzeLocalFlow(){
  if(!lastResult){$("flowStatus").textContent="حدد نقطة على الخريطة وانتظر ظهور ارتفاعها أولاً.";return}
  var id=++flowRequestId,grid=TerrainFlow.createGrid({lat:lastResult.lat,lon:lastResult.lon},9,9,180);
  if(!grid){$("flowStatus").textContent="تعذر إنشاء شبكة تضاريس صالحة حول النقطة.";return}
@@ -184,7 +184,7 @@ async function analyzeLocalFlow(){
    throw new Error("عدد قيم الارتفاع لا يطابق عدد خلايا الشبكة.");
   var result=TerrainFlow.analyze({rows:grid.rows,cols:grid.cols,cellSizeXM:grid.cellSizeXM,cellSizeYM:grid.cellSizeYM,points:grid.points,elevations:data.elevation});
   if(!result||result.validCellCount<9)throw new Error("عدد خلايا الارتفاع المتاحة غير كافٍ للتحليل.");
-  flowLayer.clearLayers();flowPathLayer.clearLayers();lastFlow=result;
+  clearFlowLayers();lastFlow=result;
   result.cells.forEach(function(cell){
    if(cell.elevationM===null||!Number.isFinite(cell.lat)||!Number.isFinite(cell.lon))return;
    var radius=5+Math.min(6,Math.sqrt(cell.flowAccumulation||1));
@@ -193,13 +193,13 @@ async function analyzeLocalFlow(){
    circle.bindTooltip("الارتفاع: "+cell.elevationM.toFixed(1)+" م · تراكم الخلايا: "+cell.flowAccumulation+(cell.isLocalSink?" · منخفض محلي":cell.isChannel?" · تجمّع جريان محتمل":""));
    circle.on("click",function(){
     var trace=TerrainFlow.traceDownstream(result,cell.index);
-    flowPathLayer.clearLayers();
+    flowPathLayers.forEach(function(layer){map.removeLayer(layer)});flowPathLayers=[];
     if(!trace||trace.indices.length<2)return;
     var points=trace.indices.map(function(index){var p=result.cells[index];return [p.lat,p.lon]});
-    L.polyline(points,{color:"#0f766e",weight:5,opacity:.9}).addTo(flowPathLayer);
+    flowPathLayers.push(L.polyline(points,{color:"#0f766e",weight:5,opacity:.9}).addTo(map));
     $("flowStatus").textContent="مسار الانحدار من الخلية المحددة: "+trace.indices.length+" خلية · نهاية المسار: "+(trace.termination==="local_sink"?"منخفض محلي":trace.termination==="missing_data_edge"?"بيانات ارتفاع مفقودة":trace.termination==="grid_boundary"?"حدود الشبكة":"لا توجد خلية أدنى")+". انقر خلية أخرى لتغيير المسار.";
    });
-   circle.addTo(flowLayer);
+   circle.addTo(map);flowLayers.push(circle);
   });
   $("flowClear").disabled=false;
   $("flowStatus").textContent="اكتمل التحليل: "+result.validCellCount+" خلية متاحة، "+result.missingCellCount+" مفقودة، "+result.localSinkIndices.length+" منخفض محلي، و"+result.channelCellIndices.length+" خلية تجاوزت عتبة تراكم الجريان. انقر إحدى الخلايا لرسم مسار الانحدار. هذه ليست شبكة هيدرولوجية معايرة.";
@@ -209,7 +209,7 @@ async function analyzeLocalFlow(){
  }finally{if(id===flowRequestId)$("flowAnalyze").disabled=false}
 }
 $("flowAnalyze").addEventListener("click",analyzeLocalFlow);
-$("flowClear").addEventListener("click",function(){flowRequestId++;flowLayer.clearLayers();flowPathLayer.clearLayers();lastFlow=null;$("flowClear").disabled=true;$("flowStatus").textContent="تم مسح طبقة التحليل."});
+$("flowClear").addEventListener("click",function(){flowRequestId++;clearFlowLayers();lastFlow=null;$("flowClear").disabled=true;$("flowStatus").textContent="تم مسح طبقة التحليل."});
 $("pathStart").addEventListener("click",function(){profileRequestId++;clearPath();lastProfile=null;$("profileCsv").disabled=true;$("profileMetrics").hidden=true;$("profileChart").hidden=true;$("profileTableWrap").hidden=true;$("profileStatus").textContent="جارٍ رسم مسار جديد.";pathMode=true;updatePathControls();setPathHelp("وضع الرسم نشط: انقر نقطتين أو أكثر على الخريطة.")});
 $("pathFinish").addEventListener("click",finishProfile);
 $("pathUndo").addEventListener("click",function(){if(!pathPoints.length)return;pathPoints.pop();var marker=pathMarkers.pop();if(marker)map.removeLayer(marker);if(pathLine)map.removeLayer(pathLine);pathLine=pathPoints.length>1?L.polyline(pathPoints.map(function(p){return [p.lat,p.lon]}),{color:"#075985",weight:4,dashArray:"7 5"}).addTo(map):null;updatePathControls();setPathHelp("عدد النقاط المتبقية: "+pathPoints.length)});
