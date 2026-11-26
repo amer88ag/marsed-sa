@@ -30,7 +30,8 @@
     const errors = [];
     for (const id of o.providers || ORDER) {
       try {
-        const body = await http.request(A.buildPointUrl(id, lat, lon, radiusNm), { fetch: o.fetch, signal: o.signal, timeoutMs: o.timeoutMs || 15000 });
+        const proxyUrl = "/api/flight-radar?provider=" + encodeURIComponent(id) + "&lat=" + encodeURIComponent(lat) + "&lon=" + encodeURIComponent(lon) + "&radius=" + encodeURIComponent(radiusNm);
+        const body = await http.request(proxyUrl, { fetch: o.fetch, signal: o.signal, timeoutMs: o.timeoutMs || 15000 });
         const result = A.normalize(body, id);
         result.fallback_used = errors.length > 0;
         result.errors = errors;
