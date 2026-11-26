@@ -100,6 +100,7 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,att
 function status(message,error){$("status").textContent=message;$("status").classList.toggle("error",!!error)}
 function saveCurrent(){try{localStorage.setItem(STORAGE,JSON.stringify(features))}catch(e){status("تعذر الحفظ المحلي؛ قد تكون مساحة التخزين ممتلئة.",true)}}
 function safeName(value){return String(value||"عنصر جغرافي").trim().slice(0,160)||"عنصر جغرافي"}
+function measurementLabel(f){const m=Geo.measureFeature(f),fmt=n=>new Intl.NumberFormat("ar-SA",{maximumFractionDigits:1}).format(n);if(!m)return "";if(f.type==="polygon"&&m.areaM2!==null){const area=m.areaM2>=1000000?fmt(m.areaM2/1000000)+" كم²":m.areaM2>=10000?fmt(m.areaM2/10000)+" هكتار":fmt(m.areaM2)+" م²";const edge=m.perimeterM>=1000?fmt(m.perimeterM/1000)+" كم":fmt(m.perimeterM)+" م";return " · "+area+" · محيط "+edge}if(f.type==="line"&&m.lengthM!==null)return " · "+(m.lengthM>=1000?fmt(m.lengthM/1000)+" كم":fmt(m.lengthM)+" م");return ""}
 function id(){return "geo-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7)}
 function clearRendered(){rendered.forEach(x=>map.removeLayer(x));rendered=[]}
 function render(){
@@ -113,7 +114,7 @@ function render(){
    layer.bindTooltip(f.name);layer.on("click",()=>select(f.id));layer.addTo(map);rendered.push(layer);
    const row=document.createElement("div");row.className="feature"+(f.id===selectedId?" selected":"");row.onclick=()=>select(f.id);
    const info=document.createElement("div"),strong=document.createElement("strong"),small=document.createElement("small");
-   strong.textContent=f.name;small.textContent=f.type==="point"?"موقع":f.type==="line"?"مسار":"مضلع";
+   strong.textContent=f.name;small.textContent=(f.type==="point"?"موقع":f.type==="line"?"مسار":"مضلع")+measurementLabel(f);
    info.append(strong,small);const del=document.createElement("button");del.type="button";del.textContent="حذف";del.onclick=e=>{e.stopPropagation();features=features.filter(x=>x.id!==f.id);if(selectedId===f.id)selectedId=null;saveCurrent();render();status("تم حذف العنصر من مساحة العمل.")};
    row.append(info,del);list.append(row);
  });
