@@ -21,5 +21,5 @@ test("flight radar does not invent commercial schedules or airport gate data",()
 test("anonymous OpenSky request limits broad geographic queries and handles rate limits",()=>{
  assert.match(page,/area>25\.5/);
  assert.match(page,/response\.status===429/);
- assert.match(page,/خمس دقائق/);
+ assert.match(page,/خمس دقائق/);\n assert.match(page,/setInterval\(\(\)=>\{if\(document\.visibilityState==="visible"\)refresh\(\)\},300000\)/);
 });
