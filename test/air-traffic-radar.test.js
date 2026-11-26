@@ -51,3 +51,8 @@ test("empty live feed is distinguished from provider failure",()=>{
  assert.match(page,/اكتمل الاتصال بالمصدر، لكن لم تُرصد طائرات/);
  assert.match(page,/تعذر جلب بيانات الطيران/);
 });
+
+test("stale aircraft selection is cleared when aircraft leaves the feed",()=>{
+ assert.match(page,/else\{\$\("detail"\)\.hidden=true;selected=null\}/);
+ assert.match(page,/لا يوفر هذا الربط الحالي بيانات بلد المنشأ/);
+});
