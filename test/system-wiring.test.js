@@ -80,7 +80,10 @@ const NON_DATA_HOSTS = {
   "direct.ksu.edu.sa": "reference link in the seasons page",
   "www.almisnid.com": "reference link in the seasons page",
   "alojeiri.com": "reference link in the seasons page",
-  "aa.usno.navy.mil": "astronomical reference link in the seasons page"
+  "aa.usno.navy.mil": "astronomical reference link in the seasons page",
+  "www.google.com": "user-initiated Google Maps links; no embedded Google tiles or copied imagery",
+  "earth.google.com": "user-initiated Google Earth links; no embedded imagery or automated scraping",
+  "www.opengis.net": "KML 2.2 XML namespace identifier; not a network request"
 };
 // Test-only hosts: local servers and placeholders used by tools/browser-smoke.
 const TOOL_ONLY_HOSTS = {
