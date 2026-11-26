@@ -18,7 +18,7 @@ test("samples a path at bounded, evenly spaced cumulative distances",()=>{
 test("supports multi-vertex paths and caps requests at forty samples",()=>{
   const samples=Profile.samplePath([line[0],{lat:24.75,lon:46.7},line[1]],100);
   assert.equal(samples.length,40);
-  assert.ok(samples.some(p=>Math.abs(p.lat-24.75)<0.0001));
+  assert.ok(Math.abs(samples[0].lat-line[0].lat)<1e-8);\n  assert.ok(Math.abs(samples[39].lon-line[1].lon)<1e-8);
 });
 
 test("rejects invalid, repeated and underspecified paths",()=>{
@@ -34,7 +34,7 @@ test("builds an Open-Meteo multi-coordinate request without exceeding sample lim
   assert.ok(url.startsWith("https://api.open-meteo.com/v1/elevation?"));
   assert.match(url,/latitude=/);
   assert.match(url,/longitude=/);
-  assert.equal(Profile.elevationUrl(samples.concat(samples)),null);
+  assert.equal(Profile.elevationUrl(Array.from({length:41},(_,i)=>({lat:24+i/1000,lon:46+i/1000}))),null);
   assert.equal(Profile.elevationUrl([{lat:91,lon:0},{lat:0,lon:0}]),null);
 });
 
