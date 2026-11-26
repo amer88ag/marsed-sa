@@ -71,3 +71,12 @@ test("KML folder path excludes the document root name",()=>{
   assert.match(page,/parent\.localName==="Folder"/);
   assert.doesNotMatch(page,/parent\.localName==="Folder"\|\|parent\.localName==="Document"/);
 });
+
+test("large imports are rejected rather than silently truncated",()=>{
+  assert.match(page,/MAX_IMPORT_FEATURES=5000/);
+  assert.match(page,/MAX_EXPANDED_TEXT=30\*1024\*1024/);
+  assert.match(page,/features\.length\+imported\.length>MAX_IMPORT_FEATURES/);
+  assert.match(page,/out\.length>MAX_IMPORT_FEATURES/);
+  assert.doesNotMatch(page,/out\.length>=5000\)break/);
+  assert.doesNotMatch(page,/features=features\.concat\(imported\)\.slice\(0,5000\)/);
+});
