@@ -136,11 +136,11 @@ function updateSelectedDetails(){
  const save=document.createElement("button");save.className="btn primary";save.type="button";save.textContent="تحديث الاسم";save.onclick=()=>{f.name=safeName(name.value);saveCurrent();render();status("تم تحديث اسم العنصر.")};box.append(save);
  const m=Geo.measureFeature(f),fmt=n=>new Intl.NumberFormat("ar-SA",{maximumFractionDigits:2}).format(n);
  const detail=document.createElement("p");
- if(f.type==="polygon"&&m){const area=m.areaM2>=1000000?fmt(m.areaM2/1000000)+" كم²":m.areaM2>=10000?fmt(m.areaM2/10000)+" هكتار":fmt(m.areaM2)+" م²";detail.textContent="المساحة التقريبية: "+area+" | المحيط: "+(m.perimeterM>=1000?fmt(m.perimeterM/1000)+" كم":fmt(m.perimeterM)+" م")}
+ if(f.type==="polygon"&&m){const area=m.areaM2>=1000000?fmt(m.areaM2/1000000)+" كم²":m.areaM2>=10000?fmt(m.areaM2/10000)+" هكتار":fmt(m.areaM2)+" م²";detail.textContent="المساحة التقريبية: "+area+" | المحيط: "+(m.perimeterM>=1000?fmt(m.perimeterM/1000)+" كم":fmt(m.perimeterM)+" م")+((f.holes||[]).length?" | الثقوب الداخلية: "+f.holes.length:"")}
  else if(f.type==="line"&&m)detail.textContent="طول المسار التقريبي: "+(m.lengthM>=1000?fmt(m.lengthM/1000)+" كم":fmt(m.lengthM)+" م");
  else detail.textContent="الإحداثيات: "+f.coordinates[0].lat.toFixed(6)+", "+f.coordinates[0].lon.toFixed(6);
  box.append(detail);
- const copy=document.createElement("button");copy.className="btn";copy.type="button";copy.textContent="نسخ الإحداثيات";copy.onclick=async()=>{const value=f.coordinates.map(p=>p.lat.toFixed(6)+", "+p.lon.toFixed(6)).join("\n");try{await navigator.clipboard.writeText(value);status("تم نسخ الإحداثيات.")}catch(e){status("تعذر النسخ من المتصفح؛ يمكنك تصدير KML.",true)}};box.append(copy);
+ const copy=document.createElement("button");copy.className="btn";copy.type="button";copy.textContent="نسخ الإحداثيات";copy.onclick=async()=>{const rings=f.type==="polygon"?[f.coordinates,...(f.holes||[])]:[f.coordinates];const value=rings.map((ring,index)=>(f.type==="polygon"?(index===0?"الحلقة الخارجية":"الثقب "+index)+"\n":"")+ring.map(p=>p.lat.toFixed(6)+", "+p.lon.toFixed(6)).join("\n")).join("\n\n");try{await navigator.clipboard.writeText(value);status("تم نسخ الإحداثيات.")}catch(e){status("تعذر النسخ من المتصفح؛ يمكنك تصدير KML.",true)}};box.append(copy);
  const exportOne=document.createElement("button");exportOne.className="btn";exportOne.type="button";exportOne.textContent="تصدير العنصر المحدد";exportOne.onclick=()=>download("marsed-selected-feature.kml",new Blob([Geo.toKml([f])],{type:"application/vnd.google-earth.kml+xml;charset=utf-8"}));box.append(exportOne);
 }
 function addFeature(type,coordinates,name){
