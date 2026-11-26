@@ -10,8 +10,10 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const ROOT = path.join(__dirname, "..");
-// Baseline = last state on GitHub: a59d397 → cac832f (owner-approved push) → 0fda898 (owner commits, 2026-11-26 02:45–02:52).
-const BASELINE = process.env.GATE_BASELINE || "0fda898942eabaa7ff5ea7ca93a37a8f22d74cec";
+// Baseline = current GitHub main (b9770f4). PR #25 was squash-merged into main as ebb9d6d (tree == 0fda898);
+// this series re-applies the later local work on top of main for a new PR.
+const BASELINE = process.env.GATE_BASELINE || "b9770f48c31ecbbc46af94c02f73227ade678cef";
+const BASELINE_REF = process.env.GATE_BASELINE_REF || "origin/main";
 // G4–G6 compare with the ORIGINAL review baseline a59d397 (stronger than the moving GitHub baseline):
 // deploy/CI files, historical CHIRPS data and the 4 disputed coordinates (inline in index.html there).
 const ORIGINAL_BASELINE = "a59d3974997392dbdc6e95817215009880df09d2";
@@ -46,10 +48,10 @@ check("G3", "Local remote-tracking ref equals the baseline; HEAD builds on it", 
   // Compares the LOCALLY recorded ref (as of the last fetch) with the baseline.
   // It does not contact GitHub, does not see other branches or forks, and cannot
   // prove that no push happened.
-  const remote = git("rev-parse", "origin/feature/elevation-explorer");
-  must(remote === BASELINE, "local ref origin/feature/elevation-explorer is " + remote);
+  const remote = git("rev-parse", BASELINE_REF);
+  must(remote === BASELINE, "local ref " + BASELINE_REF + " is " + remote);
   must(git("merge-base", "--is-ancestor", BASELINE, "HEAD") === "", "HEAD does not descend from baseline");
-  return "local ref origin/feature/elevation-explorer = " + remote.slice(0, 7) + " (as last fetched; GitHub not queried); HEAD " + git("rev-parse", "--short", "HEAD") + " descends from it";
+  return "local ref " + BASELINE_REF + " = " + remote.slice(0, 7) + " (as last fetched; GitHub not queried); HEAD " + git("rev-parse", "--short", "HEAD") + " descends from it";
 });
 
 check("G4", "Listed CI/deploy configuration files unchanged in the commits", () => {

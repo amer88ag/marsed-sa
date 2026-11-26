@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b46">
+<meta name="description" content="مساحة عمل جغرافية لفتح المواقع في Google Maps وGoogle Earth وإدارة ملفات KML وKMZ.">
+<title>مساحة العمل الجغرافية | مرصد السعودية</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+:root{--navy:#102b46;--blue:#1769aa;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}
+header{background:linear-gradient(120deg,#102b46,#174d76);color:white;padding:20px max(16px,calc((100% - 1320px)/2))}
+header a{color:#d9eafa;text-decoration:none;font-size:13px}h1{font-size:clamp(22px,3vw,29px);margin:10px 0 5px}header p{margin:0;color:#c6d8e7;font-size:13px}
+main{max-width:1320px;margin:auto;padding:16px 14px 40px}.toolbar,.actions,.draw-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.panel{background:white;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:13px;box-shadow:0 3px 14px #183b5710}
+.toolbar{padding:12px}.btn{border:1px solid var(--line);background:white;color:var(--ink);border-radius:9px;padding:9px 12px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:white}.btn:disabled{opacity:.45;cursor:not-allowed}.btn.active{background:#e8f2fb;border-color:var(--blue);color:#145b91}
+input,select{font:inherit;border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:white;color:var(--ink);min-width:0}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:13px}
+#map{height:min(73vh,760px);min-height:430px;background:#e8eff4}
+.map-head,.section-head{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.map-head b,.section-head b{font-size:14px}.map-head small,.section-head small{font-size:11px;color:var(--muted)}
+.sidebar{padding:12px}.sidebar h2{font-size:15px;margin:0 0 10px}.sidebar p{font-size:12px;color:var(--muted);line-height:1.8;margin:7px 0}
+.draw-tools{padding:0 12px 12px}.draw-tools .btn{flex:1}
+.feature-list{display:grid;gap:7px;max-height:340px;overflow:auto}.selected-panel{border:1px solid var(--line);border-radius:10px;padding:10px;margin:9px 0;background:#f8fafc}.selected-panel strong{font-size:12px}.selected-panel p{margin:5px 0;font-size:11px;word-break:break-word}.selected-panel input{width:100%;margin:7px 0}.selected-panel .btn{margin:3px 2px 0 0}
+.feature{border:1px solid var(--line);border-radius:9px;padding:9px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer}
+.feature.selected{border-color:var(--blue);background:#f0f7fc}.feature strong{font-size:12px;display:block}.feature small{font-size:10px;color:var(--muted)}
+.feature button{border:0;background:transparent;color:#9a3412;font-size:12px;cursor:pointer}
+.status{font-size:12px;color:var(--muted);line-height:1.8;padding:10px 13px}.status.error{color:#b42318}
+.note{background:#fff8e8;border:1px solid #f2dfb4;border-radius:9px;padding:9px;font-size:11px;line-height:1.8;color:#80520b;margin-top:10px}
+.actions{padding:0 12px 12px}.actions .btn{flex:1}
+.file-row{display:flex;gap:7px;flex-wrap:wrap;padding:0 12px 12px}.file-row input{flex:1;width:100%}
+.divider{height:1px;background:var(--line);margin:12px 0}
+.empty{font-size:12px;color:var(--muted);padding:12px;text-align:center;border:1px dashed var(--line);border-radius:9px}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.sidebar{order:2}#map{height:55vh;min-height:360px}.feature-list{max-height:230px}}
+</style>
+</head>
+<body>
+<header><a href="../">← العودة إلى المرصد</a><h1>مساحة العمل الجغرافية</h1><p>إدارة المواقع والحدود والمسارات، ثم فتحها في Google Maps أو Google Earth</p></header>
+<main>
+<section class="panel">
+<div class="toolbar">
+<button class="btn primary" id="openMaps" disabled>فتح العنصر في Google Maps</button>
+<button class="btn" id="openEarth" disabled>فتح الموقع في Google Earth</button>
+<button class="btn" id="openDirections" disabled>اتجاهات المسار في Google Maps</button>
+<button class="btn" id="exportKml">تصدير KML</button>
+<button class="btn" id="exportKmz">تصدير KMZ</button>
+<button class="btn" id="exportGeoJson">تصدير GeoJSON</button>
+<button class="btn" id="exportGpx">تصدير GPX</button>
+<button class="btn" id="exportCsv">تصدير CSV</button>
+<label class="btn" for="importFile">استيراد KML / KMZ / GeoJSON / GPX</label><input id="importFile" type="file" accept=".kml,.kmz,.geojson,.json,.gpx,application/geo+json,application/gpx+xml,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" hidden>
+</div>
+<div id="status" class="status" role="status" aria-live="polite">ابدأ بإضافة موقع أو رسم مسار أو حدود أرض، أو استورد ملف KML/KMZ من Google Earth.</div>
+</section>
+<div class="layout">
+<section class="panel">
+<div class="map-head"><b>الخريطة التفاعلية</b><small>OpenStreetMap · افتح أي عنصر في Google</small></div>
+<div id="map" role="application" aria-label="خريطة رسم المواقع والمسارات والحدود"></div>
+<div class="draw-tools">
+<button class="btn" id="drawPoint">إضافة موقع</button>
+<button class="btn" id="drawLine">رسم مسار</button>
+<button class="btn" id="drawPolygon">رسم حدود أرض</button>
+<button class="btn" id="finishDraw" disabled>إنهاء الرسم</button>
+<button class="btn" id="cancelDraw" disabled>إلغاء</button>
+</div>
+</section>
+<aside>
+<section class="panel sidebar">
+<h2>العناصر الجغرافية</h2>
+<div id="featureList" class="feature-list"><div class="empty">لا توجد عناصر بعد.</div></div>
+<div id="selectedDetails" class="selected-panel" hidden></div>
+<div class="divider"></div>
+<h2>المشروعات المحفوظة على هذا الجهاز</h2>
+<div class="file-row"><input id="projectName" maxlength="60" placeholder="اسم المشروع"><button class="btn primary" id="saveProject">حفظ المشروع</button></div>
+<div class="file-row"><select id="projectSelect" aria-label="المشروعات المحفوظة"><option value="">اختر مشروعاً محفوظاً</option></select><button class="btn" id="loadProject">فتح</button></div>
+<div class="file-row"><button class="btn" id="deleteProject">حذف المشروع المحدد</button><button class="btn" id="clearAll">مسح العناصر الحالية</button></div>
+<p>الحفظ محلي في متصفح هذا الجهاز فقط. لا تُرفع المواقع إلى خادم ولا تتم مزامنتها تلقائياً مع أجهزتك الأخرى.</p>
+<div class="note">Google Earth يفتح الموقع أو الإحداثيات. لن يرفع الملف تلقائياً إلى حسابك؛ لاستعراض مشروعك ثلاثي الأبعاد، صدّر KML/KMZ ثم افتحه أو استورده في Google Earth.</div>
+</section>
+</aside>
+</div>
+<section class="panel">
+<div class="section-head"><b>حول التكامل مع Google</b><small>لا يحتاج مفتاح API</small></div>
+<div class="sidebar">
+<p><b>Google Maps:</b> يفتح الموقع المحدد أو اتجاهات المسار عبر روابط Google الرسمية.</p>
+<p><b>Google Earth:</b> يفتح الإحداثيات في Earth على الويب. الصور التاريخية وثلاثية الأبعاد تعتمد على ما توفره Google للموقع.</p>
+<p><b>الملفات:</b> استيراد KML وKMZ وعرض النقاط والخطوط والمضلعات، وتصديرها لتبادلها مع Google Earth. الملفات المستوردة تبقى في المتصفح حتى تحفظ المشروع.</p>
+<p><a href="https://developers.google.com/maps/documentation/urls/get-started" target="_blank" rel="noopener">توثيق Google Maps URLs</a> · <a href="https://developers.google.com/maps/documentation/earth/quick-reference" target="_blank" rel="noopener">دليل Google Earth</a></p>
+</div>
+</section>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="../src/platform/geo/google-workspace.js"></script>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id),Geo=window.GoogleGeoWorkspace;
+const MAX_IMPORT_FEATURES=5000,MAX_EXPANDED_TEXT=30*1024*1024,MAX_IMPORT_VERTICES=100000;
+const STORAGE="marsed.google.geo.workspace.v1",PROJECTS="marsed.google.geo.projects.v1";
+let features=[],selectedId=null,mode=null,draft=[],draftLayer=null,rendered=[];
+const map=L.map("map").setView([24.2,45.2],5);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+function status(message,error){$("status").textContent=message;$("status").classList.toggle("error",!!error)}
+function saveCurrent(){try{localStorage.setItem(STORAGE,JSON.stringify(features))}catch(e){status("تعذر الحفظ المحلي؛ قد تكون مساحة التخزين ممتلئة.",true)}}
+function safeName(value){return String(value||"عنصر جغرافي").trim().slice(0,160)||"عنصر جغرافي"}
+function measurementLabel(f){const m=Geo.measureFeature(f),fmt=n=>new Intl.NumberFormat("ar-SA",{maximumFractionDigits:1}).format(n);if(!m)return "";if(f.type==="polygon"&&m.areaM2!==null){const area=m.areaM2>=1000000?fmt(m.areaM2/1000000)+" كم²":m.areaM2>=10000?fmt(m.areaM2/10000)+" هكتار":fmt(m.areaM2)+" م²";const edge=m.perimeterM>=1000?fmt(m.perimeterM/1000)+" كم":fmt(m.perimeterM)+" م";return " · "+area+" · محيط "+edge}if(f.type==="line"&&m.lengthM!==null)return " · "+(m.lengthM>=1000?fmt(m.lengthM/1000)+" كم":fmt(m.lengthM)+" م");return ""}
+function id(){return "geo-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7)}
+function clearRendered(){rendered.forEach(x=>map.removeLayer(x));rendered=[]}
+function render(){
+ clearRendered();const list=$("featureList");list.replaceChildren();
+ features.forEach(f=>{
+   const color=f.id===selectedId?"#1769aa":"#d97706";let layer;
+   const latlngs=f.coordinates.map(p=>[p.lat,p.lon]);
+   if(f.type==="point")layer=L.circleMarker(latlngs[0],{radius:8,color,fillColor:color,fillOpacity:.8});
+   else if(f.type==="line")layer=L.polyline(latlngs,{color,weight:4});
+   else layer=L.polygon([latlngs,...(f.holes||[]).map(ring=>ring.map(p=>[p.lat,p.lon]))],{color,fillColor:color,fillOpacity:.18,weight:3});
+   layer.featureId=f.id;layer.bindTooltip(f.name);layer.on("click",()=>select(f.id));layer.addTo(map);rendered.push(layer);
+   const row=document.createElement("div");row.className="feature"+(f.id===selectedId?" selected":"");row.dataset.featureId=f.id;row.onclick=()=>select(f.id);
+   const info=document.createElement("div"),strong=document.createElement("strong"),small=document.createElement("small");
+   strong.textContent=f.name;small.textContent=(f.type==="point"?"موقع":f.type==="line"?"مسار":"مضلع")+measurementLabel(f);
+   info.append(strong,small);const del=document.createElement("button");del.type="button";del.textContent="حذف";del.onclick=e=>{e.stopPropagation();features=features.filter(x=>x.id!==f.id);if(selectedId===f.id)selectedId=null;saveCurrent();render();status("تم حذف العنصر من مساحة العمل.")};
+   row.append(info,del);list.append(row);
+ });
+ if(!features.length)list.innerHTML='<div class="empty">لا توجد عناصر بعد.</div>';
+ updateActions();updateSelectedDetails();
+}
+function select(featureId){
+ const f=features.find(x=>x.id===featureId);if(!f)return;selectedId=featureId;
+ rendered.forEach(layer=>{const active=layer.featureId===selectedId,color=active?"#1769aa":"#d97706";layer.setStyle({color,fillColor:color})});
+ $("featureList").querySelectorAll(".feature").forEach(row=>row.classList.toggle("selected",row.dataset.featureId===selectedId));
+ updateActions();updateSelectedDetails();
+ const bounds=L.latLngBounds(f.coordinates.map(p=>[p.lat,p.lon]));
+ if(f.type==="point")map.setView([f.coordinates[0].lat,f.coordinates[0].lon],Math.max(map.getZoom(),12));else map.fitBounds(bounds.pad(.2));
+}
+function updateActions(){const f=features.find(x=>x.id===selectedId);$("openMaps").disabled=!f;$("openEarth").disabled=!f;$("openDirections").disabled=!f||f.type!=="line"}
+function updateSelectedDetails(){
+ const box=$("selectedDetails"),f=features.find(x=>x.id===selectedId);
+ box.replaceChildren();box.hidden=!f;if(!f)return;
+ const title=document.createElement("strong");title.textContent="تفاصيل العنصر المحدد";box.append(title);
+ const name=document.createElement("input");name.maxLength=160;name.value=f.name;name.setAttribute("aria-label","اسم العنصر");name.placeholder="اسم الموقع أو المسار أو الأرض";box.append(name);
+ const save=document.createElement("button");save.className="btn primary";save.type="button";save.textContent="تحديث الاسم";save.onclick=()=>{f.name=safeName(name.value);saveCurrent();render();status("تم تحديث اسم العنصر.")};box.append(save);
+ const m=Geo.measureFeature(f),fmt=n=>new Intl.NumberFormat("ar-SA",{maximumFractionDigits:2}).format(n);
+ const detail=document.createElement("p");
+ if(f.type==="polygon"&&m){const area=m.areaM2>=1000000?fmt(m.areaM2/1000000)+" كم²":m.areaM2>=10000?fmt(m.areaM2/10000)+" هكتار":fmt(m.areaM2)+" م²";detail.textContent="المساحة التقريبية: "+area+" | المحيط: "+(m.perimeterM>=1000?fmt(m.perimeterM/1000)+" كم":fmt(m.perimeterM)+" م")+((f.holes||[]).length?" | الثقوب الداخلية: "+f.holes.length:"")}
+ else if(f.type==="line"&&m)detail.textContent="طول المسار التقريبي: "+(m.lengthM>=1000?fmt(m.lengthM/1000)+" كم":fmt(m.lengthM)+" م");
+ else detail.textContent="الإحداثيات: "+f.coordinates[0].lat.toFixed(6)+", "+f.coordinates[0].lon.toFixed(6);
+ box.append(detail);
+ const copy=document.createElement("button");copy.className="btn";copy.type="button";copy.textContent="نسخ الإحداثيات";copy.onclick=async()=>{const rings=f.type==="polygon"?[f.coordinates,...(f.holes||[])]:[f.coordinates];const value=rings.map((ring,index)=>(f.type==="polygon"?(index===0?"الحلقة الخارجية":"الثقب "+index)+"\n":"")+ring.map(p=>p.lat.toFixed(6)+", "+p.lon.toFixed(6)).join("\n")).join("\n\n");try{await navigator.clipboard.writeText(value);status("تم نسخ الإحداثيات.")}catch(e){status("تعذر النسخ من المتصفح؛ يمكنك تصدير KML.",true)}};box.append(copy);
+ const exportOne=document.createElement("button");exportOne.className="btn";exportOne.type="button";exportOne.textContent="تصدير العنصر المحدد";exportOne.onclick=()=>download("marsed-selected-feature.kml",new Blob([Geo.toKml([f])],{type:"application/vnd.google-earth.kml+xml;charset=utf-8"}));box.append(exportOne);
+}
+function workspaceVertexCount(){return features.reduce((total,f)=>total+f.coordinates.length+(f.holes||[]).reduce((n,ring)=>n+ring.length,0),0)}
+function addFeature(type,coordinates,name){
+ if(features.length>=MAX_IMPORT_FEATURES){status("وصلت مساحة العمل إلى الحد الأقصى (5000 عنصر). احفظ مشروعاً منفصلاً قبل إضافة المزيد.",true);return}
+ if(workspaceVertexCount()+coordinates.length>MAX_IMPORT_VERTICES){status("وصلت مساحة العمل إلى الحد الأقصى (100 ألف نقطة إحداثية). احفظ مشروعاً منفصلاً قبل إضافة المزيد.",true);return}
+ const feature=Geo.normalizeFeature({id:id(),type,coordinates,name:safeName(name|| (type==="point"?"موقع جديد":type==="line"?"مسار جديد":"حدود جديدة"))});
+ if(!feature){status("تعذر إنشاء العنصر: تحقق من الإحداثيات وعدد النقاط.",true);return}
+ features.push(feature);selectedId=feature.id;saveCurrent();render();status("أضيف العنصر إلى مساحة العمل. يمكنك فتحه في Google أو حفظ المشروع.");
+}
+function stopDraw(){mode=null;draft=[];if(draftLayer){map.removeLayer(draftLayer);draftLayer=null}$("finishDraw").disabled=true;$("cancelDraw").disabled=true;["drawPoint","drawLine","drawPolygon"].forEach(x=>$(x).classList.remove("active"))}
+function updateDraft(){if(draftLayer)map.removeLayer(draftLayer);const ll=draft.map(p=>[p.lat,p.lon]);if(draft.length===1)draftLayer=L.circleMarker(ll[0],{radius:7,color:"#d97706"}).addTo(map);else if(mode==="line")draftLayer=L.polyline(ll,{color:"#d97706",dashArray:"6 5"}).addTo(map);else if(mode==="polygon")draftLayer=L.polygon(ll,{color:"#d97706",dashArray:"6 5",fillOpacity:.08}).addTo(map)}
+function startDraw(type){stopDraw();mode=type;$(type==="point"?"drawPoint":type==="line"?"drawLine":"drawPolygon").classList.add("active");$("cancelDraw").disabled=false;$("finishDraw").disabled=type==="point";status(type==="point"?"انقر على الخريطة لإضافة الموقع.":type==="line"?"انقر نقطتين أو أكثر ثم اضغط إنهاء الرسم.":"انقر ثلاث نقاط أو أكثر لتحديد الحدود ثم اضغط إنهاء الرسم.");}
+map.on("click",e=>{
+ if(!mode)return;const p={lat:e.latlng.lat,lon:e.latlng.lng};
+ if(mode==="point"){addFeature("point",[p]);stopDraw();return}
+ if(workspaceVertexCount()+draft.length+1>MAX_IMPORT_VERTICES){status("وصل الرسم إلى حد 100 ألف نقطة إحداثية في مساحة العمل. أنهِ الرسم أو احفظ مشروعاً منفصلاً.",true);return}
+ draft.push(p);updateDraft();$("finishDraw").disabled=draft.length<(mode==="line"?2:3);
+});
+function finishDraw(){if(!mode||mode==="point")return;const type=mode;const pts=draft.slice();stopDraw();if(type==="polygon"&&pts.length>2)addFeature(type,pts);else if(type==="line"&&pts.length>1)addFeature(type,pts);else status("عدد النقاط غير كافٍ.",true)}
+$("drawPoint").onclick=()=>startDraw("point");$("drawLine").onclick=()=>startDraw("line");$("drawPolygon").onclick=()=>startDraw("polygon");$("finishDraw").onclick=finishDraw;$("cancelDraw").onclick=()=>{stopDraw();status("تم إلغاء الرسم.")};
+function openUrl(url){if(!url)return;window.open(url,"_blank","noopener,noreferrer")}
+$("openMaps").onclick=()=>{const f=features.find(x=>x.id===selectedId);if(f)openUrl(Geo.mapsUrl(f))};
+$("openEarth").onclick=()=>{const f=features.find(x=>x.id===selectedId);if(f)openUrl(Geo.earthUrl(f))};
+$("openDirections").onclick=()=>{const f=features.find(x=>x.id===selectedId);if(f)openUrl(Geo.directionsUrl(f))};
+function download(name,blob){const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+$("exportKml").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-google-workspace.kml",new Blob([Geo.toKml(features)],{type:"application/vnd.google-earth.kml+xml;charset=utf-8"}));status("تم تجهيز ملف KML للتنزيل.")};
+$("exportKmz").onclick=async()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}if(!window.JSZip){status("مكتبة ضغط KMZ غير متاحة؛ استخدم تصدير KML.",true);return}try{const zip=new JSZip();zip.file("doc.kml",Geo.toKml(features));const blob=await zip.generateAsync({type:"blob",compression:"DEFLATE"});download("marsed-google-workspace.kmz",blob);status("تم تجهيز ملف KMZ للتنزيل.")}catch(e){status("تعذر إنشاء ملف KMZ.",true)}};
+$("exportGeoJson").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-workspace.geojson",new Blob([JSON.stringify(toGeoJson(features),null,2)],{type:"application/geo+json;charset=utf-8"}));status("تم تجهيز GeoJSON للتنزيل.")};
+$("exportGpx").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-workspace.gpx",new Blob([toGpx(features)],{type:"application/gpx+xml;charset=utf-8"}));status("تم تجهيز GPX؛ تُصدّر المضلعات كمسارات مغلقة لأن GPX لا يعرّف مضلعاً.")};
+function csvCell(value){
+ let text=String(value==null?"":value);
+ if(typeof value==="string"&&/^[\\t\\r ]*[=+@-]/.test(text))text="'"+text;
+ return '"'+text.replace(/"/g,'""')+'"';
+}
+function toCsv(items){
+ const rows=[["اسم العنصر","النوع","الحلقة","رقم النقطة","خط العرض","خط الطول","المساحة م²","المحيط م","طول المسار م"]];
+ items.forEach(f=>{
+  const m=Geo.measureFeature(f)||{},rings=f.type==="polygon"?[f.coordinates,...(f.holes||[])]:[f.coordinates];
+  rings.forEach((ring,ringIndex)=>ring.forEach((p,index)=>rows.push([f.name,f.type,ringIndex===0?"الخارجية":"الثقب "+ringIndex,index+1,p.lat.toFixed(7),p.lon.toFixed(7),ringIndex===0&&index===0&&m.areaM2!=null?m.areaM2.toFixed(2):"",ringIndex===0&&index===0&&m.perimeterM!=null?m.perimeterM.toFixed(2):"",ringIndex===0&&index===0&&m.lengthM!=null?m.lengthM.toFixed(2):""])));
+ });
+ return "\uFEFF"+rows.map(row=>row.map(csvCell).join(",")).join("\r\n");
+}
+$("exportCsv").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-workspace.csv",new Blob([toCsv(features)],{type:"text/csv;charset=utf-8"}));status("تم تجهيز CSV مع الإحداثيات والقياسات للتنزيل.")};
+function parseGeoJson(textContent){
+ let data;try{data=JSON.parse(textContent)}catch(e){throw new Error("ملف GeoJSON غير صالح.")};
+ const out=Geo.fromGeoJson(data,id);
+ if(out.length>MAX_IMPORT_FEATURES)throw new Error("الملف يحتوي على أكثر من 5000 عنصر؛ قسّمه إلى ملفات أصغر لتجنب فقد البيانات.");
+ return out;
+}
+function parseGpx(textContent){
+ const doc=new DOMParser().parseFromString(textContent,"application/xml");if(doc.querySelector("parsererror"))throw new Error("ملف GPX غير صالح.");
+ const out=[],elements=Array.from(doc.getElementsByTagNameNS("*","wpt"));
+ for(const wpt of elements){const p=Geo.point({lat:wpt.getAttribute("lat"),lon:wpt.getAttribute("lon")});if(p)out.push(Geo.normalizeFeature({id:id(),name:safeName(wpt.getElementsByTagNameNS("*","name")[0]?.textContent||"نقطة GPX"),type:"point",coordinates:[p]}))}
+ const routes=Array.from(doc.getElementsByTagNameNS("*","rte"));
+ for(const route of routes){
+  const coords=Array.from(route.children).filter(x=>x.localName==="rtept").map(p=>Geo.point({lat:p.getAttribute("lat"),lon:p.getAttribute("lon")})).filter(Boolean);
+  if(coords.length>=2)out.push(Geo.normalizeFeature({id:id(),name:safeName(route.getElementsByTagNameNS("*","name")[0]?.textContent||"مسار GPX"),type:"line",coordinates:coords}));
+ }
+ const tracks=Array.from(doc.getElementsByTagNameNS("*","trk"));
+ for(const track of tracks){
+  const segments=Array.from(track.getElementsByTagNameNS("*","trkseg"));
+  segments.forEach((segment,index)=>{
+   const coords=Array.from(segment.children).filter(x=>x.localName==="trkpt").map(p=>Geo.point({lat:p.getAttribute("lat"),lon:p.getAttribute("lon")})).filter(Boolean);
+   if(coords.length>=2){const base=safeName(track.getElementsByTagNameNS("*","name")[0]?.textContent||"مسار GPX");out.push(Geo.normalizeFeature({id:id(),name:segments.length>1?base+" ("+(index+1)+")":base,type:"line",coordinates:coords}))}
+  });
+ }
+ const valid=out.filter(Boolean);if(valid.length>MAX_IMPORT_FEATURES)throw new Error("ملف GPX يحتوي على أكثر من 5000 عنصر؛ قسّمه إلى ملفات أصغر.");return valid;
+}
+function toGeoJson(items){return Geo.toGeoJson(items)}
+function toGpx(items){
+ const esc=s=>String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+ const waypoints=items.filter(f=>f.type==="point").map(f=>{const p=f.coordinates[0];return '<wpt lat="'+p.lat+'" lon="'+p.lon+'"><name>'+esc(f.name)+'</name></wpt>'}).join("");
+ const paths=items.filter(f=>f.type!=="point").map(f=>{const tag=f.type==="polygon"?"rte":"rte",pts=f.type==="polygon"?f.coordinates.concat([f.coordinates[0]]):f.coordinates;return '<rte><name>'+esc(f.name)+'</name>'+pts.map(p=>'<rtept lat="'+p.lat+'" lon="'+p.lon+'"/>').join("")+'</rte>'}).join("");
+ return '<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="Marsed Saudi" xmlns="http://www.topografix.com/GPX/1/1">'+waypoints+paths+"</gpx>";
+}
+function parseKml(xml){
+ const doc=new DOMParser().parseFromString(xml,"application/xml");if(doc.querySelector("parsererror"))throw new Error("ملف KML غير صالح.");
+ const placemarks=Array.from(doc.getElementsByTagNameNS("*","Placemark"));const out=[];
+ for(const pm of placemarks){
+  const nameNode=Array.from(pm.children).find(x=>x.localName==="name");
+  const folders=[];let parent=pm.parentElement;
+  while(parent&&parent!==doc.documentElement){
+   if(parent.localName==="Folder"){
+    const folderName=Array.from(parent.children).find(x=>x.localName==="name");
+    if(folderName&&folderName.textContent.trim())folders.unshift(folderName.textContent.trim());
+   }
+   parent=parent.parentElement;
+  }
+  const rawName=[...folders,nameNode&&nameNode.textContent].filter(Boolean).join(" / ");
+  const name=safeName(rawName);
+  const geometries=[];
+  for(const node of Array.from(pm.getElementsByTagNameNS("*","Point")))geometries.push({node,type:"point"});
+  for(const node of Array.from(pm.getElementsByTagNameNS("*","LineString")))geometries.push({node,type:"line"});
+  for(const node of Array.from(pm.getElementsByTagNameNS("*","Polygon")))geometries.push({node,type:"polygon"});
+  geometries.sort((a,b)=>a.node.compareDocumentPosition(b.node)&Node.DOCUMENT_POSITION_FOLLOWING?-1:1);
+  for(let index=0;index<geometries.length;index++){
+   const item=geometries[index],node=item.node;let coordNode;
+   if(item.type==="polygon")coordNode=node.getElementsByTagNameNS("*","outerBoundaryIs")[0]?.getElementsByTagNameNS("*","coordinates")[0];
+   else coordNode=node.getElementsByTagNameNS("*","coordinates")[0];
+   const coords=Geo.parseCoordinateText(coordNode&&coordNode.textContent);if(!coords)continue;
+   const holes=item.type==="polygon"?Array.from(node.getElementsByTagNameNS("*","innerBoundaryIs")).map(boundary=>Geo.parseCoordinateText(boundary.getElementsByTagNameNS("*","coordinates")[0]?.textContent)).filter(Boolean):[];
+   const label=geometries.length>1?name+" ("+(index+1)+")":name;
+   const f=Geo.normalizeFeature({id:id(),name:label,type:item.type,coordinates:coords,...(item.type==="polygon"?{holes}:{})});if(f)out.push(f);
+   if(out.length>MAX_IMPORT_FEATURES)throw new Error("ملف KML يحتوي على أكثر من 5000 عنصر؛ قسّمه إلى ملفات أصغر.");
+  }
+ }
+ return out;
+}
+$("importFile").addEventListener("change",async e=>{
+ const file=e.target.files&&e.target.files[0];e.target.value="";if(!file)return;
+ if(file.size>15*1024*1024){status("حجم الملف يتجاوز الحد المسموح (15 ميغابايت).",true);return}
+ try{
+  let textContent,imported;
+  const ext=file.name.toLowerCase().split(".").pop();
+  if(ext==="kmz"){
+   if(!window.JSZip)throw new Error("تعذر تحميل مكتبة قراءة KMZ.");
+   const zip=await JSZip.loadAsync(file);const entry=zip.file("doc.kml")||Object.values(zip.files).find(x=>!x.dir&&x.name.toLowerCase().endsWith(".kml"));
+   if(!entry)throw new Error("لم يُعثر على ملف KML داخل KMZ.");if(entry._data&&Number(entry._data.uncompressedSize)>MAX_EXPANDED_TEXT)throw new Error("محتوى KMZ بعد فك الضغط يتجاوز 30 ميغابايت؛ قسّم الملف.");textContent=await entry.async("string");if(textContent.length>MAX_EXPANDED_TEXT)throw new Error("محتوى KMZ بعد فك الضغط يتجاوز 30 ميغابايت؛ قسّم الملف.");imported=parseKml(textContent);
+  }else{
+   textContent=await file.text();
+   if(textContent.length>MAX_EXPANDED_TEXT)throw new Error("محتوى الملف يتجاوز 30 ميغابايت؛ قسّمه إلى ملفات أصغر.");
+   if(ext==="gpx")imported=parseGpx(textContent);
+   else if(ext==="geojson"||ext==="json")imported=parseGeoJson(textContent);
+   else imported=parseKml(textContent);
+  }
+  if(features.length+imported.length>MAX_IMPORT_FEATURES)throw new Error("سيصبح مجموع العناصر أكبر من 5000؛ احفظ مشروعاً منفصلاً أو احذف بعض العناصر أولاً.");
+  const vertexCount=list=>list.reduce((total,f)=>total+f.coordinates.length+(f.holes||[]).reduce((n,ring)=>n+ring.length,0),0);
+  if(vertexCount(features)+vertexCount(imported)>MAX_IMPORT_VERTICES)throw new Error("عدد نقاط الملفات يتجاوز 100 ألف نقطة؛ قسّم البيانات إلى مشروعات أصغر.");
+  if(!imported.length)throw new Error("لم نعثر على عناصر جغرافية صالحة داخل الملف.");
+  features=features.concat(imported);selectedId=imported[0].id;saveCurrent();render();
+  const all=imported.flatMap(f=>f.coordinates);if(all.length)map.fitBounds(L.latLngBounds(all.map(p=>[p.lat,p.lon])).pad(.15));
+  status("تم استيراد "+imported.length+" عنصر من "+file.name+". احفظ المشروع للاحتفاظ به على هذا الجهاز.");
+ }catch(err){status(err.message||"تعذر قراءة الملف.",true)}
+});
+function getProjects(){try{const p=JSON.parse(localStorage.getItem(PROJECTS)||"[]");return Array.isArray(p)?p:[]}catch(e){return []}}
+function refreshProjects(){const sel=$("projectSelect"),old=sel.value;sel.replaceChildren(new Option("اختر مشروعاً محفوظاً",""));getProjects().forEach(p=>sel.add(new Option(p.name,p.id)));if(getProjects().some(p=>p.id===old))sel.value=old}
+$("saveProject").onclick=()=>{const name=safeName($("projectName").value);if(name==="عنصر جغرافي"){status("اكتب اسم المشروع أولاً.",true);return}if(!features.length){status("لا توجد عناصر لحفظها.",true);return}try{const projects=getProjects().filter(p=>p.name!==name);projects.unshift({id:id(),name,updatedAt:new Date().toISOString(),features:JSON.parse(JSON.stringify(features))});localStorage.setItem(PROJECTS,JSON.stringify(projects.slice(0,15)));refreshProjects();status("تم حفظ المشروع محلياً على هذا الجهاز.")}catch(e){status("تعذر حفظ المشروع؛ قد تكون مساحة التخزين ممتلئة.",true)}};
+$("loadProject").onclick=()=>{const p=getProjects().find(x=>x.id===$("projectSelect").value);if(!p)return;features=(Array.isArray(p.features)?p.features:[]).map(Geo.normalizeFeature).filter(Boolean).slice(0,5000);selectedId=features[0]?.id||null;saveCurrent();render();status("تم فتح المشروع: "+p.name)};
+$("deleteProject").onclick=()=>{const idv=$("projectSelect").value;if(!idv)return;localStorage.setItem(PROJECTS,JSON.stringify(getProjects().filter(p=>p.id!==idv)));refreshProjects();status("تم حذف نسخة المشروع المحفوظة.")};
+$("clearAll").onclick=()=>{if(!features.length)return;if(!confirm("هل تريد مسح جميع العناصر الحالية؟"))return;features=[];selectedId=null;saveCurrent();render();status("تم مسح العناصر الحالية.")};
+try{const saved=JSON.parse(localStorage.getItem(STORAGE)||"[]");features=Array.isArray(saved)?saved.map(Geo.normalizeFeature).filter(Boolean).slice(0,5000):[]}catch(e){features=[]}
+selectedId=features[0]?.id||null;refreshProjects();render();
+})();
+</script>
+</body>
+</html>

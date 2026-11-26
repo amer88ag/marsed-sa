@@ -82,6 +82,9 @@ const NON_DATA_HOSTS = {
   "www.almisnid.com": "reference link in the seasons page",
   "alojeiri.com": "reference link in the seasons page",
   "aa.usno.navy.mil": "astronomical reference link in the seasons page",
+  "www.google.com": "user-initiated Google Maps links; no embedded Google tiles or copied imagery",
+  "earth.google.com": "user-initiated Google Earth links; no embedded imagery or automated scraping",
+  "www.opengis.net": "KML 2.2 XML namespace identifier; not a network request",
   "adsb.lol": "ADSB.lol attribution link (flight radar)",
   "airplanes.live": "airplanes.live attribution link (flight radar)"
 };

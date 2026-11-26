@@ -66,3 +66,15 @@ test('valid time is shown in Saudi local time and the state is fresh', async () 
   assert.match(text(page, 'updated'), /23:45/);
   assert.equal(page.$('dataState').getAttribute ? page.$('dataState').getAttribute('data-state') : page.$('dataState')['data-state'], 'fresh');
 });
+
+test('forecast rainfall chart: zero is a visible mark labelled 0, missing is a grey ×, values match the source', async () => {
+  const page = await runDashboard(NOW, fullPayload());
+  const svg = page.$('rainChart').innerHTML;
+  // fullPayload daily: precipitation_sum = [3, 4] for the two days (see VALUES above); add a zero/missing case:
+  const p = fullPayload(); p.daily.precipitation_sum = [0, null];
+  const svg2 = (await runDashboard(NOW, p)).$('rainChart').innerHTML;
+  assert.match(svg2, /height="2\.0"/, 'zero drawn with a visible height');
+  assert.match(svg2, />0<\/text>/, 'zero labelled');
+  assert.match(svg2, /2026-11-25: قيمة غير متاحة \(ليست صفراً\)<\/title>×/, 'missing marked, not zero');
+  assert.match(svg, /2026-11-24: 3\.0 ملم/);
+});

@@ -129,6 +129,70 @@
     return rise !== null ? { rise: new Date(rise).toISOString(), culmination: null, set: null, max_elevation_deg: null, in_progress_at_start: inProgress, open_ended: true } : null;
   }
 
+  // ---- Naked-eye visibility (geometry only; brightness/magnitude not computed) ----
+  // Visible ⇔ satellite above `minElevation` from the observer, the satellite is in
+  // sunlight, and the observer's sky is dark (Sun below −6°, civil twilight).
+  // Earth's shadow uses the cylindrical model (adequate for low orbits; it ignores
+  // the penumbra, so results within ~a minute of shadow entry/exit are approximate).
+  const AU_KM = 149597870.7, EARTH_RADIUS_KM = 6378.135, DARK_SKY_SUN_DEG = -6;
+
+  // Sun position: Astronomical Almanac low-precision formula (≈0.01° for 1950–2050).
+  // Not satellite.js sunPos: in 6.0.1 it places the 2026 March equinox ~13 h late
+  // (≈0.5° in ecliptic longitude), checked in test/sat-radar.test.js.
+  function sunEci(date) {
+    const n = date.getTime() / 86400000 + 2440587.5 - 2451545.0, r = Math.PI / 180;
+    const L = 280.460 + 0.9856474 * n, g = (357.528 + 0.9856003 * n) * r;
+    const lambda = (L + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) * r;
+    const eps = (23.439 - 0.0000004 * n) * r;
+    const R = (1.00014 - 0.01671 * Math.cos(g) - 0.00014 * Math.cos(2 * g)) * AU_KM;
+    return { x: R * Math.cos(lambda), y: R * Math.cos(eps) * Math.sin(lambda), z: R * Math.sin(eps) * Math.sin(lambda) };
+  }
+  function sunDeclinationDeg(date) { const v = sunEci(date); return Math.asin(v.z / Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z)) * DEG; }
+
+  // Elevation of the Sun (degrees) seen from the observer at `date`.
+  function sunElevation(observer, date) {
+    const ecf = S.eciToEcf(sunEci(date), S.gstime(date));
+    const la = S.ecfToLookAngles({ latitude: observer.lat / DEG, longitude: observer.lon / DEG, height: (observer.height_m || 0) / 1000 }, ecf);
+    return la.elevation * DEG;
+  }
+
+  // Cylindrical shadow test for an ECI position (km) given the Sun's ECI position.
+  function inSunlight(pos, sun) {
+    const len = Math.sqrt(sun.x * sun.x + sun.y * sun.y + sun.z * sun.z);
+    const u = { x: sun.x / len, y: sun.y / len, z: sun.z / len };
+    const along = pos.x * u.x + pos.y * u.y + pos.z * u.z;
+    if (along >= 0) return true; // on the day side of Earth
+    const px = pos.x - along * u.x, py = pos.y - along * u.y, pz = pos.z - along * u.z;
+    return Math.sqrt(px * px + py * py + pz * pz) > EARTH_RADIUS_KM;
+  }
+
+  function visibilityAt(item, date, observer, minElevation) {
+    const pv = S.propagate(item.satrec, date);
+    if (!pv || !pv.position || !Number.isFinite(pv.position.x)) return null;
+    const look = positionAt(item, date, observer);
+    if (!look) return null;
+    const sunlit = inSunlight(pv.position, sunEci(date));
+    const sunEl = sunElevation(observer, date);
+    const above = look.elevation_deg > (Number.isFinite(minElevation) ? minElevation : 10);
+    const dark = sunEl < DARK_SKY_SUN_DEG;
+    return { visible: above && sunlit && dark, above_horizon: look.elevation_deg > 0, sunlit: sunlit, observer_dark: dark, sun_elevation_deg: sunEl };
+  }
+
+  // Within a computed pass, the part (if any) when the satellite is visible to the eye.
+  function passVisibility(item, observer, pass, minElevation) {
+    if (!pass || !pass.rise || !pass.set) return null;
+    let start = null, end = null, best = null;
+    for (let t = Date.parse(pass.rise); t <= Date.parse(pass.set); t += 10000) {
+      const v = visibilityAt(item, new Date(t), observer, Number.isFinite(minElevation) ? minElevation : 10);
+      if (v && v.visible) { if (start === null) start = t; end = t; const p = positionAt(item, new Date(t), observer); if (!best || p.elevation_deg > best.el) best = { t: t, el: p.elevation_deg }; }
+    }
+    if (start === null) {
+      const mid = visibilityAt(item, new Date(pass.culmination || pass.rise), observer, 0);
+      return { visible: false, reason: !mid ? "unknown" : !mid.observer_dark ? "sky_not_dark" : !mid.sunlit ? "in_earth_shadow" : "too_low" };
+    }
+    return { visible: true, start: new Date(start).toISOString(), end: new Date(end).toISOString(), max_elevation_deg: best.el };
+  }
+
   // Fetch a group with CelesTrak's 2-hour policy: reuse a stored copy younger than
   // 2 h without any request; on failure fall back to the last valid copy (labelled).
   async function loadGroup(group, options) {
@@ -153,5 +217,5 @@
     }
   }
 
-  return { GROUPS, BASE, REFRESH_MINUTES, EPOCH_STALE_DAYS, groupUrl, parseGroup, epochAgeDays, positionAt, headingAt, groundTrack, nextPass, loadGroup };
+  return { GROUPS, BASE, REFRESH_MINUTES, EPOCH_STALE_DAYS, DARK_SKY_SUN_DEG, groupUrl, parseGroup, epochAgeDays, positionAt, headingAt, groundTrack, nextPass, sunEci, sunDeclinationDeg, sunElevation, inSunlight, visibilityAt, passVisibility, loadGroup };
 });
