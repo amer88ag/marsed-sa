@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b46">
+<meta name="description" content="مساحة عمل جغرافية لفتح المواقع في Google Maps وGoogle Earth وإدارة ملفات KML وKMZ.">
+<title>مساحة العمل الجغرافية | مرصد السعودية</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+:root{--navy:#102b46;--blue:#1769aa;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}
+header{background:linear-gradient(120deg,#102b46,#174d76);color:white;padding:20px max(16px,calc((100% - 1320px)/2))}
+header a{color:#d9eafa;text-decoration:none;font-size:13px}h1{font-size:clamp(22px,3vw,29px);margin:10px 0 5px}header p{margin:0;color:#c6d8e7;font-size:13px}
+main{max-width:1320px;margin:auto;padding:16px 14px 40px}.toolbar,.actions,.draw-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.panel{background:white;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:13px;box-shadow:0 3px 14px #183b5710}
+.toolbar{padding:12px}.btn{border:1px solid var(--line);background:white;color:var(--ink);border-radius:9px;padding:9px 12px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:white}.btn:disabled{opacity:.45;cursor:not-allowed}.btn.active{background:#e8f2fb;border-color:var(--blue);color:#145b91}
+input,select{font:inherit;border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:white;color:var(--ink);min-width:0}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:13px}
+#map{height:min(73vh,760px);min-height:430px;background:#e8eff4}
+.map-head,.section-head{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.map-head b,.section-head b{font-size:14px}.map-head small,.section-head small{font-size:11px;color:var(--muted)}
+.sidebar{padding:12px}.sidebar h2{font-size:15px;margin:0 0 10px}.sidebar p{font-size:12px;color:var(--muted);line-height:1.8;margin:7px 0}
+.draw-tools{padding:0 12px 12px}.draw-tools .btn{flex:1}
+.feature-list{display:grid;gap:7px;max-height:340px;overflow:auto}
+.feature{border:1px solid var(--line);border-radius:9px;padding:9px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer}
+.feature.selected{border-color:var(--blue);background:#f0f7fc}.feature strong{font-size:12px;display:block}.feature small{font-size:10px;color:var(--muted)}
+.feature button{border:0;background:transparent;color:#9a3412;font-size:12px;cursor:pointer}
+.status{font-size:12px;color:var(--muted);line-height:1.8;padding:10px 13px}.status.error{color:#b42318}
+.note{background:#fff8e8;border:1px solid #f2dfb4;border-radius:9px;padding:9px;font-size:11px;line-height:1.8;color:#80520b;margin-top:10px}
+.actions{padding:0 12px 12px}.actions .btn{flex:1}
+.file-row{display:flex;gap:7px;flex-wrap:wrap;padding:0 12px 12px}.file-row input{flex:1;width:100%}
+.divider{height:1px;background:var(--line);margin:12px 0}
+.empty{font-size:12px;color:var(--muted);padding:12px;text-align:center;border:1px dashed var(--line);border-radius:9px}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.sidebar{order:2}#map{height:55vh;min-height:360px}.feature-list{max-height:230px}}
+</style>
+</head>
+<body>
+<header><a href="../">← العودة إلى المرصد</a><h1>مساحة العمل الجغرافية</h1><p>إدارة المواقع والحدود والمسارات، ثم فتحها في Google Maps أو Google Earth</p></header>
+<main>
+<section class="panel">
+<div class="toolbar">
+<button class="btn primary" id="openMaps" disabled>فتح العنصر في Google Maps</button>
+<button class="btn" id="openEarth" disabled>فتح الموقع في Google Earth</button>
+<button class="btn" id="openDirections" disabled>اتجاهات المسار في Google Maps</button>
+<button class="btn" id="exportKml">تصدير KML</button>
+<button class="btn" id="exportKmz">تصدير KMZ</button>
+<label class="btn" for="importFile">استيراد KML / KMZ</label><input id="importFile" type="file" accept=".kml,.kmz,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" hidden>
+</div>
+<div id="status" class="status" role="status" aria-live="polite">ابدأ بإضافة موقع أو رسم مسار أو حدود أرض، أو استورد ملف KML/KMZ من Google Earth.</div>
+</section>
+<div class="layout">
+<section class="panel">
+<div class="map-head"><b>الخريطة التفاعلية</b><small>OpenStreetMap · افتح أي عنصر في Google</small></div>
+<div id="map" role="application" aria-label="خريطة رسم المواقع والمسارات والحدود"></div>
+<div class="draw-tools">
+<button class="btn" id="drawPoint">إضافة موقع</button>
+<button class="btn" id="drawLine">رسم مسار</button>
+<button class="btn" id="drawPolygon">رسم حدود أرض</button>
+<button class="btn" id="finishDraw" disabled>إنهاء الرسم</button>
+<button class="btn" id="cancelDraw" disabled>إلغاء</button>
+</div>
+</section>
+<aside>
+<section class="panel sidebar">
+<h2>العناصر الجغرافية</h2>
+<div id="featureList" class="feature-list"><div class="empty">لا توجد عناصر بعد.</div></div>
+<div class="divider"></div>
+<h2>المشروعات المحفوظة على هذا الجهاز</h2>
+<div class="file-row"><input id="projectName" maxlength="60" placeholder="اسم المشروع"><button class="btn primary" id="saveProject">حفظ المشروع</button></div>
+<div class="file-row"><select id="projectSelect" aria-label="المشروعات المحفوظة"><option value="">اختر مشروعاً محفوظاً</option></select><button class="btn" id="loadProject">فتح</button></div>
+<div class="file-row"><button class="btn" id="deleteProject">حذف المشروع المحدد</button><button class="btn" id="clearAll">مسح العناصر الحالية</button></div>
+<p>الحفظ محلي في متصفح هذا الجهاز فقط. لا تُرفع المواقع إلى خادم ولا تتم مزامنتها تلقائياً مع أجهزتك الأخرى.</p>
+<div class="note">Google Earth يفتح الموقع أو الإحداثيات. لن يرفع الملف تلقائياً إلى حسابك؛ لاستعراض مشروعك ثلاثي الأبعاد، صدّر KML/KMZ ثم افتحه أو استورده في Google Earth.</div>
+</section>
+</aside>
+</div>
+<section class="panel">
+<div class="section-head"><b>حول التكامل مع Google</b><small>لا يحتاج مفتاح API</small></div>
+<div class="sidebar">
+<p><b>Google Maps:</b> يفتح الموقع المحدد أو اتجاهات المسار عبر روابط Google الرسمية.</p>
+<p><b>Google Earth:</b> يفتح الإحداثيات في Earth على الويب. الصور التاريخية وثلاثية الأبعاد تعتمد على ما توفره Google للموقع.</p>
+<p><b>الملفات:</b> استيراد KML وKMZ وعرض النقاط والخطوط والمضلعات، وتصديرها لتبادلها مع Google Earth. الملفات المستوردة تبقى في المتصفح حتى تحفظ المشروع.</p>
+<p><a href="https://developers.google.com/maps/documentation/urls/get-started" target="_blank" rel="noopener">توثيق Google Maps URLs</a> · <a href="https://developers.google.com/maps/documentation/earth/quick-reference" target="_blank" rel="noopener">دليل Google Earth</a></p>
+</div>
+</section>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="../src/platform/geo/google-workspace.js"></script>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id),Geo=window.GoogleGeoWorkspace;
+const STORAGE="marsed.google.geo.workspace.v1",PROJECTS="marsed.google.geo.projects.v1";
+let features=[],selectedId=null,mode=null,draft=[],draftLayer=null,rendered=[];
+const map=L.map("map").setView([24.2,45.2],5);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+function status(message,error){$("status").textContent=message;$("status").classList.toggle("error",!!error)}
+function saveCurrent(){try{localStorage.setItem(STORAGE,JSON.stringify(features))}catch(e){status("تعذر الحفظ المحلي؛ قد تكون مساحة التخزين ممتلئة.",true)}}
+function safeName(value){return String(value||"عنصر جغرافي").trim().slice(0,160)||"عنصر جغرافي"}
+function id(){return "geo-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7)}
+function clearRendered(){rendered.forEach(x=>map.removeLayer(x));rendered=[]}
+function render(){
+ clearRendered();const list=$("featureList");list.replaceChildren();
+ features.forEach(f=>{
+   const color=f.id===selectedId?"#1769aa":"#d97706";let layer;
+   const latlngs=f.coordinates.map(p=>[p.lat,p.lon]);
+   if(f.type==="point")layer=L.circleMarker(latlngs[0],{radius:8,color,fillColor:color,fillOpacity:.8});
+   else if(f.type==="line")layer=L.polyline(latlngs,{color,weight:4});
+   else layer=L.polygon(latlngs,{color,fillColor:color,fillOpacity:.18,weight:3});
+   layer.bindTooltip(f.name);layer.on("click",()=>select(f.id));layer.addTo(map);rendered.push(layer);
+   const row=document.createElement("div");row.className="feature"+(f.id===selectedId?" selected":"");row.onclick=()=>select(f.id);
+   const info=document.createElement("div"),strong=document.createElement("strong"),small=document.createElement("small");
+   strong.textContent=f.name;small.textContent=f.type==="point"?"موقع":f.type==="line"?"مسار":"مضلع";
+   info.append(strong,small);const del=document.createElement("button");del.type="button";del.textContent="حذف";del.onclick=e=>{e.stopPropagation();features=features.filter(x=>x.id!==f.id);if(selectedId===f.id)selectedId=null;saveCurrent();render();status("تم حذف العنصر من مساحة العمل.")};
+   row.append(info,del);list.append(row);
+ });
+ if(!features.length)list.innerHTML='<div class="empty">لا توجد عناصر بعد.</div>';
+ updateActions();
+}
+function select(featureId){selectedId=featureId;render();const f=features.find(x=>x.id===selectedId);if(f){const b=L.latLngBounds(f.coordinates.map(p=>[p.lat,p.lon]));if(f.type==="point")map.setView(f.coordinates.map(p=>p.lat),Math.max(map.getZoom(),12));else map.fitBounds(b.pad(.2));}}
+function updateActions(){const f=features.find(x=>x.id===selectedId);$("openMaps").disabled=!f;$("openEarth").disabled=!f;$("openDirections").disabled=!f||f.type!=="line"}
+function addFeature(type,coordinates,name){
+ const feature=Geo.normalizeFeature({id:id(),type,coordinates,name:safeName(name|| (type==="point"?"موقع جديد":type==="line"?"مسار جديد":"حدود جديدة"))});
+ if(!feature){status("تعذر إنشاء العنصر: تحقق من الإحداثيات وعدد النقاط.",true);return}
+ features.push(feature);selectedId=feature.id;saveCurrent();render();status("أضيف العنصر إلى مساحة العمل. يمكنك فتحه في Google أو حفظ المشروع.");
+}
+function stopDraw(){mode=null;draft=[];if(draftLayer){map.removeLayer(draftLayer);draftLayer=null}$("finishDraw").disabled=true;$("cancelDraw").disabled=true;["drawPoint","drawLine","drawPolygon"].forEach(x=>$(x).classList.remove("active"))}
+function updateDraft(){if(draftLayer)map.removeLayer(draftLayer);const ll=draft.map(p=>[p.lat,p.lon]);if(draft.length===1)draftLayer=L.circleMarker(ll[0],{radius:7,color:"#d97706"}).addTo(map);else if(mode==="line")draftLayer=L.polyline(ll,{color:"#d97706",dashArray:"6 5"}).addTo(map);else if(mode==="polygon")draftLayer=L.polygon(ll,{color:"#d97706",dashArray:"6 5",fillOpacity:.08}).addTo(map)}
+function startDraw(type){stopDraw();mode=type;$(type==="point"?"drawPoint":type==="line"?"drawLine":"drawPolygon").classList.add("active");$("cancelDraw").disabled=false;$("finishDraw").disabled=type==="point";status(type==="point"?"انقر على الخريطة لإضافة الموقع.":type==="line"?"انقر نقطتين أو أكثر ثم اضغط إنهاء الرسم.":"انقر ثلاث نقاط أو أكثر لتحديد الحدود ثم اضغط إنهاء الرسم.");}
+map.on("click",e=>{
+ if(!mode)return;const p={lat:e.latlng.lat,lon:e.latlng.lng};
+ if(mode==="point"){addFeature("point",[p]);stopDraw();return}
+ draft.push(p);updateDraft();$("finishDraw").disabled=draft.length<(mode==="line"?2:3);
+});
+function finishDraw(){if(!mode||mode==="point")return;const type=mode;const pts=draft.slice();stopDraw();if(type==="polygon"&&pts.length>2)addFeature(type,pts);else if(type==="line"&&pts.length>1)addFeature(type,pts);else status("عدد النقاط غير كافٍ.",true)}
+$("drawPoint").onclick=()=>startDraw("point");$("drawLine").onclick=()=>startDraw("line");$("drawPolygon").onclick=()=>startDraw("polygon");$("finishDraw").onclick=finishDraw;$("cancelDraw").onclick=()=>{stopDraw();status("تم إلغاء الرسم.")};
+function openUrl(url){if(!url)return;window.open(url,"_blank","noopener,noreferrer")}
+$("openMaps").onclick=()=>{const f=features.find(x=>x.id===selectedId);if(f)openUrl(Geo.mapsUrl(f))};
+$("openEarth").onclick=()=>{const f=features.find(x=>x.id===selectedId);if(f)openUrl(Geo.earthUrl(f))};
+$("openDirections").onclick=()=>{const f=features.find(x=>x.id===selectedId);if(f)openUrl(Geo.directionsUrl(f))};
+function download(name,blob){const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+$("exportKml").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-google-workspace.kml",new Blob([Geo.toKml(features)],{type:"application/vnd.google-earth.kml+xml;charset=utf-8"}));status("تم تجهيز ملف KML للتنزيل.")};
+$("exportKmz").onclick=async()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}if(!window.JSZip){status("مكتبة ضغط KMZ غير متاحة؛ استخدم تصدير KML.",true);return}try{const zip=new JSZip();zip.file("doc.kml",Geo.toKml(features));const blob=await zip.generateAsync({type:"blob",compression:"DEFLATE"});download("marsed-google-workspace.kmz",blob);status("تم تجهيز ملف KMZ للتنزيل.")}catch(e){status("تعذر إنشاء ملف KMZ.",true)}};
+function parseKml(xml){
+ const doc=new DOMParser().parseFromString(xml,"application/xml");if(doc.querySelector("parsererror"))throw new Error("ملف KML غير صالح.");
+ const placemarks=Array.from(doc.getElementsByTagNameNS("*","Placemark"));const out=[];
+ for(const pm of placemarks){
+  const nameNode=pm.getElementsByTagNameNS("*","name")[0],name=safeName(nameNode&&nameNode.textContent);
+  const pointNode=pm.getElementsByTagNameNS("*","Point")[0],lineNode=pm.getElementsByTagNameNS("*","LineString")[0],polyNode=pm.getElementsByTagNameNS("*","Polygon")[0];
+  let type,coordText;
+  if(pointNode){type="point";const c=pointNode.getElementsByTagNameNS("*","coordinates")[0];coordText=c&&c.textContent}
+  else if(lineNode){type="line";const c=lineNode.getElementsByTagNameNS("*","coordinates")[0];coordText=c&&c.textContent}
+  else if(polyNode){type="polygon";const c=polyNode.getElementsByTagNameNS("*","outerBoundaryIs")[0]?.getElementsByTagNameNS("*","coordinates")[0];coordText=c&&c.textContent}
+  else continue;
+  const coords=Geo.parseCoordinateText(coordText);if(!coords)continue;
+  const f=Geo.normalizeFeature({id:id(),name,type,coordinates:coords});if(f)out.push(f);
+  if(out.length>=5000)break;
+ }
+ return out;
+}
+$("importFile").addEventListener("change",async e=>{
+ const file=e.target.files&&e.target.files[0];e.target.value="";if(!file)return;
+ if(file.size>15*1024*1024){status("حجم الملف يتجاوز الحد المسموح (15 ميغابايت).",true);return}
+ try{
+  let textContent;
+  if(file.name.toLowerCase().endsWith(".kmz")){
+   if(!window.JSZip)throw new Error("تعذر تحميل مكتبة قراءة KMZ.");
+   const zip=await JSZip.loadAsync(file);const entry=zip.file("doc.kml")||Object.values(zip.files).find(x=>!x.dir&&x.name.toLowerCase().endsWith(".kml"));
+   if(!entry)throw new Error("لم يُعثر على ملف KML داخل KMZ.");textContent=await entry.async("string");
+  }else textContent=await file.text();
+  const imported=parseKml(textContent);if(!imported.length)throw new Error("لم نعثر على نقاط أو مسارات أو مضلعات صالحة داخل الملف.");
+  features=features.concat(imported).slice(0,5000);selectedId=imported[0].id;saveCurrent();render();
+  const all=imported.flatMap(f=>f.coordinates);if(all.length)map.fitBounds(L.latLngBounds(all.map(p=>[p.lat,p.lon])).pad(.15));
+  status("تم استيراد "+imported.length+" عنصر من "+file.name+". احفظ المشروع للاحتفاظ به على هذا الجهاز.");
+ }catch(err){status(err.message||"تعذر قراءة الملف.",true)}
+});
+function getProjects(){try{const p=JSON.parse(localStorage.getItem(PROJECTS)||"[]");return Array.isArray(p)?p:[]}catch(e){return []}}
+function refreshProjects(){const sel=$("projectSelect"),old=sel.value;sel.replaceChildren(new Option("اختر مشروعاً محفوظاً",""));getProjects().forEach(p=>sel.add(new Option(p.name,p.id)));if(getProjects().some(p=>p.id===old))sel.value=old}
+$("saveProject").onclick=()=>{const name=safeName($("projectName").value);if(name==="عنصر جغرافي"){status("اكتب اسم المشروع أولاً.",true);return}if(!features.length){status("لا توجد عناصر لحفظها.",true);return}try{const projects=getProjects().filter(p=>p.name!==name);projects.unshift({id:id(),name,updatedAt:new Date().toISOString(),features:JSON.parse(JSON.stringify(features))});localStorage.setItem(PROJECTS,JSON.stringify(projects.slice(0,15)));refreshProjects();status("تم حفظ المشروع محلياً على هذا الجهاز.")}catch(e){status("تعذر حفظ المشروع؛ قد تكون مساحة التخزين ممتلئة.",true)}};
+$("loadProject").onclick=()=>{const p=getProjects().find(x=>x.id===$("projectSelect").value);if(!p)return;features=(Array.isArray(p.features)?p.features:[]).map(Geo.normalizeFeature).filter(Boolean).slice(0,5000);selectedId=features[0]?.id||null;saveCurrent();render();status("تم فتح المشروع: "+p.name)};
+$("deleteProject").onclick=()=>{const idv=$("projectSelect").value;if(!idv)return;localStorage.setItem(PROJECTS,JSON.stringify(getProjects().filter(p=>p.id!==idv)));refreshProjects();status("تم حذف نسخة المشروع المحفوظة.")};
+$("clearAll").onclick=()=>{if(!features.length)return;if(!confirm("هل تريد مسح جميع العناصر الحالية؟"))return;features=[];selectedId=null;saveCurrent();render();status("تم مسح العناصر الحالية.")};
+try{const saved=JSON.parse(localStorage.getItem(STORAGE)||"[]");features=Array.isArray(saved)?saved.map(Geo.normalizeFeature).filter(Boolean).slice(0,5000):[]}catch(e){features=[]}
+selectedId=features[0]?.id||null;refreshProjects();render();
+})();
+</script>
+</body>
+</html>
