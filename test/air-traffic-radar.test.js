@@ -23,3 +23,10 @@ test("anonymous OpenSky request limits broad geographic queries and handles rate
  assert.match(page,/response\.status===429/);
  assert.match(page,/خمس دقائق/);\n assert.match(page,/setInterval\(\(\)=>\{if\(document\.visibilityState==="visible"\)refresh\(\)\},300000\)/);
 });
+
+test("OpenSky operational-use licensing gate is visible and documented",()=>{
+ assert.match(page,/موافقة مكتوبة قبل دمج واجهة REST/);
+ const docs=fs.readFileSync(path.join(__dirname,"../docs/AIR_TRAFFIC_RADAR.md"),"utf8");
+ assert.match(docs,/مانع إطلاق/);
+ assert.match(docs,/ترخيصاً كتابياً/);
+});
