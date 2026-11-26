@@ -30,3 +30,13 @@ test("selected feature panel supports rename, metric measurements, coordinate co
   assert.match(page,/تصدير العنصر المحدد/);
   assert.match(page,/navigator\.clipboard\.writeText/);
 });
+
+test("GeoJSON and GPX import/export controls and parsers are present",()=>{
+  for(const id of ["exportGeoJson","exportGpx"])assert.match(page,new RegExp('id="'+id+'"'));
+  assert.match(page,/\.geojson/);assert.match(page,/\.gpx/);
+  assert.match(page,/function parseGeoJson/);assert.match(page,/FeatureCollection/);
+  assert.match(page,/MultiPolygon/);assert.match(page,/function parseGpx/);
+  assert.match(page,/getElementsByTagNameNS\("\*","wpt"\)/);
+  assert.match(page,/getElementsByTagNameNS\("\*","trk"\)/);
+  assert.match(page,/function toGeoJson/);assert.match(page,/function toGpx/);
+});
