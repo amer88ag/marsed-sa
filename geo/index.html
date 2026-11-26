@@ -263,7 +263,6 @@ function parseKml(xml){
    const f=Geo.normalizeFeature({id:id(),name:label,type:item.type,coordinates:coords});if(f)out.push(f);
    if(out.length>MAX_IMPORT_FEATURES)throw new Error("ملف KML يحتوي على أكثر من 5000 عنصر؛ قسّمه إلى ملفات أصغر.");
   }
-  if(out.length>=5000)break;
  }
  return out;
 }
@@ -282,7 +281,9 @@ $("importFile").addEventListener("change",async e=>{
    if(ext==="gpx")imported=parseGpx(textContent);
    else if(ext==="geojson"||ext==="json")imported=parseGeoJson(textContent);
    else imported=parseKml(textContent);
+   if(textContent.length>MAX_EXPANDED_TEXT)throw new Error("محتوى الملف يتجاوز 30 ميغابايت؛ قسّمه إلى ملفات أصغر.");
   }
+  if(features.length+imported.length>MAX_IMPORT_FEATURES)throw new Error("سيصبح مجموع العناصر أكبر من 5000؛ احفظ مشروعاً منفصلاً أو احذف بعض العناصر أولاً.");
   if(!imported.length)throw new Error("لم نعثر على عناصر جغرافية صالحة داخل الملف.");
   features=features.concat(imported);selectedId=imported[0].id;saveCurrent();render();
   const all=imported.flatMap(f=>f.coordinates);if(all.length)map.fitBounds(L.latLngBounds(all.map(p=>[p.lat,p.lon])).pad(.15));
