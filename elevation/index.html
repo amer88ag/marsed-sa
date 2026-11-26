@@ -61,7 +61,7 @@ button,input{font:inherit}button{border:1px solid var(--line);background:#fff;bo
 var $=function(id){return document.getElementById(id)};
 var map=L.map("map").setView([23.8,45.0],5),marker=null,requestId=0,activeAbort=null,lastResult=null,TIMEOUT_MS=12000;
 var pathMode=false,pathPoints=[],pathMarkers=[],pathLine=null,profileRequestId=0,lastProfile=null;
-var flowRequestId=0,flowLayer=L.layerGroup().addTo(map),flowPathLayer=L.layerGroup().addTo(map),lastFlow=null;
+var flowRequestId=0,flowLayer=typeof L.layerGroup==="function"?L.layerGroup().addTo(map):{clearLayers:function(){},addLayer:function(){}},flowPathLayer=typeof L.layerGroup==="function"?L.layerGroup().addTo(map):{clearLayers:function(){},addLayer:function(){}},lastFlow=null;
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
 if(typeof SaudiMapFrame!=="undefined")SaudiMapFrame.frame(map,L,{url:"../data/geo/saudi_boundary.geojson"});
 function status(message,isError){$("status").textContent=message;$("status").style.color=isError?"#b42318":""}
