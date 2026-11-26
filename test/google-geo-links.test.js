@@ -29,3 +29,12 @@ test("KML export preserves valid points and escapes XML", () => {
   assert.match(kml, /42.5,18.2,0/);
   assert.doesNotMatch(kml, /خارج النطاق/);
 });
+
+test("KML polygon export closes the ring and escapes the name", () => {
+  const kml = Geo.toPolygonKml([
+    {lat:18.2,lon:42.5},{lat:18.2,lon:42.6},{lat:18.3,lon:42.6}
+  ], "مزرعة & أرض");
+  assert.match(kml, /مزرعة &amp; أرض/);
+  assert.match(kml, /42.5,18.2,0 42.5,18.2,0/);
+  assert.equal(Geo.toPolygonKml([{lat:1,lon:2},{lat:2,lon:3}], "غير مكتمل"), null);
+});
