@@ -10,7 +10,13 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const ROOT = path.join(__dirname, "..");
-const BASELINE = process.env.GATE_BASELINE || "a59d3974997392dbdc6e95817215009880df09d2";
+// Baseline = current GitHub main (b9770f4). PR #25 was squash-merged into main as ebb9d6d (tree == 0fda898);
+// this series re-applies the later local work on top of main for a new PR.
+const BASELINE = process.env.GATE_BASELINE || "b9770f48c31ecbbc46af94c02f73227ade678cef";
+const BASELINE_REF = process.env.GATE_BASELINE_REF || "origin/main";
+// G4–G6 compare with the ORIGINAL review baseline a59d397 (stronger than the moving GitHub baseline):
+// deploy/CI files, historical CHIRPS data and the 4 disputed coordinates (inline in index.html there).
+const ORIGINAL_BASELINE = "a59d3974997392dbdc6e95817215009880df09d2";
 const results = [];
 const git = (...args) => execFileSync("git", args, { cwd: ROOT, encoding: "utf8" }).trim();
 function check(id, title, fn) {
@@ -42,28 +48,28 @@ check("G3", "Local remote-tracking ref equals the baseline; HEAD builds on it", 
   // Compares the LOCALLY recorded ref (as of the last fetch) with the baseline.
   // It does not contact GitHub, does not see other branches or forks, and cannot
   // prove that no push happened.
-  const remote = git("rev-parse", "origin/feature/elevation-explorer");
-  must(remote === BASELINE, "local ref origin/feature/elevation-explorer is " + remote);
+  const remote = git("rev-parse", BASELINE_REF);
+  must(remote === BASELINE, "local ref " + BASELINE_REF + " is " + remote);
   must(git("merge-base", "--is-ancestor", BASELINE, "HEAD") === "", "HEAD does not descend from baseline");
-  return "local ref origin/feature/elevation-explorer = " + remote.slice(0, 7) + " (as last fetched; GitHub not queried); HEAD " + git("rev-parse", "--short", "HEAD") + " descends from it";
+  return "local ref " + BASELINE_REF + " = " + remote.slice(0, 7) + " (as last fetched; GitHub not queried); HEAD " + git("rev-parse", "--short", "HEAD") + " descends from it";
 });
 
 check("G4", "Listed CI/deploy configuration files unchanged in the commits", () => {
   // Diffs only these paths between baseline and HEAD. It does not prove that no
   // deployment, Actions run or Vercel build happened, nor inspect Vercel settings.
   const paths = [".github", "vercel.json", ".vercelignore", "package.json"];
-  const changed = git("diff", "--name-only", BASELINE, "HEAD", "--", ...paths);
+  const changed = git("diff", "--name-only", ORIGINAL_BASELINE, "HEAD", "--", ...paths);
   must(changed === "", "changed: " + changed);
   return paths.join(", ") + ": no differences between baseline and HEAD";
 });
 
 check("G5", "Historical CHIRPS data unchanged", () => {
-  must(git("diff", "--name-only", BASELINE, "HEAD", "--", "data/chirps_daily.json") === "", "data/chirps_daily.json changed");
+  must(git("diff", "--name-only", ORIGINAL_BASELINE, "HEAD", "--", "data/chirps_daily.json") === "", "data/chirps_daily.json changed");
   return "data/chirps_daily.json identical to baseline";
 });
 
 check("G6", "Disputed city coordinates unchanged (riyadh, makkah, najran, sakaka)", () => {
-  const baseline = git("show", BASELINE + ":index.html");
+  const baseline = git("show", ORIGINAL_BASELINE + ":index.html");
   const registry = JSON.parse(fs.readFileSync(path.join(ROOT, "config/cities.json"), "utf8"));
   const out = [];
   for (const id of ["riyadh", "makkah", "najran", "sakaka"]) {

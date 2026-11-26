@@ -1,0 +1,2 @@
+# Third-party files are kept byte-for-byte (line endings included); patches carry them as binary.
+vendor/** binary

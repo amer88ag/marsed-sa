@@ -10,6 +10,7 @@
   // periods never overlap or double-count.
   const DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
+  function arDays(n) { return n === 1 ? "يوم واحد" : n === 2 ? "يومان" : n <= 10 ? n + " أيام" : n + " يوماً"; }
   function daysInMonth(year, month) { return new Date(Date.UTC(year, month, 0)).getUTCDate(); }
   function isLeap(year) { return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0; }
 
@@ -105,9 +106,9 @@
 
   // One Arabic line per period; never prints a total for an incomplete period.
   function describePeriod(p) {
-    if (p.complete) return p.label + ": " + p.total_mm.toFixed(1) + " ملم (" + p.expected_days + " يوماً كاملة، أيام ممطرة ≥1 ملم: " + p.wet_days + ")";
+    if (p.complete) return p.label + ": " + p.total_mm.toFixed(1) + " ملم (" + arDays(p.expected_days) + " كاملة، أيام ممطرة ≥1 ملم: " + p.wet_days + ")";
     return p.label + ": جزئي — " + p.valid_days + " من " + p.expected_days + " يوماً متاحة؛ لا يُحسب مجموع للفترة" + (p.valid_days ? " (مجموع الأيام المتاحة فقط " + p.partial_sum_mm.toFixed(1) + " ملم)" : "");
   }
 
-  return { clean, byMonth, byYear, span, spells, describePeriod, daysInMonth };
+  return { clean, byMonth, byYear, span, spells, describePeriod, daysInMonth, arDays };
 });

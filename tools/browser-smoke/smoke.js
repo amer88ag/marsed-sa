@@ -46,7 +46,21 @@ const hourly = n => { const t=[],v=[]; const s=Date.now(); for(let i=0;i<n;i++){
     if (url.hostname === "router.project-osrm.org") return route.fulfill({ json: { code: "Ok", routes: [{ distance: 950000, duration: 32000, geometry: { coordinates: [[46.67,24.71],[44,23.5],[41,22.4],[39.19,21.49]] } }] } });
     // Tiles are deliberately NOT served here: Playwright route.fulfill bypasses CORS,
     // so tile content/CORS behaviour is tested by coverage-real-cors.js instead.
-    if (url.hostname === "gibs.earthdata.nasa.gov" && url.pathname.endsWith("wmts.cgi")) return route.fulfill({ contentType: "text/xml", body: "<Domains><DimensionDomain><Domain>2026-01-01/2026-11-23/P1D</Domain></DimensionDomain></Domains>" });
+    if (url.hostname === "gibs.earthdata.nasa.gov" && url.pathname.endsWith("wmts.cgi")) return route.fulfill({ contentType: "text/xml", body: "<Domains><DimensionDomain><Domain>2000-02-24/2026-11-23/P1D</Domain></DimensionDomain></Domains>" });
+    // CelesTrak GP (simulated, synthetic elements with a recent epoch).
+    if (url.hostname === "celestrak.org") {
+      const ep = new Date(Date.now() - 86400000).toISOString().replace("Z", "");
+      const mk = (id, name, raan, ma) => ({ OBJECT_NAME: name, OBJECT_ID: "1998-067A", EPOCH: ep, MEAN_MOTION: 15.5, ECCENTRICITY: 0.0005, INCLINATION: 51.64, RA_OF_ASC_NODE: raan, ARG_OF_PERICENTER: 90, MEAN_ANOMALY: ma, EPHEMERIS_TYPE: 0, CLASSIFICATION_TYPE: "U", NORAD_CAT_ID: id, ELEMENT_SET_NO: 999, REV_AT_EPOCH: 50000, BSTAR: 0.0002, MEAN_MOTION_DOT: 0.0001, MEAN_MOTION_DDOT: 0 });
+      return route.fulfill({ json: [mk(25544, "TEST STATION A", 120, 270), mk(48274, "TEST STATION B", 40, 10), mk(99999, "TEST STATION C", 300, 180)] });
+    }
+    // ADS-B (simulated): adsb.lol answers; airplanes.live only if the primary fails.
+    if (url.hostname === "api.adsb.lol" || url.hostname === "api.airplanes.live") {
+      const now = Date.now();
+      return route.fulfill({ json: { now, total: 3, ctime: now, ptime: 1, msg: "No error", ac: [
+        { hex: "710101", flight: "SVA1020 ", r: "HZ-AK11", t: "B77W", alt_baro: 35000, gs: 480, track: 270, lat: 24.9, lon: 46.5, seen_pos: 2, dst: 12, seen: 1, messages: 1, mlat: [], tisb: [], rssi: -20, type: "adsb_icao" },
+        { hex: "710102", flight: "", alt_baro: "ground", gs: 0, track: 0, lat: 24.96, lon: 46.70, seen_pos: 1, dst: 15, seen: 1, messages: 1, mlat: [], tisb: [], rssi: -20, type: "adsb_icao" },
+        { hex: "710103", flight: "NOPOS1", alt_baro: 20000, seen: 9, messages: 1, mlat: [], tisb: [], rssi: -30, type: "adsb_icao" } ] } });
+    }
     return route.abort();
   });
   const results = [];
@@ -58,6 +72,15 @@ const hourly = n => { const t=[],v=[]; const s=Date.now(); for(let i=0;i<n;i++){
     ["coverage", "http://local.test/satellite/coverage.html", async p => { await p.waitForTimeout(800); await p.click("#runAll"); await p.waitForFunction(() => /اكتمل فحص الطبقات|توقف/.test(document.getElementById("status").textContent), null, { timeout: 60000 });
       const pills = await p.$$eval("#summary .pill", els => els.map(e => e.textContent));
       return "STATUS: " + (await p.textContent("#status")) + " || DATES: " + (await p.textContent("#dateStatus")).slice(0, 80) + " || LAYERS: " + pills.join(" ## "); }],
+    ["earth-memory", "http://local.test/earth-memory/index.html", async p => { await p.waitForFunction(() => document.querySelectorAll("#years button").length > 0, null, { timeout: 15000 });
+      await p.click("#back5"); await p.waitForTimeout(300);
+      return "A=" + (await p.inputValue("#dateA")) + " B=" + (await p.inputValue("#dateB")) + " | years=" + (await p.$$eval("#years button", b => b.length)) + " | " + (await p.textContent("#availability")).slice(0, 140); }],
+    ["flights", "http://local.test/flights/index.html", async p => { await p.waitForFunction(() => document.querySelectorAll("#list .ac").length > 0, null, { timeout: 15000 });
+      await p.click("#list .ac"); await p.waitForTimeout(300);
+      return "state=" + (await p.getAttribute("#dataState", "data-state")) + " | list=" + (await p.$$eval("#list .ac", b => b.length)) + " | " + (await p.textContent("#status")).slice(0, 120) + " | card: " + (await p.textContent("#card")).slice(0, 220); }],
+    ["sat-radar", "http://local.test/sat-radar/index.html", async p => { await p.waitForFunction(() => document.getElementById("dataState").getAttribute("data-state") !== "not_loaded", null, { timeout: 15000 });
+      await p.click("#tabAll"); await p.waitForSelector("#list .sat"); await p.click("#list .sat"); await p.waitForTimeout(400);
+      return "state=" + (await p.getAttribute("#dataState", "data-state")) + " | markers=" + (await p.$$eval(".dot", e => e.length)) + " | tracks=" + (await p.$$eval("path.leaflet-interactive", e => e.length)) + " | " + (await p.textContent("#status")).slice(0, 100) + " | card: " + (await p.textContent("#card")).slice(0, 400); }],
     ["admin", "http://local.test/admin/index.html", async p => { await p.waitForTimeout(1200); return (await p.evaluate(() => document.body.innerText)).replace(/\s+/g, " ").slice(0, 300); }]
   ]) {
     const page = await ctx.newPage(); const errors = [];
@@ -67,10 +90,18 @@ const hourly = n => { const t=[],v=[]; const s=Date.now(); for(let i=0;i<n;i++){
     let out; try { out = await action(page); } catch (e) { out = "ACTION FAILED " + e.message; }
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     // Elements wider than the viewport that are not inside a horizontal scroller (clipping check).
+    // Clipped = part of the element is unreachable: it sticks out of the viewport, or out of an
+    // overflow:hidden/clip ancestor, with no horizontally scrollable ancestor in between.
     const clipped = await page.evaluate(() => Array.from(document.querySelectorAll("body *")).filter(el => {
-      const r = el.getBoundingClientRect(); if (!r.width || r.right <= window.innerWidth + 1 && r.left >= -1) return false;
-      for (let a = el.parentElement; a; a = a.parentElement) { const o = getComputedStyle(a).overflowX; if (o === "auto" || o === "scroll" || o === "hidden") return false; }
-      return true; }).slice(0, 5).map(el => el.tagName + (el.id ? "#" + el.id : "") + (el.className && typeof el.className === "string" ? "." + el.className.split(" ")[0] : "")));
+      if (el.closest(".leaflet-container")) return false; // map tiles overflow the map by design
+      const r = el.getBoundingClientRect(); if (!r.width || !r.height) return false;
+      for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+        const o = getComputedStyle(a).overflowX;
+        if (o === "auto" || o === "scroll") return false;
+        if (o === "hidden" || o === "clip") { const p = a.getBoundingClientRect(); if (r.left < p.left - 1 || r.right > p.right + 1) return true; }
+      }
+      return r.left < -1 || r.right > window.innerWidth + 1;
+    }).slice(0, 5).map(el => el.tagName + (el.id ? "#" + el.id : "") + (el.className && typeof el.className === "string" ? "." + el.className.split(" ")[0] : "")));
     const leafletLoaded = await page.evaluate(() => typeof window.L === "object");
     await page.screenshot({ path: name + (desktop ? "-desktop" : "") + ".png", fullPage: false });
     results.push({ name, viewport: desktop ? "1280x800" : "390x844", out: String(out).replace(/\s+/g, " ").slice(0, 4000), errors, overflowPx: overflow, clipped, leafletLoaded });

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b46">
+<meta name="description" content="رادار الطيران — الطائرات حول موقعك من شبكات استقبال ADS-B المجتمعية المفتوحة.">
+<title>رادار الطيران | مرصد السعودية</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+:root{--navy:#102b46;--blue:#1769aa;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}
+.top{background:linear-gradient(120deg,#102b46,#174d76);color:white;padding:22px max(16px,calc((100% - 1280px)/2))}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px}.brand h1{font-size:clamp(22px,3vw,30px);margin:0}.brand p{color:#c6d8e7;margin:7px 0 0;font-size:13px}
+.wrap{max-width:1280px;margin:auto;padding:18px 16px 42px}.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.nav a,.btn{display:inline-block;border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:white;color:var(--ink);text-decoration:none;font:inherit;cursor:pointer}.btn.primary{background:var(--blue);border-color:var(--blue);color:white}.panel{background:white;border:1px solid var(--line);border-radius:15px;overflow:hidden;margin-bottom:14px;box-shadow:0 3px 14px #183b5710}.head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}.head h2{font-size:16px;margin:0}.head small{color:var(--muted)}
+.controls{display:flex;align-items:end;gap:10px;flex-wrap:wrap;padding:13px}.controls label{display:grid;gap:5px;font-size:12px;color:var(--muted)}select,input{font:inherit;border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:white;color:var(--ink)}.status{padding:10px 14px;font-size:12px;color:var(--muted);line-height:1.7}.status.error{color:#b42318}.legend{padding:0 14px 13px;font-size:11px;color:var(--muted);line-height:1.8}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.item{padding:14px 16px}.item h3{font-size:14px;margin:0 0 7px}.item p{font-size:12px;color:var(--muted);line-height:1.8;margin:0 0 9px}.item a{color:var(--blue);font-size:12px;text-decoration:none}.tag{display:inline-block;border-radius:20px;padding:4px 8px;background:#eef6fc;color:#285b80;font-size:10px;margin:2px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.wrap{padding:13px 10px 32px}.top{padding:18px 14px}.controls label{flex:1;min-width:135px}.controls button{flex:1}}
+
+#flightMap{height:min(62vh,600px);min-height:320px;background:#e8eff4}
+.layout{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px}.list{max-height:min(62vh,600px);overflow:auto}.ac{display:block;width:100%;text-align:start;border:0;border-bottom:1px solid var(--line);background:white;padding:9px 12px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}.ac:hover,.ac[aria-pressed="true"]{background:#eef6fc}.ac b{font-size:14px}.ac small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.card{padding:12px 14px;font-size:13px;line-height:1.9}.card dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:6px 0}.card dt{color:var(--muted)}.card dd{margin:0}
+.plane{font-size:18px;line-height:18px;text-shadow:0 0 3px white,0 0 3px white;transform-origin:center}.plane.est{opacity:.75}
+.state{font-size:12px;padding:3px 9px;border-radius:12px;background:#eef6fc;color:#285b80}.state[data-state="stale"],.state[data-state="partial"]{background:#fff4e5;color:#8a5700}.state[data-state="unavailable"],.state[data-state="source_error"]{background:#fdecea;color:#b42318}
+.controls label{max-width:100%;min-width:0}.controls select,.controls input{max-width:100%;min-width:0;width:100%}
+@media(max-width:860px){.layout{grid-template-columns:1fr}.list{max-height:none}#flightMap{height:52vh;min-height:300px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand"><div><h1>رادار الطيران</h1><p>الطائرات حول موقعك من شبكات استقبال ADS-B المجتمعية المفتوحة</p></div><span id="dataState" class="state" data-state="not_loaded">لم يتم جلبها بعد</span></div></header>
+<main class="wrap">
+<nav class="nav"><a href="../">الرئيسية</a><a href="../earth-memory/">ذاكرة الأرض</a><a href="../satellite/">صور الأقمار اليومية</a><a href="../sat-radar/">رادار الأقمار</a></nav>
+<section class="panel">
+<div class="head"><h2>الحركة الجوية حول الموقع</h2><small id="sourceLine">المصدر: —</small></div>
+<div class="controls">
+<label>المكان<select id="place"></select></label>
+<label>نصف القطر<select id="radius"><option value="27">50 كم</option><option value="54" selected>100 كم</option><option value="108">200 كم</option><option value="250">463 كم</option></select></label>
+<label>تصفية برمز النداء أو التسجيل<input id="filter" type="search" inputmode="latin" autocomplete="off" placeholder="SVA أو HZ-"></label>
+<button class="btn" type="button" id="useMyLocation">موقعي الحالي</button>
+<button class="btn primary" type="button" id="refresh">تحديث الآن</button>
+</div>
+<div id="status" class="status" aria-live="polite">جارٍ التهيئة…</div>
+<div class="status" id="liveMaps">افتح خريطة حية مجانية متمركزة على المكان المختار (تفتح في نافذة جديدة، ومن موقع خارجي): <span id="liveMapLinks"></span></div>
+<div class="layout">
+<div id="flightMap" role="application" aria-label="خريطة الطائرات"></div>
+<div><div id="card" class="card">اختر طائرة من الخريطة أو القائمة لعرض بطاقتها.</div><div id="list" class="list" role="list" aria-label="الطائرات القريبة"></div></div>
+</div>
+<div class="legend">الموقع من بث الطائرة نفسها (ADS-B/MLAT) كما التقطته مستقبلات تطوعية، وليس رادار مراقبة جوية. التغطية ناقصة وتضعف فوق الصحارى والبحار، فغياب طائرة لا يعني أنها غير موجودة. يُحدَّث كل 30 ثانية والصفحة ظاهرة، ويتوقف عند إخفائها حفاظاً على حصة المصدر. بين التحديثين يُقدَّر الموقع من السرعة والاتجاه لمدة لا تزيد على 60 ثانية، ويظهر الرمز باهتاً. المسار المرسوم هو ما رُصد منذ فتح الصفحة (حتى 30 دقيقة). جهة الإقلاع والوجهة والجداول والتأخير والبوابات <b>غير متاحة</b> في هذه المرحلة لأنها ليست ضمن بث ADS-B. لا تستخدم هذه الصفحة للملاحة أو السلامة.</div>
+</section>
+<footer class="status">بيانات الطيران: <a href="https://adsb.lol" target="_blank" rel="noopener">ADSB.lol</a> (ODbL)، والبديل عند تعطله <a href="https://airplanes.live" target="_blank" rel="noopener">airplanes.live</a> (استخدام غير تجاري). الخريطة © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>.</footer>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="../src/platform/http/client.js"></script>
+<script src="../src/platform/geo/cities.js"></script>
+<script src="../src/providers/aviation/adsb-v2/adapter.js"></script>
+<script src="../src/services/aviation/flight-radar.js"></script>
+<script>
+(function(){
+"use strict";
+var F=FlightRadar,A=AdsbV2Adapter,places=CityRegistry.placesFor("dashboard"),center=null,map=null,markers={},trailLine=null,result=null,receivedAt=0,selected=null,timer=null,animTimer=null,reqId=0,abort=null,blockedUntil=0;
+var trails=F.createTrailStore();
+function $(id){return document.getElementById(id)}
+function esc(t){return String(t).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function fmt(v,u){return v===null||v===undefined?"غير متاح":Number(v).toLocaleString("en-US")+(u?" "+u:"")}
+// Free public live maps (tar1090-based). Links only: no data passes through this site.
+// lat/lon/zoom are tar1090 URL parameters; ADS-B Exchange documents SiteLat/SiteLon.
+var LIVE_MAPS=[{name:"ADSB.lol",url:"https://globe.adsb.lol/"},{name:"airplanes.live",url:"https://globe.airplanes.live/"},{name:"adsb.fi",url:"https://globe.adsb.fi/"},{name:"ADS-B Exchange",url:"https://globe.adsbexchange.com/"}];
+function liveMapUrl(base,lat,lon){return base+"?lat="+lat.toFixed(3)+"&lon="+lon.toFixed(3)+"&zoom=8"}
+function renderLiveMaps(){var box=$("liveMapLinks");box.textContent="";LIVE_MAPS.forEach(function(m){var a=document.createElement("a");a.className="btn";a.href=liveMapUrl(m.url,center.lat,center.lon);a.target="_blank";a.rel="noopener noreferrer";a.textContent=m.name+" ↗";box.appendChild(a);box.appendChild(document.createTextNode(" "))})}
+function setState(state,label){$("dataState").setAttribute("data-state",state);$("dataState").textContent=label}
+function status(t,err){$("status").textContent=t;$("status").classList.toggle("error",!!err)}
+Object.keys(places).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=places[k].name;$("place").appendChild(o)});
+center={lat:places[$("place").value].lat,lon:places[$("place").value].lon,name:places[$("place").value].name};
+if(window.L){map=L.map("flightMap",{minZoom:3,maxZoom:12}).setView([center.lat,center.lon],8);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map)}
+function visible(){var q=$("filter").value.trim().toUpperCase();if(!result)return [];return result.aircraft.filter(function(a){return !q||(a.callsign||"").toUpperCase().indexOf(q)!==-1||(a.registration||"").toUpperCase().indexOf(q)!==-1||a.hex.toUpperCase().indexOf(q)!==-1})}
+function label(a){return a.callsign||a.registration||a.hex.toUpperCase()}
+function icon(a,est){return L.divIcon({className:"",html:'<div class="plane'+(est?" est":"")+'" style="transform:rotate('+((a.track_deg||0)-45)+'deg)">✈</div>',iconSize:[18,18],iconAnchor:[9,9]})}
+function drawMarkers(){
+ if(!map)return;
+ var list=visible(),keep={},elapsed=(Date.now()-receivedAt)/1000;
+ list.forEach(function(a){
+  keep[a.hex]=1;
+  var p=F.estimatePosition(a,(a.position_age_s||0)+elapsed),m=markers[a.hex];
+  if(!m){m=markers[a.hex]=L.marker([p.lat,p.lon],{icon:icon(a,p.estimated),title:label(a)}).addTo(map);m.on("click",function(){select(a.hex)})}
+  else{m.setLatLng([p.lat,p.lon]);m.setIcon(icon(a,p.estimated))}
+ });
+ Object.keys(markers).forEach(function(h){if(!keep[h]){map.removeLayer(markers[h]);delete markers[h]}});
+}
+function renderList(){
+ var list=visible();
+ $("list").innerHTML=list.length?list.map(function(a){return '<button type="button" class="ac" role="listitem" data-hex="'+esc(a.hex)+'" aria-pressed="'+(a.hex===selected)+'"><b>'+esc(label(a))+'</b> '+(a.type?esc(a.type):"")+'<small>'+(a.on_ground?"على الأرض":fmt(a.altitude_m,"م"))+' · '+fmt(a.speed_kmh,"كم/س")+(a.distance_km!==null?' · على بعد '+fmt(a.distance_km,"كم"):"")+'</small></button>'}).join(""):'<div class="card">'+(result?"لا توجد طائرات مرصودة في هذا النطاق الآن"+($("filter").value?" تطابق التصفية":"")+". قد يعني ذلك ضعف التغطية لا خلو الأجواء.":"")+'</div>';
+ Array.prototype.forEach.call($("list").querySelectorAll(".ac"),function(b){b.addEventListener("click",function(){select(b.getAttribute("data-hex"))})});
+}
+function select(hex){
+ selected=hex;var a=result&&result.aircraft.find(function(x){return x.hex===hex});
+ if(trailLine&&map){map.removeLayer(trailLine);trailLine=null}
+ if(!a){$("card").textContent="الطائرة لم تعد ضمن النطاق أو لم تُرصد في آخر تحديث.";renderList();return}
+ var age=a.position_age_s===null?"غير معروف":Math.round(a.position_age_s+(Date.now()-receivedAt)/1000)+" ثانية";
+ $("card").innerHTML='<b>'+esc(label(a))+'</b>'+(a.non_icao?' <small>(عنوان غير ICAO)</small>':'')+'<dl>'+
+  '<dt>رمز النداء</dt><dd>'+esc(a.callsign||"غير مبثوث")+'</dd>'+
+  '<dt>رمز الشركة (ICAO)</dt><dd>'+esc(a.airline_icao||"غير متاح")+' <small>مستنتج من رمز النداء</small></dd>'+
+  '<dt>التسجيل</dt><dd>'+esc(a.registration||"غير متاح")+'</dd>'+
+  '<dt>الطراز</dt><dd>'+esc(a.type||"غير متاح")+'</dd>'+
+  '<dt>الارتفاع</dt><dd>'+(a.on_ground?"على الأرض":fmt(a.altitude_m,"م")+' ('+fmt(a.altitude_ft,"قدم")+'، ضغطي)')+'</dd>'+
+  '<dt>السرعة الأرضية</dt><dd>'+fmt(a.speed_kmh,"كم/س")+(a.speed_kn!==null?' ('+fmt(a.speed_kn,"عقدة")+')':'')+'</dd>'+
+  '<dt>الاتجاه</dt><dd>'+fmt(a.track_deg,"°")+'</dd>'+
+  '<dt>عمر آخر موقع</dt><dd>'+age+(a.position_from_last_known?' (آخر موقع معروف)':'')+'</dd>'+
+  '<dt>الإقلاع والوجهة</dt><dd>غير متاح في هذه المرحلة</dd>'+
+  '<dt>معرّف ICAO</dt><dd>'+esc(a.hex.toUpperCase())+'</dd></dl>'+
+  '<small>المسار المرسوم: '+trails.get(a.hex).length+' نقطة مرصودة منذ فتح الصفحة.</small>';
+ var pts=trails.get(a.hex).map(function(p){return [p.lat,p.lon]});
+ if(map&&pts.length>1)trailLine=L.polyline(pts,{color:"#1769aa",weight:3,opacity:.8}).addTo(map);
+ renderList();
+}
+async function poll(){
+ if(document.hidden)return;
+ if(Date.now()<blockedUntil){status("تجاوزنا حد الطلبات لدى المصدر مؤقتاً. التحديث التالي بعد "+Math.ceil((blockedUntil-Date.now())/1000)+" ثانية. البيانات المعروضة من آخر تحديث ناجح.",true);return}
+ var id=++reqId,radius=Number($("radius").value);
+ if(abort)abort.abort();abort=typeof AbortController==="function"?new AbortController():null;
+ status("جارٍ جلب الطائرات حول "+center.name+"…");
+ try{
+  var r=await F.fetchAround(center.lat,center.lon,radius,{signal:abort?abort.signal:undefined});
+  if(id!==reqId)return;
+  result=r;receivedAt=Date.now();trails.add(r,receivedAt);
+  var p=A.PROVIDERS[r.provider];
+  $("sourceLine").textContent="المصدر: "+p.name+(r.fallback_used?" (بديل؛ المصدر الأساسي لم يستجب)":"");
+  var gen=r.generated_at?new Date(r.generated_at):null;
+  setState(r.fallback_used?"partial":"fresh",r.fallback_used?"من المصدر البديل":"حديثة");
+  status(r.aircraft.length+" طائرة بموقع معروف ضمن "+Math.round(radius*A.NM_TO_KM)+" كم"+(r.skipped_without_position?" ("+r.skipped_without_position+" دون موقع لم تُعرض)":"")+" · وقت البيانات "+(gen?gen.toLocaleTimeString("ar-SA-u-nu-latn",{timeZone:"Asia/Riyadh"}):"غير معروف")+" بتوقيت السعودية.");
+  drawMarkers();renderList();if(selected)select(selected);
+ }catch(error){
+  if(id!==reqId||(error&&error.kind==="aborted"))return;
+  if(error.kind==="rate_limited"){blockedUntil=Date.now()+error.retryAfterSeconds*1000;setState(result?"stale":"unavailable",result?"قديمة":"غير متاحة");status("المصدر رفض الطلب لتجاوز الحد اليومي أو اللحظي (429). إعادة المحاولة بعد "+error.retryAfterSeconds+" ثانية."+(result?" المعروض من آخر تحديث ناجح.":""),true);return}
+  var unavailable=error.kind==="unavailable";
+  setState(result?"stale":(unavailable?"unavailable":"source_error"),result?"قديمة":(unavailable?"غير متاحة":"خطأ في المصدر"));
+  status((unavailable?"تعذر الوصول إلى مصادر بيانات الطيران من المتصفح (الأساسي والبديل).":"استجاب المصدر باستجابة غير صالحة.")+(result?" المعروض من آخر تحديث ناجح وليس حديثاً.":" لا تُعرض طائرات مفترضة.")+" يمكنك فتح إحدى الخرائط الحية المجانية أعلاه.",true);
+ }
+}
+function restart(){renderLiveMaps();clearInterval(timer);poll();timer=setInterval(poll,F.POLL_SECONDS*1000)}
+function moveTo(lat,lon,name){center={lat:lat,lon:lon,name:name};result=null;Object.keys(markers).forEach(function(h){map&&map.removeLayer(markers[h])});markers={};if(map)map.setView([lat,lon],8);restart()}
+$("place").addEventListener("change",function(){var p=places[$("place").value];moveTo(p.lat,p.lon,p.name)});
+$("radius").addEventListener("change",restart);
+$("refresh").addEventListener("click",poll);
+$("filter").addEventListener("input",function(){drawMarkers();renderList()});
+$("useMyLocation").addEventListener("click",function(){
+ if(!navigator.geolocation){status("المتصفح لا يدعم تحديد الموقع.",true);return}
+ navigator.geolocation.getCurrentPosition(function(pos){moveTo(Math.round(pos.coords.latitude*100)/100,Math.round(pos.coords.longitude*100)/100,"موقعك (مقرّب لمنزلتين عشريتين)")},function(){status("لم يُسمح بتحديد الموقع؛ اختر مدينة من القائمة.",true)},{maximumAge:600000,timeout:10000});
+});
+document.addEventListener("visibilitychange",function(){if(!document.hidden)poll()});
+animTimer=setInterval(function(){if(result&&!document.hidden)drawMarkers()},2000);
+restart();
+})();
+</script>
+</body>
+</html>
