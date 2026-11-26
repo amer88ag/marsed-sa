@@ -116,8 +116,8 @@ function render(){
    if(f.type==="point")layer=L.circleMarker(latlngs[0],{radius:8,color,fillColor:color,fillOpacity:.8});
    else if(f.type==="line")layer=L.polyline(latlngs,{color,weight:4});
    else layer=L.polygon([latlngs,...(f.holes||[]).map(ring=>ring.map(p=>[p.lat,p.lon]))],{color,fillColor:color,fillOpacity:.18,weight:3});
-   layer.bindTooltip(f.name);layer.on("click",()=>select(f.id));layer.addTo(map);rendered.push(layer);
-   const row=document.createElement("div");row.className="feature"+(f.id===selectedId?" selected":"");row.onclick=()=>select(f.id);
+   layer.featureId=f.id;layer.bindTooltip(f.name);layer.on("click",()=>select(f.id));layer.addTo(map);rendered.push(layer);
+   const row=document.createElement("div");row.className="feature"+(f.id===selectedId?" selected":"");row.dataset.featureId=f.id;row.onclick=()=>select(f.id);
    const info=document.createElement("div"),strong=document.createElement("strong"),small=document.createElement("small");
    strong.textContent=f.name;small.textContent=(f.type==="point"?"موقع":f.type==="line"?"مسار":"مضلع")+measurementLabel(f);
    info.append(strong,small);const del=document.createElement("button");del.type="button";del.textContent="حذف";del.onclick=e=>{e.stopPropagation();features=features.filter(x=>x.id!==f.id);if(selectedId===f.id)selectedId=null;saveCurrent();render();status("تم حذف العنصر من مساحة العمل.")};
@@ -126,7 +126,14 @@ function render(){
  if(!features.length)list.innerHTML='<div class="empty">لا توجد عناصر بعد.</div>';
  updateActions();updateSelectedDetails();
 }
-function select(featureId){selectedId=featureId;render();const f=features.find(x=>x.id===selectedId);if(f){const b=L.latLngBounds(f.coordinates.map(p=>[p.lat,p.lon]));if(f.type==="point")map.setView([f.coordinates[0].lat,f.coordinates[0].lon],Math.max(map.getZoom(),12));else map.fitBounds(b.pad(.2));}}
+function select(featureId){
+ const f=features.find(x=>x.id===featureId);if(!f)return;selectedId=featureId;
+ rendered.forEach(layer=>{const active=layer.featureId===selectedId,color=active?"#1769aa":"#d97706";layer.setStyle({color,fillColor:color})});
+ $("featureList").querySelectorAll(".feature").forEach(row=>row.classList.toggle("selected",row.dataset.featureId===selectedId));
+ updateActions();updateSelectedDetails();
+ const bounds=L.latLngBounds(f.coordinates.map(p=>[p.lat,p.lon]));
+ if(f.type==="point")map.setView([f.coordinates[0].lat,f.coordinates[0].lon],Math.max(map.getZoom(),12));else map.fitBounds(bounds.pad(.2));
+}
 function updateActions(){const f=features.find(x=>x.id===selectedId);$("openMaps").disabled=!f;$("openEarth").disabled=!f;$("openDirections").disabled=!f||f.type!=="line"}
 function updateSelectedDetails(){
  const box=$("selectedDetails"),f=features.find(x=>x.id===selectedId);
