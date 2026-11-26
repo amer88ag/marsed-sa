@@ -66,7 +66,7 @@ input,select{font:inherit;border:1px solid var(--line);border-radius:9px;padding
 <section class="panel"><div class="section-head"><b>مصدر البيانات وحدودها</b><small>شفافية التغطية والتحديث</small></div><div class="sidebar">
 <p><b>المصدر:</b> FlyItalyADSB API عبر وسيط خادمي؛ مفتاح المصدر محفوظ في إعدادات الخادم ولا يظهر في المتصفح.</p>
 <p><b>التحديث:</b> يدوي أو كل خمس دقائق لتقليل استهلاك الحصة. التوقيت ووقت آخر اتصال يعرضان من بيانات المصدر.</p>
-<p><b>المعلومات المتاحة:</b> رمز الطائرة ICAO24، نداء الرحلة إن توفر، بلد التسجيل/المنشأ كما يورده المصدر، الإحداثيات، الارتفاع، السرعة، الاتجاه، معدل الصعود/الهبوط، وحالة الطائرة أرض/جو.</p>
+<p><b>المعلومات المتاحة:</b> رمز الطائرة ICAO24، نداء الرحلة إن توفر، الإحداثيات، الارتفاع، السرعة، الاتجاه، معدل الصعود/الهبوط، وحالة الطائرة أرض/جو. لا يوفر هذا الربط الحالي بيانات بلد المنشأ.</p>
 <p><b>غير المتاح من هذا المصدر وحده:</b> جداول الرحلات التجارية، التأخير والإلغاء، بوابات الصعود، أرقام الصالات، وبيانات المسافر. لا نعرضها كتخمينات.</p>
 <p><a href="https://flyitalyadsb.com/" target="_blank" rel="noopener">FlyItalyADSB</a> · <a href="https://flyitalyadsb.com/data/api/docs/" target="_blank" rel="noopener">توثيق API</a></p>
 </div></section>
@@ -102,7 +102,7 @@ function render(){
  const current=new Set(aircraft.filter(a=>Number.isFinite(a.latitude)&&Number.isFinite(a.longitude)).map(a=>a.icao24));
  markers.forEach((m,id)=>{if(!current.has(id)){map.removeLayer(m);markers.delete(id)}});
  aircraft.forEach(a=>{if(!Number.isFinite(a.latitude)||!Number.isFinite(a.longitude))return;let m=markers.get(a.icao24);if(!m){m=L.marker([a.latitude,a.longitude],{icon:markerIcon(a.true_track)}).addTo(map);m.on("click",()=>showDetail(a));markers.set(a.icao24,m)}else{m.setLatLng([a.latitude,a.longitude]);m.setIcon(markerIcon(a.true_track));m.off("click");m.on("click",()=>showDetail(a))}});
- if(selected){const a=aircraft.find(x=>x.icao24===selected);if(a)showDetail(a,false)}
+ if(selected){const a=aircraft.find(x=>x.icao24===selected);if(a)showDetail(a,false);else{$("detail").hidden=true;selected=null}}
 }
 async function refresh(){
  if(busy)return;busy=true;status("جارٍ جلب مواقع الطائرات من FlyItalyADSB…");
