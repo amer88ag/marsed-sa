@@ -40,3 +40,20 @@ test("GeoJSON and GPX import/export controls and parsers are present",()=>{
   assert.match(page,/getElementsByTagNameNS\("\*","trk"\)/);assert.match(page,/getElementsByTagNameNS\("\*","trkseg"\)/);
   assert.match(page,/function toGeoJson/);assert.match(page,/function toGpx/);
 });
+
+test("CSV export includes coordinate rows and metric measurement columns",()=>{
+  assert.match(page,/id="exportCsv"/);
+  assert.match(page,/function toCsv/);
+  assert.match(page,/اسم العنصر/);
+  assert.match(page,/خط العرض/);
+  assert.match(page,/خط الطول/);
+  assert.match(page,/المساحة م²/);
+  assert.match(page,/المحيط م/);
+  assert.match(page,/طول المسار م/);
+  assert.match(page,/csvCell/);
+});
+test("KML import retains nested folder path in feature names",()=>{
+  assert.match(page,/parent\.localName==="Folder"/);
+  assert.match(page,/folders\.unshift/);
+  assert.match(page,/folders,nameNode&&nameNode\.textContent/);
+});
