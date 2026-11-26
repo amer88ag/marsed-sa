@@ -46,7 +46,9 @@ input,select{font:inherit;border:1px solid var(--line);border-radius:9px;padding
 <button class="btn" id="openDirections" disabled>اتجاهات المسار في Google Maps</button>
 <button class="btn" id="exportKml">تصدير KML</button>
 <button class="btn" id="exportKmz">تصدير KMZ</button>
-<label class="btn" for="importFile">استيراد KML / KMZ</label><input id="importFile" type="file" accept=".kml,.kmz,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" hidden>
+<button class="btn" id="exportGeoJson">تصدير GeoJSON</button>
+<button class="btn" id="exportGpx">تصدير GPX</button>
+<label class="btn" for="importFile">استيراد KML / KMZ / GeoJSON / GPX</label><input id="importFile" type="file" accept=".kml,.kmz,.geojson,.json,.gpx,application/geo+json,application/gpx+xml,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" hidden>
 </div>
 <div id="status" class="status" role="status" aria-live="polite">ابدأ بإضافة موقع أو رسم مسار أو حدود أرض، أو استورد ملف KML/KMZ من Google Earth.</div>
 </section>
@@ -161,6 +163,54 @@ $("openDirections").onclick=()=>{const f=features.find(x=>x.id===selectedId);if(
 function download(name,blob){const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 $("exportKml").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-google-workspace.kml",new Blob([Geo.toKml(features)],{type:"application/vnd.google-earth.kml+xml;charset=utf-8"}));status("تم تجهيز ملف KML للتنزيل.")};
 $("exportKmz").onclick=async()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}if(!window.JSZip){status("مكتبة ضغط KMZ غير متاحة؛ استخدم تصدير KML.",true);return}try{const zip=new JSZip();zip.file("doc.kml",Geo.toKml(features));const blob=await zip.generateAsync({type:"blob",compression:"DEFLATE"});download("marsed-google-workspace.kmz",blob);status("تم تجهيز ملف KMZ للتنزيل.")}catch(e){status("تعذر إنشاء ملف KMZ.",true)}};
+$("exportGeoJson").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-workspace.geojson",new Blob([JSON.stringify(toGeoJson(features),null,2)],{type:"application/geo+json;charset=utf-8"}));status("تم تجهيز GeoJSON للتنزيل.")};
+$("exportGpx").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-workspace.gpx",new Blob([toGpx(features)],{type:"application/gpx+xml;charset=utf-8"}));status("تم تجهيز GPX للتنزيل.")};
+function parseGeoJson(textContent){
+ const data=JSON.parse(textContent),out=[];
+ function addGeometry(geometry,name){
+  if(!geometry||!geometry.type)return;
+  const coords=geometry.coordinates;
+  const convert=arr=>Array.isArray(arr)?arr.map(pair=>Array.isArray(pair)&&pair.length>=2?{lat:pair[1],lon:pair[0]}:null):[];
+  if(geometry.type==="GeometryCollection"){geometry.geometries.forEach((g,i)=>addGeometry(g,name+" ("+(i+1)+")"));return}
+  let type,points;
+  if(geometry.type==="Point"){type="point";points=convert([coords])}
+  else if(geometry.type==="MultiPoint"){coords.forEach((p,i)=>addGeometry({type:"Point",coordinates:p},name+" ("+(i+1)+")"));return}
+  else if(geometry.type==="LineString"){type="line";points=convert(coords)}
+  else if(geometry.type==="MultiLineString"){coords.forEach((p,i)=>addGeometry({type:"LineString",coordinates:p},name+" ("+(i+1)+")"));return}
+  else if(geometry.type==="Polygon"){type="polygon";points=convert(coords&&coords[0])}
+  else if(geometry.type==="MultiPolygon"){coords.forEach((p,i)=>addGeometry({type:"Polygon",coordinates:p},name+" ("+(i+1)+")"));return}
+  else return;
+  const f=Geo.normalizeFeature({id:id(),name,type,coordinates:points});if(f)out.push(f);
+ }
+ function visit(item){
+  if(!item)return;
+  if(item.type==="FeatureCollection"){(item.features||[]).forEach(visit);return}
+  if(item.type==="Feature"){const props=item.properties||{};addGeometry(item.geometry,safeName(props.name||props.title||"عنصر GeoJSON"));return}
+  addGeometry(item,safeName(item.name||"عنصر GeoJSON"));
+ }
+ visit(data);return out.slice(0,5000);
+}
+function parseGpx(textContent){
+ const doc=new DOMParser().parseFromString(textContent,"application/xml");if(doc.querySelector("parsererror"))throw new Error("ملف GPX غير صالح.");
+ const out=[],elements=Array.from(doc.getElementsByTagNameNS("*","wpt"));
+ for(const wpt of elements){const p=Geo.point({lat:wpt.getAttribute("lat"),lon:wpt.getAttribute("lon")});if(p)out.push(Geo.normalizeFeature({id:id(),name:safeName(wpt.getElementsByTagNameNS("*","name")[0]?.textContent||"نقطة GPX"),type:"point",coordinates:[p]}))}
+ const paths=[...Array.from(doc.getElementsByTagNameNS("*","rte")),...Array.from(doc.getElementsByTagNameNS("*","trk"))];
+ for(const pathNode of paths){
+  const pts=Array.from(pathNode.getElementsByTagNameNS("*","rtept")).concat(Array.from(pathNode.getElementsByTagNameNS("*","trkpt")));
+  const coords=pts.map(p=>Geo.point({lat:p.getAttribute("lat"),lon:p.getAttribute("lon")})).filter(Boolean);
+  if(coords.length>=2)out.push(Geo.normalizeFeature({id:id(),name:safeName(pathNode.getElementsByTagNameNS("*","name")[0]?.textContent||"مسار GPX"),type:"line",coordinates:coords}));
+ }
+ return out.filter(Boolean).slice(0,5000);
+}
+function toGeoJson(items){
+ return {type:"FeatureCollection",features:items.map(f=>({type:"Feature",properties:{name:f.name,source:"Marsed Saudi"},geometry:{type:f.type==="point"?"Point":f.type==="line"?"LineString":"Polygon",coordinates:f.type==="point"?[f.coordinates[0].lon,f.coordinates[0].lat]:f.type==="line"?f.coordinates.map(p=>[p.lon,p.lat]):[f.coordinates.concat([f.coordinates[0]]).map(p=>[p.lon,p.lat])]}}))};
+}
+function toGpx(items){
+ const esc=s=>String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+ const waypoints=items.filter(f=>f.type==="point").map(f=>{const p=f.coordinates[0];return '<wpt lat="'+p.lat+'" lon="'+p.lon+'"><name>'+esc(f.name)+'</name></wpt>'}).join("");
+ const paths=items.filter(f=>f.type!=="point").map(f=>{const tag=f.type==="polygon"?"rte":"rte",pts=f.type==="polygon"?f.coordinates.concat([f.coordinates[0]]):f.coordinates;return '<rte><name>'+esc(f.name)+'</name>'+pts.map(p=>'<rtept lat="'+p.lat+'" lon="'+p.lon+'"/>').join("")+'</rte>'}).join("");
+ return '<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="Marsed Saudi" xmlns="http://www.topografix.com/GPX/1/1">'+waypoints+paths+"</gpx>";
+}
 function parseKml(xml){
  const doc=new DOMParser().parseFromString(xml,"application/xml");if(doc.querySelector("parsererror"))throw new Error("ملف KML غير صالح.");
  const placemarks=Array.from(doc.getElementsByTagNameNS("*","Placemark"));const out=[];
@@ -188,13 +238,19 @@ $("importFile").addEventListener("change",async e=>{
  const file=e.target.files&&e.target.files[0];e.target.value="";if(!file)return;
  if(file.size>15*1024*1024){status("حجم الملف يتجاوز الحد المسموح (15 ميغابايت).",true);return}
  try{
-  let textContent;
-  if(file.name.toLowerCase().endsWith(".kmz")){
+  let textContent,imported;
+  const ext=file.name.toLowerCase().split(".").pop();
+  if(ext==="kmz"){
    if(!window.JSZip)throw new Error("تعذر تحميل مكتبة قراءة KMZ.");
    const zip=await JSZip.loadAsync(file);const entry=zip.file("doc.kml")||Object.values(zip.files).find(x=>!x.dir&&x.name.toLowerCase().endsWith(".kml"));
-   if(!entry)throw new Error("لم يُعثر على ملف KML داخل KMZ.");textContent=await entry.async("string");
-  }else textContent=await file.text();
-  const imported=parseKml(textContent);if(!imported.length)throw new Error("لم نعثر على نقاط أو مسارات أو مضلعات صالحة داخل الملف.");
+   if(!entry)throw new Error("لم يُعثر على ملف KML داخل KMZ.");textContent=await entry.async("string");imported=parseKml(textContent);
+  }else{
+   textContent=await file.text();
+   if(ext==="gpx")imported=parseGpx(textContent);
+   else if(ext==="geojson"||ext==="json")imported=parseGeoJson(textContent);
+   else imported=parseKml(textContent);
+  }
+  if(!imported.length)throw new Error("لم نعثر على عناصر جغرافية صالحة داخل الملف.");
   features=features.concat(imported).slice(0,5000);selectedId=imported[0].id;saveCurrent();render();
   const all=imported.flatMap(f=>f.coordinates);if(all.length)map.fitBounds(L.latLngBounds(all.map(p=>[p.lat,p.lon])).pad(.15));
   status("تم استيراد "+imported.length+" عنصر من "+file.name+". احفظ المشروع للاحتفاظ به على هذا الجهاز.");
