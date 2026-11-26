@@ -20,9 +20,11 @@ main{max-width:1120px;margin:auto;padding:18px 14px 36px}.hero,.panel{background
 .seasonal-block{background:#fff;border:1px solid var(--line);border-radius:15px;padding:15px;margin:14px 0}.seasonal-block h2{font-size:18px;margin:0 0 8px}.seasonal-block>p{font-size:12px;color:var(--muted);line-height:1.8}.climate-grid,.crop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.climate-card,.crop-card{background:#f7f9fb;border:1px solid #e7edf2;border-radius:11px;padding:12px}.climate-card h3,.crop-card h3{font-size:15px;margin:0 0 6px}.climate-card p,.crop-card p{font-size:12px;line-height:1.8;color:#465768;margin:5px 0}.climate-card small,.crop-card small{font-size:11px;color:var(--muted)}.planner-controls{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}.planner-controls select{font:inherit;padding:10px;border:1px solid var(--line);border-radius:9px;background:white;min-width:145px}.crop-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.crop-card strong{font-size:12px;color:#235477}.source-label{display:inline-block;font-size:10px;color:#235477;background:#eaf3fa;border-radius:20px;padding:3px 7px;margin-top:7px}
 @media(max-width:620px){.climate-grid,.crop-grid{grid-template-columns:1fr}.seasonal-block{padding:12px}}
 </style>
+<link rel="stylesheet" href="../assets/css/observatory-ui.css">
 </head>
 <body>
 <header><a href="../">← العودة إلى مرصد السعودية</a><h1>مواسم السنة والأنواء</h1><p>الفصول الفلكية والمناخية والتقويم النجمي والشعبي ومواسم الزراعة في السعودية</p></header>
+<nav class="global-nav" aria-label="التنقل الرئيسي"><a href="../index.html">الرئيسية</a><a href="../index.html#weather">الطقس والأمطار</a><a href="../seasons/" aria-current="page">المواسم والزراعة</a><a href="../satellite/">الأقمار الصناعية</a><a href="../earth-memory/">ذاكرة الأرض</a><a href="../flights/">رادار الطيران</a><a href="../sat-radar/">رادار الأقمار</a><a href="../elevation/">قياس الارتفاع</a><a href="../geo/">المساحة الجغرافية</a><a href="../admin/">المصادر والإدارة</a></nav>
 <main>
 <section class="hero" aria-live="polite">
 <div class="current"><div><div class="eyebrow" id="today"></div><h2 id="currentName">جارٍ تحديد الموسم…</h2><p id="currentDates"></p><p id="currentDescription"></p></div><div class="remaining"><strong id="remaining">—</strong><small>يوماً حتى نهاية الموسم</small></div></div>
