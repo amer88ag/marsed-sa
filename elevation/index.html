@@ -197,7 +197,7 @@ async function analyzeLocalFlow(){
     if(!trace||trace.indices.length<2)return;
     var points=trace.indices.map(function(index){var p=result.cells[index];return [p.lat,p.lon]});
     L.polyline(points,{color:"#0f766e",weight:5,opacity:.9}).addTo(flowPathLayer);
-    $("flowStatus").textContent="مسار الانحدار من الخلية المحددة: "+trace.indices.length+" خلية · نهاية المسار: "+(trace.termination==="local_sink"?"منخفض محلي":trace.termination==="grid_boundary"?"حدود الشبكة":"لا توجد خلية أدنى")+". انقر خلية أخرى لتغيير المسار.";
+    $("flowStatus").textContent="مسار الانحدار من الخلية المحددة: "+trace.indices.length+" خلية · نهاية المسار: "+(trace.termination==="local_sink"?"منخفض محلي":trace.termination==="missing_data_edge"?"بيانات ارتفاع مفقودة":trace.termination==="grid_boundary"?"حدود الشبكة":"لا توجد خلية أدنى")+". انقر خلية أخرى لتغيير المسار.";
    });
    circle.addTo(flowLayer);
   });
