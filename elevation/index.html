@@ -129,7 +129,7 @@ function drawProfileChart(profile){
  svg.hidden=false;
 }
 function renderProfile(profile){
- lastProfile=profile;
+ lastProfile=profile;$("profileCsv").disabled=false;
  $("profileMetrics").hidden=false;$("profileTableWrap").hidden=false;
  $("profileMin").textContent=profile.minElevationM===null?"—":profile.minElevationM.toLocaleString("ar-SA",{maximumFractionDigits:1});
  $("profileMax").textContent=profile.maxElevationM===null?"—":profile.maxElevationM.toLocaleString("ar-SA",{maximumFractionDigits:1});
