@@ -193,29 +193,10 @@ function toCsv(items){
 }
 $("exportCsv").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-workspace.csv",new Blob([toCsv(features)],{type:"text/csv;charset=utf-8"}));status("تم تجهيز CSV مع الإحداثيات والقياسات للتنزيل.")};
 function parseGeoJson(textContent){
- const data=JSON.parse(textContent),out=[];
- function addGeometry(geometry,name){
-  if(!geometry||!geometry.type)return;
-  const coords=geometry.coordinates;
-  const convert=arr=>Array.isArray(arr)?arr.map(pair=>Array.isArray(pair)&&pair.length>=2?{lat:pair[1],lon:pair[0]}:null):[];
-  if(geometry.type==="GeometryCollection"){geometry.geometries.forEach((g,i)=>addGeometry(g,name+" ("+(i+1)+")"));return}
-  let type,points;
-  if(geometry.type==="Point"){type="point";points=convert([coords])}
-  else if(geometry.type==="MultiPoint"){coords.forEach((p,i)=>addGeometry({type:"Point",coordinates:p},name+" ("+(i+1)+")"));return}
-  else if(geometry.type==="LineString"){type="line";points=convert(coords)}
-  else if(geometry.type==="MultiLineString"){coords.forEach((p,i)=>addGeometry({type:"LineString",coordinates:p},name+" ("+(i+1)+")"));return}
-  else if(geometry.type==="Polygon"){type="polygon";points=convert(coords&&coords[0]);var holes=(coords||[]).slice(1).map(convert)}
-  else if(geometry.type==="MultiPolygon"){coords.forEach((p,i)=>addGeometry({type:"Polygon",coordinates:p},name+" ("+(i+1)+")"));return}
-  else return;
-  const f=Geo.normalizeFeature({id:id(),name,type,coordinates:points,...(type==="polygon"?{holes}: {})});if(f)out.push(f);
- }
- function visit(item){
-  if(!item)return;
-  if(item.type==="FeatureCollection"){(item.features||[]).forEach(visit);return}
-  if(item.type==="Feature"){const props=item.properties||{};addGeometry(item.geometry,safeName(props.name||props.title||"عنصر GeoJSON"));return}
-  addGeometry(item,safeName(item.name||"عنصر GeoJSON"));
- }
- visit(data);if(out.length>MAX_IMPORT_FEATURES)throw new Error("الملف يحتوي على أكثر من 5000 عنصر؛ قسّمه إلى ملفات أصغر لتجنب فقد البيانات.");return out;
+ let data;try{data=JSON.parse(textContent)}catch(e){throw new Error("ملف GeoJSON غير صالح.")};
+ const out=Geo.fromGeoJson(data,id);
+ if(out.length>MAX_IMPORT_FEATURES)throw new Error("الملف يحتوي على أكثر من 5000 عنصر؛ قسّمه إلى ملفات أصغر لتجنب فقد البيانات.");
+ return out;
 }
 function parseGpx(textContent){
  const doc=new DOMParser().parseFromString(textContent,"application/xml");if(doc.querySelector("parsererror"))throw new Error("ملف GPX غير صالح.");
@@ -236,9 +217,7 @@ function parseGpx(textContent){
  }
  const valid=out.filter(Boolean);if(valid.length>MAX_IMPORT_FEATURES)throw new Error("ملف GPX يحتوي على أكثر من 5000 عنصر؛ قسّمه إلى ملفات أصغر.");return valid;
 }
-function toGeoJson(items){
- return {type:"FeatureCollection",features:items.map(f=>({type:"Feature",properties:{name:f.name,source:"Marsed Saudi"},geometry:{type:f.type==="point"?"Point":f.type==="line"?"LineString":"Polygon",coordinates:f.type==="point"?[f.coordinates[0].lon,f.coordinates[0].lat]:f.type==="line"?f.coordinates.map(p=>[p.lon,p.lat]):[f.coordinates,...(f.holes||[])].map(ring=>ring.concat([ring[0]]).map(p=>[p.lon,p.lat]))}}))};
-}
+function toGeoJson(items){return Geo.toGeoJson(items)}
 function toGpx(items){
  const esc=s=>String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
  const waypoints=items.filter(f=>f.type==="point").map(f=>{const p=f.coordinates[0];return '<wpt lat="'+p.lat+'" lon="'+p.lon+'"><name>'+esc(f.name)+'</name></wpt>'}).join("");
