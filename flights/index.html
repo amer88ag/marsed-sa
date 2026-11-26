@@ -24,11 +24,12 @@
 .controls label{max-width:100%;min-width:0}.controls select,.controls input{max-width:100%;min-width:0;width:100%}
 @media(max-width:860px){.layout{grid-template-columns:1fr}.list{max-height:none}#flightMap{height:52vh;min-height:300px}}
 </style>
+<link rel="stylesheet" href="../assets/css/observatory-ui.css">
 </head>
 <body>
 <header class="top"><div class="brand"><div><h1>رادار الطيران</h1><p>الطائرات حول موقعك من شبكات استقبال ADS-B المجتمعية المفتوحة</p></div><span id="dataState" class="state" data-state="not_loaded">لم يتم جلبها بعد</span></div></header>
 <main class="wrap">
-<nav class="nav"><a href="../">الرئيسية</a><a href="../earth-memory/">ذاكرة الأرض</a><a href="../satellite/">صور الأقمار اليومية</a><a href="../sat-radar/">رادار الأقمار</a></nav>
+<nav class="global-nav" aria-label="التنقل الرئيسي"><a href="../index.html">الرئيسية</a><a href="../index.html#weather">الطقس والأمطار</a><a href="../seasons/">المواسم والزراعة</a><a href="../satellite/">الأقمار الصناعية</a><a href="../earth-memory/">ذاكرة الأرض</a><a href="../flights/" aria-current="page">رادار الطيران</a><a href="../sat-radar/">رادار الأقمار</a><a href="../elevation/">قياس الارتفاع</a><a href="../geo/">المساحة الجغرافية</a><a href="../admin/">المصادر والإدارة</a></nav>
 <section class="panel">
 <div class="head"><h2>الحركة الجوية حول الموقع</h2><small id="sourceLine">المصدر: —</small></div>
 <div class="controls">
