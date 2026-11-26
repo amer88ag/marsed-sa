@@ -34,7 +34,7 @@ input,select{font:inherit;border:1px solid var(--line);border-radius:9px;padding
 <section class="panel">
 <div class="toolbar">
 <label for="area">منطقة المتابعة</label>
-<select id="area"><option value="sa">السعودية (نطاق واسع)</option><option value="riyadh" selected>الرياض وما حولها</option><option value="jeddah">جدة وما حولها</option><option value="dammam">الدمام وما حولها</option><option value="makkah">مكة والطائف</option><option value="abha">أبها وجنوب غرب المملكة</option><option value="custom">حدود الخريطة الحالية</option></select>
+<select id="area"><option value="riyadh" selected>الرياض وما حولها</option><option value="jeddah">جدة وما حولها</option><option value="dammam">الدمام وما حولها</option><option value="makkah">مكة والطائف</option><option value="abha">أبها وجنوب غرب المملكة</option><option value="custom">حدود الخريطة الحالية</option></select>
 <button class="btn primary" id="refresh">تحديث حركة الطيران</button>
 <button class="btn" id="locate">موقعي</button>
 </div>
@@ -125,5 +125,6 @@ $("locate").onclick=()=>{if(!navigator.geolocation){status("تحديد المو�
 $("showAirport").onclick=()=>{const coords={OERK:[24.9576,46.6988],OEJN:[21.6796,39.1565],OEDF:[26.4712,49.7979],OEMA:[24.5534,39.7051],OEAB:[18.2404,42.6566],OETF:[21.4834,40.5443]};const p=coords[$("airport").value];map.setView(p,10);$("area").value="custom";status("تم توجيه الخريطة إلى منطقة المطار. حدّث البيانات لعرض الطائرات المرصودة حوله.")};
 map.on("moveend",()=>{if($("area").value==="custom")status("تم تغيير نطاق الخريطة. اضغط تحديث حركة الطيران لجلب الطائرات في النطاق الحالي.")});
 refresh();
+setInterval(()=>{if(document.visibilityState==="visible")refresh()},300000);
 })();
 </script></body></html>
