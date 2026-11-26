@@ -16,11 +16,12 @@
 .controls{display:flex;align-items:end;gap:10px;flex-wrap:wrap;padding:13px}.controls label{display:grid;gap:5px;font-size:12px;color:var(--muted)}select,input{font:inherit;border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:white;color:var(--ink)}#satMap{height:min(68vh,650px);min-height:380px;background:#e8eff4}.status{padding:10px 14px;font-size:12px;color:var(--muted);line-height:1.7}.status.error{color:#b42318}.legend{padding:0 14px 13px;font-size:11px;color:var(--muted);line-height:1.8}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.item{padding:14px 16px}.item h3{font-size:14px;margin:0 0 7px}.item p{font-size:12px;color:var(--muted);line-height:1.8;margin:0 0 9px}.item a{color:var(--blue);font-size:12px;text-decoration:none}.tag{display:inline-block;border-radius:20px;padding:4px 8px;background:#eef6fc;color:#285b80;font-size:10px;margin:2px}
 @media(max-width:700px){.grid{grid-template-columns:1fr}.wrap{padding:13px 10px 32px}.top{padding:18px 14px}#satMap{height:58vh;min-height:340px}.controls label{flex:1;min-width:135px}.controls button{flex:1}}
 </style>
+<link rel="stylesheet" href="../assets/css/observatory-ui.css">
 </head>
 <body>
 <header class="top"><div class="brand"><div><h1>مرصد الأقمار الصناعية</h1><p>صور فضائية للسعودية وشبه الجزيرة العربية ومتابعة الغطاء السحابي والسطح</p></div><span id="sourceState" class="tag">مصدر الصور: NASA GIBS</span></div></header>
 <main class="wrap">
-<nav class="nav"><a href="../">الرئيسية</a><a href="../geo/">مساحة Google الجغرافية</a><a href="../elevation/">قياس الارتفاع</a><a href="../seasons/">مواسم السنة والبستان</a><a href="./coverage.html">فحص التغطية المكانية</a><a href="../earth-memory/">ذاكرة الأرض</a><a href="../flights/">رادار الطيران</a><a href="../sat-radar/">رادار الأقمار</a></nav>
+<nav class="global-nav" aria-label="التنقل الرئيسي"><a href="../index.html">الرئيسية</a><a href="../index.html#weather">الطقس والأمطار</a><a href="../seasons/">المواسم والزراعة</a><a href="../satellite/" aria-current="page">الأقمار الصناعية</a><a href="../earth-memory/">ذاكرة الأرض</a><a href="../flights/">رادار الطيران</a><a href="../sat-radar/">رادار الأقمار</a><a href="../elevation/">قياس الارتفاع</a><a href="../geo/">المساحة الجغرافية</a><a href="../admin/">المصادر والإدارة</a></nav>
 <section class="panel">
 <div class="head"><h2>عارض صور الأقمار الصناعية</h2><small>NASA GIBS · صور مرئية يومية</small></div>
 <div class="controls">
