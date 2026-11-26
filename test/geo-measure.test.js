@@ -39,3 +39,14 @@ test("area formatting selects square metres, hectares and square kilometres", ()
   assert.deepEqual(Geo.formatArea(2000000), {value:2,unit:"كم²"});
   assert.equal(Geo.formatArea(-1), null);
 });
+
+test("self-intersecting and zero-area polygons are rejected", () => {
+  const bowTie = [
+    {lat:0,lon:0},{lat:1,lon:1},{lat:0,lon:1},{lat:1,lon:0}
+  ];
+  assert.equal(Geo.isSimple(bowTie), false);
+  assert.equal(Geo.area(bowTie), null);
+  assert.equal(Geo.perimeter(bowTie), null);
+  const line = [{lat:0,lon:0},{lat:0,lon:1},{lat:0,lon:2}];
+  assert.equal(Geo.area(line), null);
+});
