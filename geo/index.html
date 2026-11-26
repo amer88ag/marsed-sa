@@ -164,7 +164,7 @@ function download(name,blob){const url=URL.createObjectURL(blob),a=document.crea
 $("exportKml").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-google-workspace.kml",new Blob([Geo.toKml(features)],{type:"application/vnd.google-earth.kml+xml;charset=utf-8"}));status("تم تجهيز ملف KML للتنزيل.")};
 $("exportKmz").onclick=async()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}if(!window.JSZip){status("مكتبة ضغط KMZ غير متاحة؛ استخدم تصدير KML.",true);return}try{const zip=new JSZip();zip.file("doc.kml",Geo.toKml(features));const blob=await zip.generateAsync({type:"blob",compression:"DEFLATE"});download("marsed-google-workspace.kmz",blob);status("تم تجهيز ملف KMZ للتنزيل.")}catch(e){status("تعذر إنشاء ملف KMZ.",true)}};
 $("exportGeoJson").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-workspace.geojson",new Blob([JSON.stringify(toGeoJson(features),null,2)],{type:"application/geo+json;charset=utf-8"}));status("تم تجهيز GeoJSON للتنزيل.")};
-$("exportGpx").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-workspace.gpx",new Blob([toGpx(features)],{type:"application/gpx+xml;charset=utf-8"}));status("تم تجهيز GPX للتنزيل.")};
+$("exportGpx").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-workspace.gpx",new Blob([toGpx(features)],{type:"application/gpx+xml;charset=utf-8"}));status("تم تجهيز GPX؛ تُصدّر المضلعات كمسارات مغلقة لأن GPX لا يعرّف مضلعاً.")};
 function parseGeoJson(textContent){
  const data=JSON.parse(textContent),out=[];
  function addGeometry(geometry,name){
