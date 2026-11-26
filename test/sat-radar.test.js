@@ -125,3 +125,47 @@ test('sat radar page: computed-not-observed wording, visibility caveat, attribut
   const html = fs.readFileSync('sat-radar/index.html', 'utf8');
   for (const s of ['../vendor/satellite.js/6.0.1/satellite.min.js', 'sat-radar.js', 'وليست رصداً', 'لا يعني أن القمر مرئي بالعين', 'CelesTrak', 'MIT', 'الجهة المالكة غير متاحة', 'مرة كل ساعتين']) assert.ok(html.includes(s), s);
 });
+
+// ---------- naked-eye visibility ----------
+test('sun position matches the 2026 equinoxes and solstices (NWS/USNO times) to within 0.02°', () => {
+  const dec = d => R.sunDeclinationDeg(new Date(d));
+  assert.ok(Math.abs(dec('2026-03-20T14:46:00Z')) < 0.02, 'March equinox ' + dec('2026-03-20T14:46:00Z'));
+  assert.ok(Math.abs(dec('2026-09-23T00:05:00Z')) < 0.02, 'September equinox');
+  assert.ok(Math.abs(dec('2026-06-21T08:24:00Z') - 23.436) < 0.02, 'June solstice');
+  assert.ok(Math.abs(dec('2026-12-21T20:50:00Z') + 23.436) < 0.02, 'December solstice');
+});
+
+test('why satellite.js sunPos is not used: it places the 2026 March equinox well off (documented finding)', () => {
+  const d = S.sunPos(S.jday(new Date('2026-03-20T14:46:00Z'))).decl * 180 / Math.PI;
+  assert.ok(Math.abs(d) > 0.1, 'if this fails, the library was fixed and the note in sat-radar.js can be revisited');
+});
+
+test('sun elevation in Riyadh: ≈ 88.7° near local noon at the June solstice, deeply negative at midnight', () => {
+  assert.ok(Math.abs(R.sunElevation(RIYADH, new Date('2026-06-21T09:00:00Z')) - 88.7) < 0.5);
+  assert.ok(R.sunElevation(RIYADH, new Date('2026-06-21T21:00:00Z')) < -30);
+});
+
+test('shadow model: day side lit, directly behind Earth dark, far beside the shadow lit', () => {
+  const sun = { x: 1.5e8, y: 0, z: 0 };
+  assert.equal(R.inSunlight({ x: 6800, y: 0, z: 0 }, sun), true);
+  assert.equal(R.inSunlight({ x: -6800, y: 0, z: 0 }, sun), false);
+  assert.equal(R.inSunlight({ x: -6800, y: 6500, z: 0 }, sun), true);
+});
+
+test('visibility: daytime passes are never "visible"; each pass gets a reason when not visible', () => {
+  const s = item(); let t = new Date('2026-11-26T00:00:00Z'); let checked = 0;
+  for (let k = 0; k < 8; k++) {
+    const p = R.nextPass(s, RIYADH, t, 24, 0); if (!p) break;
+    const v = R.passVisibility(s, RIYADH, p, 10);
+    if (v && v.visible) {
+      for (const at of [v.start, v.end]) {
+        const now = R.visibilityAt(s, new Date(at), RIYADH, 10);
+        assert.ok(now.visible && now.sunlit && now.observer_dark && R.sunElevation(RIYADH, new Date(at)) < R.DARK_SKY_SUN_DEG);
+      }
+    } else if (v) assert.ok(['sky_not_dark', 'in_earth_shadow', 'too_low', 'unknown'].includes(v.reason));
+    const mid = new Date(p.culmination);
+    if (R.sunElevation(RIYADH, mid) > 0) assert.equal(v.visible, false, 'no naked-eye visibility in daylight');
+    checked++; t = new Date(Date.parse(p.set) + 60000);
+  }
+  assert.ok(checked >= 4);
+});
