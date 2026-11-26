@@ -20,6 +20,8 @@ test("satellite viewer includes polygon area measurement and KML export", () => 
   }
   assert.match(page, /GeoMeasure\.area\(measurePoints\)/);
   assert.match(page, /GeoMeasure\.perimeter\(measurePoints\)/);
+  assert.match(page, /GeoMeasure\.isSimple\(measurePoints\)/);
+  assert.match(page, /الحدود تتقاطع أو لا تحصر مساحة صالحة/);
   assert.match(page, /GoogleGeoLinks\.toPolygonKml/);
   assert.match(page, /ليست رفعاً مساحياً/);
   assert.match(page, /map\.on\("click",function\(event\)\{if\(measureMode\)/);
