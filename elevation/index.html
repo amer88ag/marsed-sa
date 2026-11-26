@@ -14,7 +14,7 @@ header{background:linear-gradient(120deg,#102b46,#174d76);color:white;padding:18
 header a{color:#d9eafa;text-decoration:none;font-size:13px}h1{font-size:24px;margin:12px 0 5px}header p{margin:0;color:#d0dfeb;font-size:13px}
 main{max-width:1120px;margin:auto;padding:18px 14px 36px}.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px}
 button,input{font:inherit}button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 13px;color:var(--ink);cursor:pointer}button.primary{background:var(--blue);border-color:var(--blue);color:white}button:disabled{opacity:.55;cursor:wait}
-.path-tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.path-help{font-size:12px;color:var(--muted);align-self:center}.profile-panel{margin-top:12px;padding:14px}.profile-panel h2{font-size:17px;margin:0 0 8px}.profile-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.profile-metrics .metric strong{font-size:21px}.profile-chart{width:100%;height:210px;display:block;margin-top:10px;background:#f8fafc;border-radius:10px}.profile-table-wrap{overflow:auto;margin-top:10px}.profile-table{width:100%;border-collapse:collapse;font-size:12px}.profile-table th,.profile-table td{padding:8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}.profile-empty{font-size:12px;color:var(--muted);line-height:1.8}
+.path-tools,.flow-tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.flow-status{font-size:12px;color:var(--muted);line-height:1.8;margin:6px 2px}.path-help{font-size:12px;color:var(--muted);align-self:center}.profile-panel{margin-top:12px;padding:14px}.profile-panel h2{font-size:17px;margin:0 0 8px}.profile-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.profile-metrics .metric strong{font-size:21px}.profile-chart{width:100%;height:210px;display:block;margin-top:10px;background:#f8fafc;border-radius:10px}.profile-table-wrap{overflow:auto;margin-top:10px}.profile-table{width:100%;border-collapse:collapse;font-size:12px}.profile-table th,.profile-table td{padding:8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}.profile-empty{font-size:12px;color:var(--muted);line-height:1.8}
 @media(max-width:620px){.profile-metrics{grid-template-columns:1fr 1fr}}
 .search{display:flex;gap:8px;flex:1;min-width:260px}.search input{width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
 .panel{background:white;border:1px solid var(--line);border-radius:15px;overflow:hidden;box-shadow:0 3px 14px #183b5710}
@@ -31,7 +31,7 @@ button,input{font:inherit}button{border:1px solid var(--line);background:#fff;bo
 <div class="search"><input id="coords" inputmode="decimal" placeholder="أدخل الإحداثيات: خط العرض، خط الطول" aria-label="الإحداثيات"><button id="searchPoint" class="primary">قياس النقطة</button></div>
 <button id="locate">موقعي الحالي</button><button id="copyResult" disabled>نسخ الإحداثيات والارتفاع</button><button id="reset">العودة إلى السعودية</button>
 </div>
-<div class="path-tools" aria-label="أدوات المسار التضاريسي"><button id="pathStart" class="primary">رسم مسار الارتفاع</button><button id="pathFinish" disabled>إنهاء وقياس المسار</button><button id="pathUndo" disabled>تراجع عن آخر نقطة</button><button id="pathClear" disabled>مسح المسار</button><button id="profileCsv" disabled>تصدير المقطع CSV</button><span class="path-help" id="pathHelp">ارسم مساراً بالنقر على نقطتين أو أكثر على الخريطة.</span></div>
+<div class="path-tools" aria-label="أدوات المسار التضاريسي"><button id="pathStart" class="primary">رسم مسار الارتفاع</button><button id="pathFinish" disabled>إنهاء وقياس المسار</button><button id="pathUndo" disabled>تراجع عن آخر نقطة</button><button id="pathClear" disabled>مسح المسار</button><button id="profileCsv" disabled>تصدير المقطع CSV</button><span class="path-help" id="pathHelp">ارسم مساراً بالنقر على نقطتين أو أكثر على الخريطة.</span></div>\n<div class="flow-tools"><button id="flowAnalyze" class="primary">تحليل اتجاه جريان المياه حول النقطة المحددة</button><button id="flowClear" disabled>مسح طبقة الجريان</button><span class="path-help">اختر نقطة قياس أولاً، ثم حلّل شبكة تضاريس محلية 9 × 9.</span></div><p class="flow-status" id="flowStatus" aria-live="polite">تحليل استرشادي للتضاريس فقط؛ لا يمثل توقعاً للسيول أو تحديداً رسمياً لمجاري الأودية.</p>
 <section class="panel">
 <div class="map-head"><b>خريطة اختيار نقطة القياس</b><span>اضغط على الخريطة لتحديد الموقع</span></div>
 <div id="map" role="application" aria-label="خريطة لقياس الارتفاع التضاريسي"></div>
@@ -52,13 +52,13 @@ button,input{font:inherit}button{border:1px solid var(--line);background:#fff;bo
 <script src="../src/platform/geo/cities.js"></script>
 <script src="../src/platform/geo/map-frame.js"></script>
 <script src="../src/platform/geo/measure.js"></script>
-<script src="../src/platform/geo/elevation-profile.js"></script>
+<script src="../src/platform/geo/elevation-profile.js"></script>\n<script src="../src/platform/geo/terrain-flow.js"></script>
 <script>
 (function(){
 "use strict";
 var $=function(id){return document.getElementById(id)};
 var map=L.map("map").setView([23.8,45.0],5),marker=null,requestId=0,activeAbort=null,lastResult=null,TIMEOUT_MS=12000;
-var pathMode=false,pathPoints=[],pathMarkers=[],pathLine=null,profileRequestId=0,lastProfile=null;
+var pathMode=false,pathPoints=[],pathMarkers=[],pathLine=null,profileRequestId=0,lastProfile=null;\nvar flowRequestId=0,flowLayer=L.layerGroup().addTo(map),flowPathLayer=L.layerGroup().addTo(map),lastFlow=null;
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
 if(typeof SaudiMapFrame!=="undefined")SaudiMapFrame.frame(map,L,{url:"../data/geo/saudi_boundary.geojson"});
 function status(message,isError){$("status").textContent=message;$("status").style.color=isError?"#b42318":""}
@@ -163,6 +163,50 @@ async function finishProfile(){
   setPathHelp("اكتمل تحليل المسار. هذه تقديرات تضاريسية بدقة نموذجية ~90 م وليست قياسات هندسية.");
  }catch(error){if(id!==profileRequestId)return;$("profileStatus").textContent="تعذر إنشاء المقطع التضاريسي: "+(error&&error.kind?HttpClient.describeError(error):error.message);setPathHelp("فشل طلب بيانات الارتفاع؛ يمكنك المحاولة مجدداً.",true)}
 }
+
+async function analyzeLocalFlow(){
+ if(!lastResult){$("flowStatus").textContent="حدد نقطة على الخريطة وانتظر ظهور ارتفاعها أولاً.";return}
+ var id=++flowRequestId,grid=TerrainFlow.createGrid({lat:lastResult.lat,lon:lastResult.lon},9,9,180);
+ if(!grid){$("flowStatus").textContent="تعذر إنشاء شبكة تضاريس صالحة حول النقطة.";return}
+ if(typeof SaudiMapFrame!=="undefined"&&grid.points.some(function(point){return !SaudiMapFrame.contains(point.lat,point.lon)})){
+  $("flowStatus").textContent="الشبكة تمتد خارج نطاق المرصد. اختر نقطة أبعد عن حدود المملكة أو الساحل.";return
+ }
+ var url=TerrainFlow.elevationUrl(grid.points);
+ if(!url){$("flowStatus").textContent="تعذر تجهيز طلب بيانات الارتفاع للشبكة.";return}
+ $("flowAnalyze").disabled=true;$("flowStatus").textContent="جارٍ طلب 81 عينة ارتفاع من Copernicus DEM GLO-90…";
+ try{
+  var data=await HttpClient.request(url,{headers:{Accept:"application/json"},timeoutMs:18000,retries:1});
+  if(id!==flowRequestId)return;
+  if(!data||!Array.isArray(data.elevation)||data.elevation.length!==grid.points.length)
+   throw new Error("عدد قيم الارتفاع لا يطابق عدد خلايا الشبكة.");
+  var result=TerrainFlow.analyze({rows:grid.rows,cols:grid.cols,cellSizeXM:grid.cellSizeXM,cellSizeYM:grid.cellSizeYM,points:grid.points,elevations:data.elevation});
+  if(!result||result.validCellCount<9)throw new Error("عدد خلايا الارتفاع المتاحة غير كافٍ للتحليل.");
+  flowLayer.clearLayers();flowPathLayer.clearLayers();lastFlow=result;
+  result.cells.forEach(function(cell){
+   if(cell.elevationM===null||!Number.isFinite(cell.lat)||!Number.isFinite(cell.lon))return;
+   var radius=5+Math.min(6,Math.sqrt(cell.flowAccumulation||1));
+   var color=cell.isLocalSink?"#b45309":cell.isChannel?"#0369a1":"#64748b";
+   var circle=L.circleMarker([cell.lat,cell.lon],{radius:radius,color:color,weight:1.5,fillColor:color,fillOpacity:.62,bubblingMouseEvents:false});
+   circle.bindTooltip("الارتفاع: "+cell.elevationM.toFixed(1)+" م · تراكم الخلايا: "+cell.flowAccumulation+(cell.isLocalSink?" · منخفض محلي":cell.isChannel?" · تجمّع جريان محتمل":""));
+   circle.on("click",function(){
+    var trace=TerrainFlow.traceDownstream(result,cell.index);
+    flowPathLayer.clearLayers();
+    if(!trace||trace.indices.length<2)return;
+    var points=trace.indices.map(function(index){var p=result.cells[index];return [p.lat,p.lon]});
+    L.polyline(points,{color:"#0f766e",weight:5,opacity:.9}).addTo(flowPathLayer);
+    $("flowStatus").textContent="مسار الانحدار من الخلية المحددة: "+trace.indices.length+" خلية · نهاية المسار: "+(trace.termination==="local_sink"?"منخفض محلي":trace.termination==="grid_boundary"?"حدود الشبكة":"لا توجد خلية أدنى")+". انقر خلية أخرى لتغيير المسار.";
+   });
+   circle.addTo(flowLayer);
+  });
+  $("flowClear").disabled=false;
+  $("flowStatus").textContent="اكتمل التحليل: "+result.validCellCount+" خلية متاحة، "+result.missingCellCount+" مفقودة، "+result.localSinkIndices.length+" منخفض محلي، و"+result.channelCellIndices.length+" خلية تجاوزت عتبة تراكم الجريان. انقر إحدى الخلايا لرسم مسار الانحدار. هذه ليست شبكة هيدرولوجية معايرة.";
+ }catch(error){
+  if(id!==flowRequestId)return;
+  $("flowStatus").textContent="تعذر تحليل الجريان: "+(error&&error.kind?HttpClient.describeError(error):error.message);
+ }finally{if(id===flowRequestId)$("flowAnalyze").disabled=false}
+}
+$("flowAnalyze").addEventListener("click",analyzeLocalFlow);
+$("flowClear").addEventListener("click",function(){flowRequestId++;flowLayer.clearLayers();flowPathLayer.clearLayers();lastFlow=null;$("flowClear").disabled=true;$("flowStatus").textContent="تم مسح طبقة التحليل."});
 $("pathStart").addEventListener("click",function(){profileRequestId++;clearPath();lastProfile=null;$("profileCsv").disabled=true;$("profileMetrics").hidden=true;$("profileChart").hidden=true;$("profileTableWrap").hidden=true;$("profileStatus").textContent="جارٍ رسم مسار جديد.";pathMode=true;updatePathControls();setPathHelp("وضع الرسم نشط: انقر نقطتين أو أكثر على الخريطة.")});
 $("pathFinish").addEventListener("click",finishProfile);
 $("pathUndo").addEventListener("click",function(){if(!pathPoints.length)return;pathPoints.pop();var marker=pathMarkers.pop();if(marker)map.removeLayer(marker);if(pathLine)map.removeLayer(pathLine);pathLine=pathPoints.length>1?L.polyline(pathPoints.map(function(p){return [p.lat,p.lon]}),{color:"#075985",weight:4,dashArray:"7 5"}).addTo(map):null;updatePathControls();setPathHelp("عدد النقاط المتبقية: "+pathPoints.length)});
