@@ -21,9 +21,11 @@ button,input{font:inherit}button{border:1px solid var(--line);background:#fff;bo
 .state{padding:0 14px 14px;font-size:12px;color:var(--muted);line-height:1.8}.notice{margin:0 13px 13px;padding:11px 12px;border-radius:10px;background:#fff7e8;color:#79500b;font-size:12px;line-height:1.8}
 @media(max-width:620px){main{padding:12px 10px 25px}#map{height:55vh;min-height:340px}.results{grid-template-columns:1fr 1fr}.metric:first-child{grid-column:1/-1}.search{min-width:100%}.map-head{align-items:flex-start;flex-direction:column}}
 </style>
+<link rel="stylesheet" href="../assets/css/observatory-ui.css">
 </head>
 <body>
 <header><a href="../">← العودة إلى مرصد السعودية</a><h1>قياس الارتفاع عن سطح البحر</h1><p>اختر أي نقطة على الخريطة لمعرفة ارتفاع تضاريسها بالمتر</p></header>
+<nav class="global-nav" aria-label="التنقل الرئيسي"><a href="../index.html">الرئيسية</a><a href="../index.html#weather">الطقس والأمطار</a><a href="../seasons/">المواسم والزراعة</a><a href="../satellite/">الأقمار الصناعية</a><a href="../earth-memory/">ذاكرة الأرض</a><a href="../flights/">رادار الطيران</a><a href="../sat-radar/">رادار الأقمار</a><a href="../elevation/" aria-current="page">قياس الارتفاع</a><a href="../geo/">المساحة الجغرافية</a><a href="../admin/">المصادر والإدارة</a></nav>
 <main>
 <div class="toolbar">
 <div class="search"><input id="coords" inputmode="decimal" placeholder="أدخل الإحداثيات: خط العرض، خط الطول" aria-label="الإحداثيات"><button id="searchPoint" class="primary">قياس النقطة</button></div>
