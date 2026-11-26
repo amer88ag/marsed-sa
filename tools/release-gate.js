@@ -10,8 +10,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const ROOT = path.join(__dirname, "..");
-// Baseline = last state on GitHub. Moved from a59d397 to cac832f after the owner-approved push of 2026-11-26.
-const BASELINE = process.env.GATE_BASELINE || "cac832f4c47422ca9756dfb5b78e208ca6161a20";
+// Baseline = last state on GitHub: a59d397 → cac832f (owner-approved push) → 0fda898 (owner commits, 2026-11-26 02:45–02:52).
+const BASELINE = process.env.GATE_BASELINE || "0fda898942eabaa7ff5ea7ca93a37a8f22d74cec";
 // G4–G6 compare with the ORIGINAL review baseline a59d397 (stronger than the moving GitHub baseline):
 // deploy/CI files, historical CHIRPS data and the 4 disputed coordinates (inline in index.html there).
 const ORIGINAL_BASELINE = "a59d3974997392dbdc6e95817215009880df09d2";
