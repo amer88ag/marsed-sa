@@ -76,7 +76,7 @@ test("no-data and malformed API arrays are handled explicitly",()=>{
 test("calculates cumulative ascent and descent without bridging missing samples",()=>{
   const samples=Profile.samplePath(line,5);
   const profile=Profile.buildProfile(samples,[100,130,120,null,150]);
-  assert.equal(profile.cumulativeAscentM,40);
+  assert.equal(profile.cumulativeAscentM,30);
   assert.equal(profile.cumulativeDescentM,10);
   assert.equal(profile.maxUphillGradePercent,profile.rows[1].gradePercent);
   assert.equal(profile.maxDownhillGradePercent,profile.rows[2].gradePercent);
