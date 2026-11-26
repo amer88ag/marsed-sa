@@ -105,26 +105,27 @@ const status = (code, headers) => ({ ok: false, status: code, json: async () => 
 test('flights: primary source used when it answers', async () => {
   const calls = [];
   const r = await F.fetchAround(24.7, 46.7, 54, { fetch: async u => { calls.push(u); return ok(body); } });
-  assert.equal(r.provider, 'adsblol'); assert.equal(r.fallback_used, false); assert.equal(calls.length, 1);
+  assert.equal(r.provider, 'adsbfi'); assert.equal(r.fallback_used, false); assert.equal(calls.length, 1);
+  assert.match(calls[0], /provider=adsbfi/);
 });
 
 test('flights: falls back to airplanes.live on network failure or 5xx, and says so', async () => {
   const seq = [new TypeError('offline'), ok(body)]; let i = 0;
   const r = await F.fetchAround(24.7, 46.7, 54, { fetch: async () => { const s = seq[i++]; if (s instanceof Error) throw s; return s; } });
-  assert.equal(r.provider, 'airplaneslive'); assert.equal(r.fallback_used, true); assert.equal(r.errors[0].provider, 'adsblol');
+  assert.equal(r.provider, 'adsblol'); assert.equal(r.fallback_used, true); assert.equal(r.errors[0].provider, 'adsbfi');
   const seq2 = [status(503), ok(body)]; let j = 0;
-  assert.equal((await F.fetchAround(24.7, 46.7, 54, { fetch: async () => seq2[j++] })).provider, 'airplaneslive');
+  assert.equal((await F.fetchAround(24.7, 46.7, 54, { fetch: async () => seq2[j++] })).provider, 'adsblol');
 });
 
 test('flights: 429 stops immediately (no hammering the fallback) and carries Retry-After', async () => {
   let calls = 0;
-  await assert.rejects(F.fetchAround(24.7, 46.7, 54, { fetch: async () => { calls++; return status(429, { 'Retry-After': '120' }); } }),
+  await assert.rejects(F.fetchAround(24.7, 46.7, 54, { providers: ['adsblol'], fetch: async () => { calls++; return status(429, { 'Retry-After': '120' }); } }),
     e => e.kind === 'rate_limited' && e.retryAfterSeconds === 120 && e.provider === 'adsblol');
-  assert.equal(calls, 1);
+  assert.equal(calls, 1, 'a rate-limited provider is never retried in the same poll');
 });
 
 test('flights: both sources down → unavailable; a 4xx is a source error, not a fallback', async () => {
-  await assert.rejects(F.fetchAround(24.7, 46.7, 54, { fetch: async () => { throw new TypeError('offline'); } }), e => e.kind === 'unavailable' && e.errors.length === 2);
+  await assert.rejects(F.fetchAround(24.7, 46.7, 54, { fetch: async () => { throw new TypeError('offline'); } }), e => e.kind === 'unavailable' && e.errors.length === 3);
   let calls = 0;
   await assert.rejects(F.fetchAround(24.7, 46.7, 54, { fetch: async () => { calls++; return status(404); } }), e => e.kind === 'http' && e.status === 404);
   assert.equal(calls, 1);

@@ -8,12 +8,13 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function (http, A) {
   "use strict";
   // Live aircraft around a point, from community ADS-B networks.
-  // - Primary adsb.lol; falls back to airplanes.live (same schema) on network,
-  //   timeout or 5xx. A 429 is respected: no fallback hammering, wait Retry-After.
+  // - Tries independent public ADS-B providers in order. A provider-specific
+  //   403/429/5xx does not block trying another provider; never retries the same
+  //   provider in this poll. If all providers fail, respect Retry-After.
   // - Polling every 30 s keeps one open tab well under adsb.lol's 500 requests/day
   //   per IP for a few hours; the page pauses polling while hidden.
   // - Between polls positions are ESTIMATED by dead reckoning and labelled so.
-  const ORDER = ["adsblol", "airplaneslive"];
+  const ORDER = ["adsbfi", "adsblol", "airplaneslive"];
   const POLL_SECONDS = 30;
   const MAX_ESTIMATE_SECONDS = 60;   // never extrapolate further than this
   const TRAIL_MAX_POINTS = 60, TRAIL_MAX_MINUTES = 30;
@@ -22,7 +23,7 @@
   function isFallbackWorthy(error) {
     if (!error) return false;
     if (error.kind === "network" || error.kind === "timeout" || error.kind === "json") return true;
-    return error.kind === "http" && error.status >= 500;
+    return error.kind === "http" && (error.status === 403 || error.status === 429 || error.status >= 500);
   }
 
   async function fetchAround(lat, lon, radiusNm, options) {
@@ -30,7 +31,8 @@
     const errors = [];
     for (const id of o.providers || ORDER) {
       try {
-        const body = await http.request(A.buildPointUrl(id, lat, lon, radiusNm), { fetch: o.fetch, signal: o.signal, timeoutMs: o.timeoutMs || 15000 });
+        const proxyUrl = "/api/flight-radar?provider=" + encodeURIComponent(id) + "&lat=" + encodeURIComponent(lat) + "&lon=" + encodeURIComponent(lon) + "&radius=" + encodeURIComponent(radiusNm);
+        const body = await http.request(proxyUrl, { fetch: o.fetch, signal: o.signal, timeoutMs: o.timeoutMs || 15000 });
         const result = A.normalize(body, id);
         result.fallback_used = errors.length > 0;
         result.errors = errors;
@@ -39,15 +41,18 @@
         if (error && error.kind === "aborted") throw error;
         if (error instanceof TypeError && !error.kind) error.kind = "json"; // malformed body
         errors.push({ provider: id, kind: error.kind || "error", status: error.status, retryAfterSeconds: error.retryAfterSeconds });
-        if (error.kind === "http" && error.status === 429) {
-          const e = new Error("Rate limited by " + id); e.kind = "rate_limited"; e.provider = id;
-          // Retry-After may be hidden from the browser by CORS; then wait a conservative 5 minutes.
-          e.retryAfterSeconds = Number.isFinite(error.retryAfterSeconds) ? error.retryAfterSeconds : 300; e.errors = errors; throw e;
-        }
         if (!isFallbackWorthy(error)) { const e = new Error("ADS-B source error"); e.kind = error.kind || "source_error"; e.status = error.status; e.errors = errors; throw e; }
       }
     }
     // Every source answered, but with an unusable body → source error; otherwise no response.
+    const limited = errors.find(function (x) { return x.kind === "http" && x.status === 429; });
+    if (limited) {
+      const e = new Error("ADS-B providers rate limited or unavailable");
+      e.kind = "rate_limited"; e.provider = limited.provider;
+      // Retry-After may be hidden by a proxy/browser; use a conservative fallback.
+      e.retryAfterSeconds = Number.isFinite(limited.retryAfterSeconds) ? limited.retryAfterSeconds : 300;
+      e.errors = errors; throw e;
+    }
     const allBad = errors.length > 0 && errors.every(function (x) { return x.kind === "json"; });
     const e = new Error(allBad ? "ADS-B sources returned invalid data" : "All ADS-B sources unavailable");
     e.kind = allBad ? "source_error" : "unavailable"; e.errors = errors; throw e;

@@ -134,7 +134,12 @@ test("orchard elevation context compares farm and model grid without deriving da
 
 // ---- orchard page behaviour --------------------------------------------------
 function seasonsHarness(fetchOrchardData) {
-  const OrchardStub = Object.assign({}, Orchard, { fetchOrchardData });
+  const OrchardStub = Object.assign({}, Orchard, {
+    fetchOrchardData,
+    // Keep page-behaviour fixtures deterministic as real Saudi time advances.
+    // The forecast rows below intentionally begin on 2026-11-26.
+    saudiToday: () => "2026-11-25"
+  });
   return runPage("seasons/index.html", { OrchardWeather: OrchardStub, HttpClient: Http },
     { values: { farmMonth: "11", farmRegion: "highland", farmTree: "grape", farmStage: "flower", farmElevation: "2400", orchardLat: "18.2164", orchardLon: "42.5053" } });
 }
