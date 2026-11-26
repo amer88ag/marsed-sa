@@ -240,7 +240,7 @@ function parseKml(xml){
   const nameNode=Array.from(pm.children).find(x=>x.localName==="name");
   const folders=[];let parent=pm.parentElement;
   while(parent&&parent!==doc.documentElement){
-   if(parent.localName==="Folder"||parent.localName==="Document"){
+   if(parent.localName==="Folder"){
     const folderName=Array.from(parent.children).find(x=>x.localName==="name");
     if(folderName&&folderName.textContent.trim())folders.unshift(folderName.textContent.trim());
    }
