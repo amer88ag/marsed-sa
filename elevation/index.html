@@ -13,7 +13,9 @@
 header{background:linear-gradient(120deg,#102b46,#174d76);color:white;padding:18px max(16px,calc((100% - 1120px)/2))}
 header a{color:#d9eafa;text-decoration:none;font-size:13px}h1{font-size:24px;margin:12px 0 5px}header p{margin:0;color:#d0dfeb;font-size:13px}
 main{max-width:1120px;margin:auto;padding:18px 14px 36px}.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px}
-button,input{font:inherit}button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 13px;color:var(--ink);cursor:pointer}button.primary{background:var(--blue);border-color:var(--blue);color:white}button:disabled{opacity:.55;cursor:wait}\n.path-tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.path-help{font-size:12px;color:var(--muted);align-self:center}.profile-panel{margin-top:12px;padding:14px}.profile-panel h2{font-size:17px;margin:0 0 8px}.profile-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.profile-metrics .metric strong{font-size:21px}.profile-chart{width:100%;height:210px;display:block;margin-top:10px;background:#f8fafc;border-radius:10px}.profile-table-wrap{overflow:auto;margin-top:10px}.profile-table{width:100%;border-collapse:collapse;font-size:12px}.profile-table th,.profile-table td{padding:8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}.profile-empty{font-size:12px;color:var(--muted);line-height:1.8}\n@media(max-width:620px){.profile-metrics{grid-template-columns:1fr 1fr}}
+button,input{font:inherit}button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 13px;color:var(--ink);cursor:pointer}button.primary{background:var(--blue);border-color:var(--blue);color:white}button:disabled{opacity:.55;cursor:wait}
+.path-tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.path-help{font-size:12px;color:var(--muted);align-self:center}.profile-panel{margin-top:12px;padding:14px}.profile-panel h2{font-size:17px;margin:0 0 8px}.profile-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.profile-metrics .metric strong{font-size:21px}.profile-chart{width:100%;height:210px;display:block;margin-top:10px;background:#f8fafc;border-radius:10px}.profile-table-wrap{overflow:auto;margin-top:10px}.profile-table{width:100%;border-collapse:collapse;font-size:12px}.profile-table th,.profile-table td{padding:8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}.profile-empty{font-size:12px;color:var(--muted);line-height:1.8}
+@media(max-width:620px){.profile-metrics{grid-template-columns:1fr 1fr}}
 .search{display:flex;gap:8px;flex:1;min-width:260px}.search input{width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
 .panel{background:white;border:1px solid var(--line);border-radius:15px;overflow:hidden;box-shadow:0 3px 14px #183b5710}
 #map{height:min(66vh,650px);min-height:380px;background:#e8eff4}.map-head{padding:13px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center}.map-head b{font-size:15px}.map-head span{font-size:11px;color:var(--muted)}
@@ -45,12 +47,15 @@ button,input{font:inherit}button{border:1px solid var(--line);background:#fff;bo
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="../src/platform/http/client.js"></script>
 <script src="../src/platform/geo/cities.js"></script>
-<script src="../src/platform/geo/map-frame.js"></script>\n<script src="../src/platform/geo/measure.js"></script>\n<script src="../src/platform/geo/elevation-profile.js"></script>
+<script src="../src/platform/geo/map-frame.js"></script>
+<script src="../src/platform/geo/measure.js"></script>
+<script src="../src/platform/geo/elevation-profile.js"></script>
 <script>
 (function(){
 "use strict";
 var $=function(id){return document.getElementById(id)};
-var map=L.map("map").setView([23.8,45.0],5),marker=null,requestId=0,activeAbort=null,lastResult=null,TIMEOUT_MS=12000;\nvar pathMode=false,pathPoints=[],pathMarkers=[],pathLine=null,profileRequestId=0;
+var map=L.map("map").setView([23.8,45.0],5),marker=null,requestId=0,activeAbort=null,lastResult=null,TIMEOUT_MS=12000;
+var pathMode=false,pathPoints=[],pathMarkers=[],pathLine=null,profileRequestId=0;
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
 if(typeof SaudiMapFrame!=="undefined")SaudiMapFrame.frame(map,L,{url:"../data/geo/saudi_boundary.geojson"});
 function status(message,isError){$("status").textContent=message;$("status").style.color=isError?"#b42318":""}
