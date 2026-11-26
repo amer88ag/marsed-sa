@@ -94,3 +94,10 @@ test("selected polygon details and copied coordinates include interior rings",()
   assert.match(page,/const rings=f\.type==="polygon"/);
   assert.match(page,/الحلقة الخارجية/);
 });
+
+test("large geometry vertex counts and compressed KMZ expansion are bounded",()=>{
+  assert.match(page,/MAX_IMPORT_VERTICES=100000/);
+  assert.match(page,/vertexCount\(features\)\+vertexCount\(imported\)>MAX_IMPORT_VERTICES/);
+  assert.match(page,/entry\._data&&Number\(entry\._data\.uncompressedSize\)>MAX_EXPANDED_TEXT/);
+  assert.match(page,/textContent\.length>MAX_EXPANDED_TEXT/);
+});
