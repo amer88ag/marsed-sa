@@ -174,3 +174,10 @@ test('earth memory page: default "after" avoids today\'s incomplete mosaic and e
   assert.match(html, /cap===today\?\(G\.adjacentAvailableDate\(cap,periods,-1,cap\)\|\|cap\):cap/);
   assert.match(html, /المناطق السوداء تعني لا بيانات/);
 });
+
+test('flights page: links to free live maps centred on the chosen place, opened externally', () => {
+  const html = fs.readFileSync('flights/index.html', 'utf8');
+  for (const host of ['globe.adsb.lol', 'globe.airplanes.live', 'globe.adsb.fi', 'globe.adsbexchange.com']) assert.ok(html.includes('https://' + host + '/'), host);
+  assert.match(html, /\?lat="\+lat\.toFixed\(3\)\+"&lon="\+lon\.toFixed\(3\)\+"&zoom=8"/);
+  assert.match(html, /a\.target="_blank";a\.rel="noopener noreferrer"/);
+});

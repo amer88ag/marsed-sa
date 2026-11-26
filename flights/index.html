@@ -39,6 +39,7 @@
 <button class="btn primary" type="button" id="refresh">تحديث الآن</button>
 </div>
 <div id="status" class="status" aria-live="polite">جارٍ التهيئة…</div>
+<div class="status" id="liveMaps">افتح خريطة حية مجانية متمركزة على المكان المختار (تفتح في نافذة جديدة، ومن موقع خارجي): <span id="liveMapLinks"></span></div>
 <div class="layout">
 <div id="flightMap" role="application" aria-label="خريطة الطائرات"></div>
 <div><div id="card" class="card">اختر طائرة من الخريطة أو القائمة لعرض بطاقتها.</div><div id="list" class="list" role="list" aria-label="الطائرات القريبة"></div></div>
@@ -60,6 +61,11 @@ var trails=F.createTrailStore();
 function $(id){return document.getElementById(id)}
 function esc(t){return String(t).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 function fmt(v,u){return v===null||v===undefined?"غير متاح":Number(v).toLocaleString("en-US")+(u?" "+u:"")}
+// Free public live maps (tar1090-based). Links only: no data passes through this site.
+// lat/lon/zoom are tar1090 URL parameters; ADS-B Exchange documents SiteLat/SiteLon.
+var LIVE_MAPS=[{name:"ADSB.lol",url:"https://globe.adsb.lol/"},{name:"airplanes.live",url:"https://globe.airplanes.live/"},{name:"adsb.fi",url:"https://globe.adsb.fi/"},{name:"ADS-B Exchange",url:"https://globe.adsbexchange.com/"}];
+function liveMapUrl(base,lat,lon){return base+"?lat="+lat.toFixed(3)+"&lon="+lon.toFixed(3)+"&zoom=8"}
+function renderLiveMaps(){var box=$("liveMapLinks");box.textContent="";LIVE_MAPS.forEach(function(m){var a=document.createElement("a");a.className="btn";a.href=liveMapUrl(m.url,center.lat,center.lon);a.target="_blank";a.rel="noopener noreferrer";a.textContent=m.name+" ↗";box.appendChild(a);box.appendChild(document.createTextNode(" "))})}
 function setState(state,label){$("dataState").setAttribute("data-state",state);$("dataState").textContent=label}
 function status(t,err){$("status").textContent=t;$("status").classList.toggle("error",!!err)}
 Object.keys(places).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=places[k].name;$("place").appendChild(o)});
@@ -126,10 +132,10 @@ async function poll(){
   if(error.kind==="rate_limited"){blockedUntil=Date.now()+error.retryAfterSeconds*1000;setState(result?"stale":"unavailable",result?"قديمة":"غير متاحة");status("المصدر رفض الطلب لتجاوز الحد اليومي أو اللحظي (429). إعادة المحاولة بعد "+error.retryAfterSeconds+" ثانية."+(result?" المعروض من آخر تحديث ناجح.":""),true);return}
   var unavailable=error.kind==="unavailable";
   setState(result?"stale":(unavailable?"unavailable":"source_error"),result?"قديمة":(unavailable?"غير متاحة":"خطأ في المصدر"));
-  status((unavailable?"تعذر الوصول إلى مصادر بيانات الطيران (الأساسي والبديل).":"استجاب المصدر باستجابة غير صالحة.")+(result?" المعروض من آخر تحديث ناجح وليس حديثاً.":" لا تُعرض طائرات مفترضة."),true);
+  status((unavailable?"تعذر الوصول إلى مصادر بيانات الطيران من المتصفح (الأساسي والبديل).":"استجاب المصدر باستجابة غير صالحة.")+(result?" المعروض من آخر تحديث ناجح وليس حديثاً.":" لا تُعرض طائرات مفترضة.")+" يمكنك فتح إحدى الخرائط الحية المجانية أعلاه.",true);
  }
 }
-function restart(){clearInterval(timer);poll();timer=setInterval(poll,F.POLL_SECONDS*1000)}
+function restart(){renderLiveMaps();clearInterval(timer);poll();timer=setInterval(poll,F.POLL_SECONDS*1000)}
 function moveTo(lat,lon,name){center={lat:lat,lon:lon,name:name};result=null;Object.keys(markers).forEach(function(h){map&&map.removeLayer(markers[h])});markers={};if(map)map.setView([lat,lon],8);restart()}
 $("place").addEventListener("change",function(){var p=places[$("place").value];moveTo(p.lat,p.lon,p.name)});
 $("radius").addEventListener("change",restart);

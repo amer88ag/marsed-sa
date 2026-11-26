@@ -86,7 +86,11 @@ const NON_DATA_HOSTS = {
   "earth.google.com": "user-initiated Google Earth links; no embedded imagery or automated scraping",
   "www.opengis.net": "KML 2.2 XML namespace identifier; not a network request",
   "adsb.lol": "ADSB.lol attribution link (flight radar)",
-  "airplanes.live": "airplanes.live attribution link (flight radar)"
+  "airplanes.live": "airplanes.live attribution link (flight radar)",
+  "globe.adsb.lol": "outbound link to the free ADSB.lol live map (no data fetched)",
+  "globe.airplanes.live": "outbound link to the free airplanes.live live map (no data fetched)",
+  "globe.adsb.fi": "outbound link to the free adsb.fi live map (no data fetched)",
+  "globe.adsbexchange.com": "outbound link to the free ADS-B Exchange live map (no data fetched)"
 };
 // Test-only hosts: local servers and placeholders used by tools/browser-smoke.
 const TOOL_ONLY_HOSTS = {
