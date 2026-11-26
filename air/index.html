@@ -46,7 +46,7 @@ input,select{font:inherit;border:1px solid var(--line);border-radius:9px;padding
 <div class="map-head"><b>الحركة الجوية على الخريطة</b><small>الموقع والاتجاه والارتفاع</small></div>
 <div id="map" role="application" aria-label="خريطة حركة الطائرات"></div>
 <div class="legend"><span>✈️ طائرة مرصودة</span><span>الأسهم توضح اتجاه الحركة</span></div>
-<div class="notice">البيانات من OpenSky Network وتعتمد على استقبال رسائل الطائرات؛ قد لا تظهر كل الطائرات أو كل الرحلات، وقد تتأخر بعض المواقع. لا تستخدم هذه الصفحة للملاحة أو السلامة الجوية. هذه نسخة بحثية فقط؛ شروط OpenSky تتطلب موافقة مكتوبة قبل دمج واجهة REST في خدمة تشغيلية أو نشرها للجمهور. لا تستخدم للملاحة أو السلامة الجوية.</div>
+<div class="notice">البيانات من FlyItalyADSB وتعتمد على استقبال رسائل الطائرات؛ قد لا تظهر كل الطائرات أو كل الرحلات، وقد تتأخر بعض المواقع. لا تستخدم هذه الصفحة للملاحة أو السلامة الجوية. مصدر البيانات FlyItalyADSB بترخيص CC BY-SA 4.0. البيانات رصد مجتمعي وقد تكون ناقصة أو متأخرة؛ لا تستخدم للملاحة أو السلامة الجوية. لا تستخدم للملاحة أو السلامة الجوية.</div>
 </section>
 <aside>
 <section class="panel sidebar">
@@ -64,7 +64,7 @@ input,select{font:inherit;border:1px solid var(--line);border-radius:9px;padding
 </section>
 </aside></div>
 <section class="panel"><div class="section-head"><b>مصدر البيانات وحدودها</b><small>شفافية التغطية والتحديث</small></div><div class="sidebar">
-<p><b>المصدر:</b> OpenSky Network API، بيانات ADS-B/Mode S المفتوحة. لا يلزم مفتاح للقراءة المجهولة ضمن حدود الحصة.</p>
+<p><b>المصدر:</b> FlyItalyADSB API عبر وسيط خادمي؛ مفتاح المصدر محفوظ في إعدادات الخادم ولا يظهر في المتصفح.</p>
 <p><b>التحديث:</b> يدوي أو كل خمس دقائق لتقليل استهلاك الحصة. التوقيت ووقت آخر اتصال يعرضان من بيانات المصدر.</p>
 <p><b>المعلومات المتاحة:</b> رمز الطائرة ICAO24، نداء الرحلة إن توفر، بلد التسجيل/المنشأ كما يورده المصدر، الإحداثيات، الارتفاع، السرعة، الاتجاه، معدل الصعود/الهبوط، وحالة الطائرة أرض/جو.</p>
 <p><b>غير المتاح من هذا المصدر وحده:</b> جداول الرحلات التجارية، التأخير والإلغاء، بوابات الصعود، أرقام الصالات، وبيانات المسافر. لا نعرضها كتخمينات.</p>
@@ -111,11 +111,11 @@ async function refresh(){
   if(area>25.5){throw new Error("النطاق المحدد واسع جداً للطلب المجاني. قرّب الخريطة أو اختر مدينة لتقليل مساحة البحث إلى نحو 25 درجة مربعة.")};
   const url="https://opensky-network.org/api/states/all? lamin="+b[0]+"&lomin="+b[1]+"&lamax="+b[2]+"&lomax="+b[3];
   const response=await fetch(url.replace("? lamin=","?lamin="),{headers:{Accept:"application/json"}});
-  if(!response.ok){if(response.status===429)throw new Error("وصلنا إلى حد الطلبات المتاح حالياً من OpenSky. انتظر قبل المحاولة التالية.");throw new Error("تعذر جلب بيانات الطيران (HTTP "+response.status+").")}
+  if(!response.ok){if(response.status===429)throw new Error("تجاوزنا حصة طلبات مصدر الطيران مؤقتاً. انتظر قبل المحاولة التالية.");throw new Error("تعذر جلب بيانات الطيران (HTTP "+response.status+").")}
   const data=await response.json();const states=Array.isArray(data.states)?data.states:[];
   aircraft=states.map(s=>({icao24:s[0],callsign:(s[1]||"").trim(),origin_country:s[2],time_position:s[3],last_contact:s[4],longitude:s[5],latitude:s[6],baro_altitude:s[7],on_ground:s[8],velocity:s[9],true_track:s[10],vertical_rate:s[11],geo_altitude:s[13],squawk:s[14]})).filter(a=>a.icao24);
   lastUpdated=new Date();render();
-  status("آخر تحديث: "+lastUpdated.toLocaleString("ar-SA")+" · استجابة المصدر: "+new Date((data.time||Date.now()/1000)*1000).toLocaleTimeString("ar-SA")+" · النطاق: "+fmt(area,1)+" درجة²");
+  status("آخر تحديث: "+lastUpdated.toLocaleString("ar-SA")+" · المصدر: FlyItalyADSB · عدد الطائرات: "+fmt(data.count)+" · النطاق: "+fmt(area,1)+" درجة²");
  }catch(e){status(e.message||"تعذر الاتصال بمصدر الطيران.",true)}
  finally{busy=false}
 }
