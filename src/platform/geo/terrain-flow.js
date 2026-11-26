@@ -21,7 +21,7 @@
       const number=Number(value);
       return Number.isFinite(number)?number:null;
     });
-    return {rows:input.rows,cols:input.cols,cellSizeXM:dx,cellSizeYM:dy,elevations};
+    return {rows:input.rows,cols:input.cols,cellSizeXM:dx,cellSizeYM:dy,elevations,points:Array.isArray(input.points)&&input.points.length===elevations.length?input.points.map(p=>p&&Number.isFinite(p.lat)&&Number.isFinite(p.lon)?{lat:p.lat,lon:p.lon}:null):null};
   }
 
   function createGrid(center,rows,cols,spacingM){
