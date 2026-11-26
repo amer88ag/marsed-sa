@@ -97,7 +97,7 @@ input,select{font:inherit;border:1px solid var(--line);border-radius:9px;padding
 (function(){
 "use strict";
 const $=id=>document.getElementById(id),Geo=window.GoogleGeoWorkspace;
-const MAX_IMPORT_FEATURES=5000,MAX_EXPANDED_TEXT=30*1024*1024;
+const MAX_IMPORT_FEATURES=5000,MAX_EXPANDED_TEXT=30*1024*1024,MAX_IMPORT_VERTICES=100000;
 const STORAGE="marsed.google.geo.workspace.v1",PROJECTS="marsed.google.geo.projects.v1";
 let features=[],selectedId=null,mode=null,draft=[],draftLayer=null,rendered=[];
 const map=L.map("map").setView([24.2,45.2],5);
@@ -276,15 +276,17 @@ $("importFile").addEventListener("change",async e=>{
   if(ext==="kmz"){
    if(!window.JSZip)throw new Error("تعذر تحميل مكتبة قراءة KMZ.");
    const zip=await JSZip.loadAsync(file);const entry=zip.file("doc.kml")||Object.values(zip.files).find(x=>!x.dir&&x.name.toLowerCase().endsWith(".kml"));
-   if(!entry)throw new Error("لم يُعثر على ملف KML داخل KMZ.");textContent=await entry.async("string");if(textContent.length>MAX_EXPANDED_TEXT)throw new Error("محتوى KMZ بعد فك الضغط يتجاوز 30 ميغابايت؛ قسّم الملف.");imported=parseKml(textContent);
+   if(!entry)throw new Error("لم يُعثر على ملف KML داخل KMZ.");if(entry._data&&Number(entry._data.uncompressedSize)>MAX_EXPANDED_TEXT)throw new Error("محتوى KMZ بعد فك الضغط يتجاوز 30 ميغابايت؛ قسّم الملف.");textContent=await entry.async("string");if(textContent.length>MAX_EXPANDED_TEXT)throw new Error("محتوى KMZ بعد فك الضغط يتجاوز 30 ميغابايت؛ قسّم الملف.");imported=parseKml(textContent);
   }else{
    textContent=await file.text();
+   if(textContent.length>MAX_EXPANDED_TEXT)throw new Error("محتوى الملف يتجاوز 30 ميغابايت؛ قسّمه إلى ملفات أصغر.");
    if(ext==="gpx")imported=parseGpx(textContent);
    else if(ext==="geojson"||ext==="json")imported=parseGeoJson(textContent);
    else imported=parseKml(textContent);
-   if(textContent.length>MAX_EXPANDED_TEXT)throw new Error("محتوى الملف يتجاوز 30 ميغابايت؛ قسّمه إلى ملفات أصغر.");
   }
   if(features.length+imported.length>MAX_IMPORT_FEATURES)throw new Error("سيصبح مجموع العناصر أكبر من 5000؛ احفظ مشروعاً منفصلاً أو احذف بعض العناصر أولاً.");
+  const vertexCount=list=>list.reduce((total,f)=>total+f.coordinates.length+(f.holes||[]).reduce((n,ring)=>n+ring.length,0),0);
+  if(vertexCount(features)+vertexCount(imported)>MAX_IMPORT_VERTICES)throw new Error("عدد نقاط الملفات يتجاوز 100 ألف نقطة؛ قسّم البيانات إلى مشروعات أصغر.");
   if(!imported.length)throw new Error("لم نعثر على عناصر جغرافية صالحة داخل الملف.");
   features=features.concat(imported);selectedId=imported[0].id;saveCurrent();render();
   const all=imported.flatMap(f=>f.coordinates);if(all.length)map.fitBounds(L.latLngBounds(all.map(p=>[p.lat,p.lon])).pad(.15));
