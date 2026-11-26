@@ -143,7 +143,10 @@ function updateSelectedDetails(){
  const copy=document.createElement("button");copy.className="btn";copy.type="button";copy.textContent="نسخ الإحداثيات";copy.onclick=async()=>{const rings=f.type==="polygon"?[f.coordinates,...(f.holes||[])]:[f.coordinates];const value=rings.map((ring,index)=>(f.type==="polygon"?(index===0?"الحلقة الخارجية":"الثقب "+index)+"\n":"")+ring.map(p=>p.lat.toFixed(6)+", "+p.lon.toFixed(6)).join("\n")).join("\n\n");try{await navigator.clipboard.writeText(value);status("تم نسخ الإحداثيات.")}catch(e){status("تعذر النسخ من المتصفح؛ يمكنك تصدير KML.",true)}};box.append(copy);
  const exportOne=document.createElement("button");exportOne.className="btn";exportOne.type="button";exportOne.textContent="تصدير العنصر المحدد";exportOne.onclick=()=>download("marsed-selected-feature.kml",new Blob([Geo.toKml([f])],{type:"application/vnd.google-earth.kml+xml;charset=utf-8"}));box.append(exportOne);
 }
+function workspaceVertexCount(){return features.reduce((total,f)=>total+f.coordinates.length+(f.holes||[]).reduce((n,ring)=>n+ring.length,0),0)}
 function addFeature(type,coordinates,name){
+ if(features.length>=MAX_IMPORT_FEATURES){status("وصلت مساحة العمل إلى الحد الأقصى (5000 عنصر). احفظ مشروعاً منفصلاً قبل إضافة المزيد.",true);return}
+ if(workspaceVertexCount()+coordinates.length>MAX_IMPORT_VERTICES){status("وصلت مساحة العمل إلى الحد الأقصى (100 ألف نقطة إحداثية). احفظ مشروعاً منفصلاً قبل إضافة المزيد.",true);return}
  const feature=Geo.normalizeFeature({id:id(),type,coordinates,name:safeName(name|| (type==="point"?"موقع جديد":type==="line"?"مسار جديد":"حدود جديدة"))});
  if(!feature){status("تعذر إنشاء العنصر: تحقق من الإحداثيات وعدد النقاط.",true);return}
  features.push(feature);selectedId=feature.id;saveCurrent();render();status("أضيف العنصر إلى مساحة العمل. يمكنك فتحه في Google أو حفظ المشروع.");
@@ -154,6 +157,7 @@ function startDraw(type){stopDraw();mode=type;$(type==="point"?"drawPoint":type=
 map.on("click",e=>{
  if(!mode)return;const p={lat:e.latlng.lat,lon:e.latlng.lng};
  if(mode==="point"){addFeature("point",[p]);stopDraw();return}
+ if(workspaceVertexCount()+draft.length+1>MAX_IMPORT_VERTICES){status("وصل الرسم إلى حد 100 ألف نقطة إحداثية في مساحة العمل. أنهِ الرسم أو احفظ مشروعاً منفصلاً.",true);return}
  draft.push(p);updateDraft();$("finishDraw").disabled=draft.length<(mode==="line"?2:3);
 });
 function finishDraw(){if(!mode||mode==="point")return;const type=mode;const pts=draft.slice();stopDraw();if(type==="polygon"&&pts.length>2)addFeature(type,pts);else if(type==="line"&&pts.length>1)addFeature(type,pts);else status("عدد النقاط غير كافٍ.",true)}
