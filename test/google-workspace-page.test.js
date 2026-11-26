@@ -101,3 +101,12 @@ test("large geometry vertex counts and compressed KMZ expansion are bounded",()=
   assert.match(page,/entry\._data&&Number\(entry\._data\.uncompressedSize\)>MAX_EXPANDED_TEXT/);
   assert.match(page,/textContent\.length>MAX_EXPANDED_TEXT/);
 });
+
+
+test("manual drawing obeys the same workspace feature and vertex limits as imports",()=>{
+  assert.match(page,/function workspaceVertexCount\(\)/);
+  assert.match(page,/features\.length>=MAX_IMPORT_FEATURES/);
+  assert.match(page,/workspaceVertexCount\(\)\+coordinates\.length>MAX_IMPORT_VERTICES/);
+  assert.match(page,/workspaceVertexCount\(\)\+draft\.length\+1>MAX_IMPORT_VERTICES/);
+  assert.match(page,/100 ألف نقطة إحداثية/);
+});
