@@ -83,6 +83,7 @@ const NON_DATA_HOSTS = {
   "aa.usno.navy.mil": "astronomical reference link in the seasons page",
   "www.google.com": "user-initiated Google Maps links; no embedded Google tiles or copied imagery",
   "earth.google.com": "user-initiated Google Earth links; no embedded imagery or automated scraping",
+  "www.opengis.net": "OGC KML 2.2 XML namespace identifier, not a network request",
   "www.opengis.net": "KML 2.2 XML namespace identifier; not a network request"
 };
 // Test-only hosts: local servers and placeholders used by tools/browser-smoke.
