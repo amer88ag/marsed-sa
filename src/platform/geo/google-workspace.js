@@ -134,7 +134,7 @@
       else if(geometry.type==="MultiPolygon"){(coords||[]).forEach((p,i)=>addGeometry({type:"Polygon",coordinates:p},name+" ("+(i+1)+")"));return;}
       else return;
       const feature=normalizeFeature({id:nextId(),name,type,coordinates:points,...(type==="polygon"?{holes}:{})});
-      if(feature)out.push(feature);
+      if(feature){out.push(feature);if(out.length>5000)throw new Error("ملف GeoJSON يحتوي على أكثر من 5000 عنصر؛ قسّمه إلى ملفات أصغر.");}
     }
     function visit(item){
       if(!item)return;
