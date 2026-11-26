@@ -66,3 +66,8 @@ test("CSV export handles null measurements and neutralizes spreadsheet formulas 
   assert.match(page,/\^\[\\\\t\\\\r \]\*\[=\+@-\]/);
   assert.match(page,/text="'"+text/);
 });
+
+test("KML folder path excludes the document root name",()=>{
+  assert.match(page,/parent\.localName==="Folder"/);
+  assert.doesNotMatch(page,/parent\.localName==="Folder"\|\|parent\.localName==="Document"/);
+});
