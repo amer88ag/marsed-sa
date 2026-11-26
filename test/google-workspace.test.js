@@ -100,3 +100,9 @@ test("GeoJSON importer rejects malformed coordinates without creating invalid fe
   assert.deepEqual(Geo.fromGeoJson(data),[]);
   assert.throws(()=>Geo.fromGeoJson("{not-json"),SyntaxError);
 });
+
+
+test("GeoJSON multi-geometry expansion stops at the workspace feature limit",()=>{
+  const coordinates=Array.from({length:5001},(_,i)=>[46+i/100000,24]);
+  assert.throws(()=>Geo.fromGeoJson({type:"Feature",properties:{name:"مجموعة كبيرة"},geometry:{type:"MultiPoint",coordinates}}),/5000/);
+});
