@@ -149,12 +149,17 @@ function setMeasureStatus(){
  var count=measurePoints.length;
  $("measureUndo").disabled=count===0;
  $("measureClear").disabled=count===0;
- $("measureExport").disabled=count<3;
+ $("measureExport").disabled=count<3||!GeoMeasure.isSimple(measurePoints);
  if(count<3){
   $("measureReadout").textContent="النقاط المحددة: "+count+" · أضف "+(3-count)+" نقاط أخرى على الأقل لحساب المساحة.";
   return;
  }
- var area=GeoMeasure.area(measurePoints),perimeter=GeoMeasure.perimeter(measurePoints),formatted=GeoMeasure.formatArea(area);
+ var area=GeoMeasure.area(measurePoints),perimeter=GeoMeasure.perimeter(measurePoints);
+ if(area===null||perimeter===null){
+  $("measureReadout").textContent="الحدود تتقاطع أو لا تحصر مساحة صالحة. عدّل النقاط حتى تتكون حدود مغلقة غير متقاطعة.";
+  return;
+ }
+ var formatted=GeoMeasure.formatArea(area);
  $("measureReadout").textContent="عدد النقاط: "+count+" · المساحة التقريبية: "+formatted.value.toLocaleString("ar-SA",{maximumFractionDigits:2})+" "+formatted.unit+" · المحيط: "+(perimeter/1000).toLocaleString("ar-SA",{maximumFractionDigits:3})+" كم";
 }
 function redrawMeasure(){
@@ -189,7 +194,7 @@ function clearMeasure(){
  redrawMeasure();
 }
 function exportMeasureKml(){
- if(measurePoints.length<3)return;
+ if(measurePoints.length<3||!GeoMeasure.isSimple(measurePoints))return;
  var kml=GoogleGeoLinks.toPolygonKml(measurePoints,"حدود المساحة المحددة - مرصد السعودية");
  if(!kml)return;
  var blob=new Blob([kml],{type:"application/vnd.google-earth.kml+xml;charset=utf-8"});
