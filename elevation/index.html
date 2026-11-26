@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#102b46">
-<meta name="description" content="قياس الارتفاع التضاريسي عن سطح البحر لأي نقطة في السعودية على الخريطة.">
+<meta name="description" content="قياس ارتفاع التضاريس لنقطة أو مسار على خريطة السعودية.">
 <title>قياس الارتفاع | مرصد السعودية</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <style>
@@ -25,7 +25,7 @@ button,input{font:inherit}button{border:1px solid var(--line);background:#fff;bo
 </style>
 </head>
 <body>
-<header><a href="../">← العودة إلى مرصد السعودية</a><h1>قياس الارتفاع عن سطح البحر</h1><p>اختر أي نقطة على الخريطة لمعرفة ارتفاع تضاريسها بالمتر</p></header>
+<header><a href="../">← العودة إلى مرصد السعودية</a><h1>قياس الارتفاع عن سطح البحر</h1><p>اختر نقطة منفردة أو ارسم مساراً لمعرفة ارتفاع التضاريس وتغيره بالمتر</p></header>
 <main>
 <div class="toolbar">
 <div class="search"><input id="coords" inputmode="decimal" placeholder="أدخل الإحداثيات: خط العرض، خط الطول" aria-label="الإحداثيات"><button id="searchPoint" class="primary">قياس النقطة</button></div>
@@ -158,7 +158,7 @@ async function finishProfile(){
   setPathHelp("اكتمل تحليل المسار. هذه تقديرات تضاريسية بدقة نموذجية ~90 م وليست قياسات هندسية.");
  }catch(error){if(id!==profileRequestId)return;$("profileStatus").textContent="تعذر إنشاء المقطع التضاريسي: "+(error&&error.kind?HttpClient.describeError(error):error.message);setPathHelp("فشل طلب بيانات الارتفاع؛ يمكنك المحاولة مجدداً.",true)}
 }
-$("pathStart").addEventListener("click",function(){clearPath();pathMode=true;updatePathControls();setPathHelp("وضع الرسم نشط: انقر نقطتين أو أكثر على الخريطة.")});
+$("pathStart").addEventListener("click",function(){profileRequestId++;clearPath();pathMode=true;updatePathControls();setPathHelp("وضع الرسم نشط: انقر نقطتين أو أكثر على الخريطة.")});
 $("pathFinish").addEventListener("click",finishProfile);
 $("pathUndo").addEventListener("click",function(){if(!pathPoints.length)return;pathPoints.pop();var marker=pathMarkers.pop();if(marker)map.removeLayer(marker);if(pathLine)map.removeLayer(pathLine);pathLine=pathPoints.length>1?L.polyline(pathPoints.map(function(p){return [p.lat,p.lon]}),{color:"#075985",weight:4,dashArray:"7 5"}).addTo(map):null;updatePathControls();setPathHelp("عدد النقاط المتبقية: "+pathPoints.length)});
 $("pathClear").addEventListener("click",function(){profileRequestId++;clearPath();$("profileMetrics").hidden=true;$("profileChart").hidden=true;$("profileTableWrap").hidden=true;$("profileStatus").textContent="تم مسح المسار. ارسم مساراً جديداً للبدء."});
