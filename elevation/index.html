@@ -167,7 +167,8 @@ async function finishProfile(){
  }catch(error){if(id!==profileRequestId)return;$("profileStatus").textContent="تعذر إنشاء المقطع التضاريسي: "+(error&&error.kind?HttpClient.describeError(error):error.message);setPathHelp("فشل طلب بيانات الارتفاع؛ يمكنك المحاولة مجدداً.",true)}
 }
 
-function clearFlowLayers(){flowLayers.concat(flowPathLayers).forEach(function(layer){map.removeLayer(layer)});flowLayers=[];flowPathLayers=[]}\nasync function analyzeLocalFlow(){
+function clearFlowLayers(){flowLayers.concat(flowPathLayers).forEach(function(layer){map.removeLayer(layer)});flowLayers=[];flowPathLayers=[]}
+async function analyzeLocalFlow(){
  if(!lastResult){$("flowStatus").textContent="حدد نقطة على الخريطة وانتظر ظهور ارتفاعها أولاً.";return}
  var id=++flowRequestId,grid=TerrainFlow.createGrid({lat:lastResult.lat,lon:lastResult.lon},9,9,180);
  if(!grid){$("flowStatus").textContent="تعذر إنشاء شبكة تضاريس صالحة حول النقطة.";return}
