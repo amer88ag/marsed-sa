@@ -40,6 +40,26 @@
     const a=f.coordinates[0],b=f.coordinates[f.coordinates.length-1];
     return "https://www.google.com/maps/dir/?api=1&origin="+encodeURIComponent(a.lat+","+a.lon)+"&destination="+encodeURIComponent(b.lat+","+b.lon);
   }
+  function distanceM(a,b){
+    const rad=Math.PI/180,lat1=a.lat*rad,lat2=b.lat*rad,dLat=(b.lat-a.lat)*rad,dLon=(b.lon-a.lon)*rad;
+    const h=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+    return 6371008.8*2*Math.atan2(Math.sqrt(h),Math.sqrt(Math.max(0,1-h)));
+  }
+  function measureFeature(feature){
+    const f=normalizeFeature(feature);if(!f)return null;
+    const pts=f.coordinates;let perimeterM=0;
+    for(let i=1;i<pts.length;i++)perimeterM+=distanceM(pts[i-1],pts[i]);
+    if(f.type==="point")return {lengthM:0,perimeterM:null,areaM2:null};
+    if(f.type==="polygon"){
+      perimeterM+=distanceM(pts[pts.length-1],pts[0]);
+      let sum=0;for(let i=0;i<pts.length;i++){
+        const a=pts[i],b=pts[(i+1)%pts.length];
+        sum+=(b.lon-a.lon)*Math.PI/180*(2+Math.sin(a.lat*Math.PI/180)+Math.sin(b.lat*Math.PI/180));
+      }
+      return {lengthM:null,perimeterM,areaM2:Math.abs(sum)*6371008.8*6371008.8/2};
+    }
+    return {lengthM:perimeterM,perimeterM:null,areaM2:null};
+  }
   function xml(value){return String(value==null?"":value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;");}
   function toKml(features){
     const valid=(Array.isArray(features)?features:[]).map(normalizeFeature).filter(Boolean);
@@ -63,5 +83,5 @@
     }
     return points;
   }
-  return {point,normalizeFeature,centroid,mapsUrl,earthUrl,directionsUrl,toKml,parseCoordinateText};
+  return {point,normalizeFeature,centroid,mapsUrl,earthUrl,directionsUrl,toKml,parseCoordinateText,measureFeature};
 });
