@@ -23,7 +23,7 @@ input,select{font:inherit;border:1px solid var(--line);border-radius:9px;padding
 .map-head b,.section-head b{font-size:14px}.map-head small,.section-head small{font-size:11px;color:var(--muted)}
 .sidebar{padding:12px}.sidebar h2{font-size:15px;margin:0 0 10px}.sidebar p{font-size:12px;color:var(--muted);line-height:1.8;margin:7px 0}
 .draw-tools{padding:0 12px 12px}.draw-tools .btn{flex:1}
-.feature-list{display:grid;gap:7px;max-height:340px;overflow:auto}
+.feature-list{display:grid;gap:7px;max-height:340px;overflow:auto}.selected-panel{border:1px solid var(--line);border-radius:10px;padding:10px;margin:9px 0;background:#f8fafc}.selected-panel strong{font-size:12px}.selected-panel p{margin:5px 0;font-size:11px;word-break:break-word}.selected-panel input{width:100%;margin:7px 0}.selected-panel .btn{margin:3px 2px 0 0}
 .feature{border:1px solid var(--line);border-radius:9px;padding:9px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer}
 .feature.selected{border-color:var(--blue);background:#f0f7fc}.feature strong{font-size:12px;display:block}.feature small{font-size:10px;color:var(--muted)}
 .feature button{border:0;background:transparent;color:#9a3412;font-size:12px;cursor:pointer}
@@ -66,6 +66,7 @@ input,select{font:inherit;border:1px solid var(--line);border-radius:9px;padding
 <section class="panel sidebar">
 <h2>العناصر الجغرافية</h2>
 <div id="featureList" class="feature-list"><div class="empty">لا توجد عناصر بعد.</div></div>
+<div id="selectedDetails" class="selected-panel" hidden></div>
 <div class="divider"></div>
 <h2>المشروعات المحفوظة على هذا الجهاز</h2>
 <div class="file-row"><input id="projectName" maxlength="60" placeholder="اسم المشروع"><button class="btn primary" id="saveProject">حفظ المشروع</button></div>
@@ -119,10 +120,25 @@ function render(){
    row.append(info,del);list.append(row);
  });
  if(!features.length)list.innerHTML='<div class="empty">لا توجد عناصر بعد.</div>';
- updateActions();
+ updateActions();updateSelectedDetails();
 }
 function select(featureId){selectedId=featureId;render();const f=features.find(x=>x.id===selectedId);if(f){const b=L.latLngBounds(f.coordinates.map(p=>[p.lat,p.lon]));if(f.type==="point")map.setView([f.coordinates[0].lat,f.coordinates[0].lon],Math.max(map.getZoom(),12));else map.fitBounds(b.pad(.2));}}
 function updateActions(){const f=features.find(x=>x.id===selectedId);$("openMaps").disabled=!f;$("openEarth").disabled=!f;$("openDirections").disabled=!f||f.type!=="line"}
+function updateSelectedDetails(){
+ const box=$("selectedDetails"),f=features.find(x=>x.id===selectedId);
+ box.replaceChildren();box.hidden=!f;if(!f)return;
+ const title=document.createElement("strong");title.textContent="تفاصيل العنصر المحدد";box.append(title);
+ const name=document.createElement("input");name.maxLength=160;name.value=f.name;name.setAttribute("aria-label","اسم العنصر");name.placeholder="اسم الموقع أو المسار أو الأرض";box.append(name);
+ const save=document.createElement("button");save.className="btn primary";save.type="button";save.textContent="تحديث الاسم";save.onclick=()=>{f.name=safeName(name.value);saveCurrent();render();status("تم تحديث اسم العنصر.")};box.append(save);
+ const m=Geo.measureFeature(f),fmt=n=>new Intl.NumberFormat("ar-SA",{maximumFractionDigits:2}).format(n);
+ const detail=document.createElement("p");
+ if(f.type==="polygon"&&m){const area=m.areaM2>=1000000?fmt(m.areaM2/1000000)+" كم²":m.areaM2>=10000?fmt(m.areaM2/10000)+" هكتار":fmt(m.areaM2)+" م²";detail.textContent="المساحة التقريبية: "+area+" | المحيط: "+(m.perimeterM>=1000?fmt(m.perimeterM/1000)+" كم":fmt(m.perimeterM)+" م")}
+ else if(f.type==="line"&&m)detail.textContent="طول المسار التقريبي: "+(m.lengthM>=1000?fmt(m.lengthM/1000)+" كم":fmt(m.lengthM)+" م");
+ else detail.textContent="الإحداثيات: "+f.coordinates[0].lat.toFixed(6)+", "+f.coordinates[0].lon.toFixed(6);
+ box.append(detail);
+ const copy=document.createElement("button");copy.className="btn";copy.type="button";copy.textContent="نسخ الإحداثيات";copy.onclick=async()=>{const value=f.coordinates.map(p=>p.lat.toFixed(6)+", "+p.lon.toFixed(6)).join("\n");try{await navigator.clipboard.writeText(value);status("تم نسخ الإحداثيات.")}catch(e){status("تعذر النسخ من المتصفح؛ يمكنك تصدير KML.",true)}};box.append(copy);
+ const exportOne=document.createElement("button");exportOne.className="btn";exportOne.type="button";exportOne.textContent="تصدير العنصر المحدد";exportOne.onclick=()=>download("marsed-selected-feature.kml",new Blob([Geo.toKml([f])],{type:"application/vnd.google-earth.kml+xml;charset=utf-8"}));box.append(exportOne);
+}
 function addFeature(type,coordinates,name){
  const feature=Geo.normalizeFeature({id:id(),type,coordinates,name:safeName(name|| (type==="point"?"موقع جديد":type==="line"?"مسار جديد":"حدود جديدة"))});
  if(!feature){status("تعذر إنشاء العنصر: تحقق من الإحداثيات وعدد النقاط.",true);return}
