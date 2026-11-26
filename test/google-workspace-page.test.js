@@ -64,7 +64,7 @@ test("CSV export handles null measurements and neutralizes spreadsheet formulas 
   assert.match(page,/m\.lengthM!=null\?m\.lengthM\.toFixed\(2\)/);
   assert.match(page,/typeof value==="string"/);
   assert.match(page,/\^\[\\\\t\\\\r \]\*\[=\+@-\]/);
-  assert.match(page,/text="'"+text/);
+  assert.match(page,/text="\x27"\\+text/);
 });
 
 test("KML folder path excludes the document root name",()=>{
