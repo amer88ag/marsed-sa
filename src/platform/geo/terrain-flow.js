@@ -24,6 +24,36 @@
     return {rows:input.rows,cols:input.cols,cellSizeXM:dx,cellSizeYM:dy,elevations};
   }
 
+  function createGrid(center,rows,cols,spacingM){
+    const lat=Number(center&&center.lat),lon=Number(center&&center.lon);
+    rows=Number.isInteger(rows)?rows:9;cols=Number.isInteger(cols)?cols:9;
+    spacingM=Number(spacingM);
+    if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat < -90||lat > 90||lon < -180||lon > 180||
+      rows<3||cols<3||rows*cols>100||rows%2===0||cols%2===0||
+      !Number.isFinite(spacingM)||spacingM<90||spacingM>1000)return null;
+    const metersPerDegreeLat=111320;
+    const metersPerDegreeLon=111320*Math.cos(lat*Math.PI/180);
+    if(Math.abs(metersPerDegreeLon)<1)return null;
+    const points=[];
+    for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){
+      const north=(Math.floor(rows/2)-row)*spacingM;
+      const east=(col-Math.floor(cols/2))*spacingM;
+      points.push({lat:lat+north/metersPerDegreeLat,lon:lon+east/metersPerDegreeLon});
+    }
+    if(points.some(p=>p.lat < -90||p.lat > 90||p.lon < -180||p.lon > 180))return null;
+    return {rows,cols,cellSizeXM:spacingM,cellSizeYM:spacingM,points};
+  }
+
+  function elevationUrl(points){
+    if(!Array.isArray(points)||points.length<9||points.length>100)return null;
+    if(!points.every(p=>p&&Number.isFinite(p.lat)&&Number.isFinite(p.lon)&&
+      p.lat>=-90&&p.lat<=90&&p.lon>=-180&&p.lon<=180))return null;
+    const lat=points.map(p=>String(Number(p.lat.toFixed(6)))).join(",");
+    const lon=points.map(p=>String(Number(p.lon.toFixed(6)))).join(",");
+    return "https://api.open-meteo.com/v1/elevation?latitude="+encodeURIComponent(lat)+
+      "&longitude="+encodeURIComponent(lon);
+  }
+
   function analyze(input,options){
     const grid=normalizeGrid(input);
     if(!grid)return null;
@@ -92,5 +122,5 @@
     return {indices:path,termination,complete:termination!=="step_limit"&&termination!=="cycle_guard"};
   }
 
-  return {MAX_CELLS,normalizeGrid,analyze,traceDownstream};
+  return {MAX_CELLS,normalizeGrid,createGrid,elevationUrl,analyze,traceDownstream};
 });
