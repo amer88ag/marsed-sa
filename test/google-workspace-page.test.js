@@ -83,10 +83,11 @@ test("large imports are rejected rather than silently truncated",()=>{
 });
 
 test("polygon holes are imported, rendered and exported in GeoJSON and KML",()=>{
-  assert.match(page,/coords\|\|\[\]\)\.slice\(1\)/);
+  // GeoJSON hole import lives in the module (src/platform/geo/google-workspace.js), not the page.
+  assert.match(geoModule,/coords\|\|\[\]\)\.slice\(1\)/);
   assert.match(page,/innerBoundaryIs/);
   assert.match(page,/f\.holes\|\|\[\]/);
-  assert.match(page,/coordinates:f\.type==="point"/);
+  assert.match(geoModule,/coordinates:f\.type==="point"/);
   assert.match(page,/ringIndex===0\?"الخارجية":"الثقب "/);
 });
 
