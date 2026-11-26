@@ -88,3 +88,9 @@ test("polygon holes are imported, rendered and exported in GeoJSON and KML",()=>
   assert.match(page,/coordinates:f\.type==="point"/);
   assert.match(page,/ringIndex===0\?"الخارجية":"الثقب "/);
 });
+
+test("selected polygon details and copied coordinates include interior rings",()=>{
+  assert.match(page,/الثقوب الداخلية/);
+  assert.match(page,/const rings=f\.type==="polygon"/);
+  assert.match(page,/الحلقة الخارجية/);
+});
