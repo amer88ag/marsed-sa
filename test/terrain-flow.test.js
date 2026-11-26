@@ -85,3 +85,30 @@ test("invalid grids and all-missing grids fail safely",()=>{
  assert.equal(result.channelCellIndices.length,0);
  assert.equal(result.localSinkIndices.length,0);
 });
+
+test("creates a bounded odd-sized local grid around the selected coordinate",()=>{
+ const sample=Flow.createGrid({lat:24.7,lon:46.6},9,9,180);
+ assert.equal(sample.points.length,81);
+ assert.equal(sample.points[40].lat,24.7);
+ assert.equal(sample.points[40].lon,46.6);
+ assert.ok(sample.points[0].lat>sample.points[72].lat);
+ assert.ok(sample.points[0].lon<sample.points[8].lon);
+ assert.equal(Flow.createGrid({lat:24.7,lon:46.6},10,10,180),null);
+ assert.equal(Flow.createGrid({lat:24.7,lon:46.6},11,11,180),null);
+ assert.equal(Flow.createGrid({lat:24.7,lon:46.6},9,9,20),null);
+});
+
+test("builds one bounded Open-Meteo elevation request for the grid",()=>{
+ const sample=Flow.createGrid({lat:24.7,lon:46.6},9,9,180);
+ const url=Flow.elevationUrl(sample.points);
+ assert.ok(url.startsWith("https://api.open-meteo.com/v1/elevation?"));
+ assert.equal(Flow.elevationUrl(sample.points.slice(0,8)),null);
+ assert.equal(Flow.elevationUrl(Array(101).fill({lat:24,lon:46})),null);
+});
+
+test("flow result retains source coordinates for map rendering",()=>{
+ const sample=Flow.createGrid({lat:24.7,lon:46.6},3,3,180);
+ const result=Flow.analyze({...sample,elevations:[10,10,10,10,0,10,10,10,10]});
+ assert.equal(result.cells[4].lat,24.7);
+ assert.equal(result.cells[4].lon,46.6);
+});
