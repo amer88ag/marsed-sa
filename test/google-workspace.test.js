@@ -61,3 +61,42 @@ test("KML export retains polygon interior boundaries",()=>{
   assert.match(kml,/<innerBoundaryIs>/);
   assert.match(kml,/<outerBoundaryIs>/);
 });
+
+
+test("GeoJSON round trip preserves points, lines, polygon holes, names and coordinates",()=>{
+  const source=[
+    {id:"p1",name:"موقع & بوابة",type:"point",coordinates:[{lat:24.7,lon:46.6}]},
+    {id:"l1",name:"مسار رئيسي",type:"line",coordinates:[{lat:24,lon:46},{lat:24.5,lon:46.5},{lat:25,lon:47}]},
+    {id:"a1",name:"أرض ذات ثقب",type:"polygon",coordinates:[{lat:24,lon:46},{lat:24,lon:46.02},{lat:24.02,lon:46.02},{lat:24.02,lon:46}],holes:[[{lat:24.005,lon:46.005},{lat:24.005,lon:46.01},{lat:24.01,lon:46.01},{lat:24.01,lon:46.005}]]}
+  ];
+  const encoded=Geo.toGeoJson(source);
+  assert.equal(encoded.type,"FeatureCollection");
+  const decoded=Geo.fromGeoJson(encoded,(()=>{let n=0;return ()=>"roundtrip-"+(++n)})());
+  assert.equal(decoded.length,3);
+  for(let i=0;i<source.length;i++){
+    assert.equal(decoded[i].name,source[i].name);
+    assert.equal(decoded[i].type,source[i].type);
+    assert.deepEqual(decoded[i].coordinates,source[i].coordinates);
+    assert.deepEqual(decoded[i].holes||[],source[i].holes||[]);
+  }
+  assert.ok(Math.abs(Geo.measureFeature(decoded[2]).areaM2-Geo.measureFeature(source[2]).areaM2)<0.01);
+});
+
+test("GeoJSON importer expands multi-geometries and geometry collections",()=>{
+  const data={type:"FeatureCollection",features:[
+    {type:"Feature",properties:{name:"نقاط"},geometry:{type:"MultiPoint",coordinates:[[46,24],[47,25]]}},
+    {type:"Feature",properties:{name:"خطوط"},geometry:{type:"MultiLineString",coordinates:[[[46,24],[47,25]],[[48,26],[49,27]]]}},
+    {type:"Feature",properties:{name:"مجموعة"},geometry:{type:"GeometryCollection",geometries:[{type:"Point",coordinates:[50,28]},{type:"LineString",coordinates:[[50,28],[51,29]]}]}}
+  ]};
+  const result=Geo.fromGeoJson(data,(()=>{let n=0;return ()=>"multi-"+(++n)})());
+  assert.deepEqual(result.map(f=>f.type),["point","point","line","line","point","line"]);
+  assert.equal(result[0].name,"نقاط (1)");
+  assert.equal(result[3].name,"خطوط (2)");
+  assert.equal(result[4].name,"مجموعة (1)");
+});
+
+test("GeoJSON importer rejects malformed coordinates without creating invalid features",()=>{
+  const data={type:"Feature",properties:{name:"إحداثيات غير صالحة"},geometry:{type:"Point",coordinates:[181,24]}};
+  assert.deepEqual(Geo.fromGeoJson(data),[]);
+  assert.throws(()=>Geo.fromGeoJson("{not-json"),SyntaxError);
+});
