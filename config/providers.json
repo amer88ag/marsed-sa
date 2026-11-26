@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_type": "providers",
-  "updated_at": "2026-11-25",
+  "updated_at": "2026-11-26",
   "providers": [
     {
       "id": "open-meteo",
@@ -166,6 +166,41 @@
       "rate_limit": "Static files committed to the repository; no runtime requests",
       "health_status": "not_monitored",
       "notes": "Illustrative boundaries only; not an official GEOSA boundary. Condition: label as illustrative wherever displayed."
+    },
+    {
+      "id": "adsb-lol",
+      "name": "ADSB.lol",
+      "official_url": "https://api.adsb.lol/docs",
+      "domain": "aviation",
+      "products": [
+        "v2/point",
+        "v2/callsign"
+      ],
+      "auth_mode": "none",
+      "license_status": "approved_with_conditions",
+      "license": "ODbL 1.0 (data and API)",
+      "attribution": "Flight data: ADSB.lol contributors, ODbL",
+      "coverage": "Global where community receivers exist; not complete (weak over deserts and seas)",
+      "rate_limit": "Unkeyed: 500 requests/day per IP; HTTP 429 with Retry-After when exceeded (OpenAPI spec, checked 2026-11-26)",
+      "health_status": "not_monitored",
+      "notes": "Live access and browser CORS not yet verified. Positions are receiver reports, not radar; no schedules, gates or delays."
+    },
+    {
+      "id": "airplanes-live",
+      "name": "airplanes.live",
+      "official_url": "https://airplanes.live/api-guide",
+      "domain": "aviation",
+      "products": [
+        "v2/point"
+      ],
+      "auth_mode": "none",
+      "license_status": "approved_with_conditions",
+      "license": "Non-commercial use; no SLA or uptime guarantee",
+      "attribution": "Flight data: airplanes.live",
+      "coverage": "Global where community receivers exist; not complete",
+      "rate_limit": "1 request/second",
+      "health_status": "not_monitored",
+      "notes": "Fallback only, used when ADSB.lol has no response or a server error. Live access and CORS not yet verified."
     }
   ]
 }

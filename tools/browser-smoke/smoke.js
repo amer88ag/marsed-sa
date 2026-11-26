@@ -46,7 +46,15 @@ const hourly = n => { const t=[],v=[]; const s=Date.now(); for(let i=0;i<n;i++){
     if (url.hostname === "router.project-osrm.org") return route.fulfill({ json: { code: "Ok", routes: [{ distance: 950000, duration: 32000, geometry: { coordinates: [[46.67,24.71],[44,23.5],[41,22.4],[39.19,21.49]] } }] } });
     // Tiles are deliberately NOT served here: Playwright route.fulfill bypasses CORS,
     // so tile content/CORS behaviour is tested by coverage-real-cors.js instead.
-    if (url.hostname === "gibs.earthdata.nasa.gov" && url.pathname.endsWith("wmts.cgi")) return route.fulfill({ contentType: "text/xml", body: "<Domains><DimensionDomain><Domain>2026-01-01/2026-11-23/P1D</Domain></DimensionDomain></Domains>" });
+    if (url.hostname === "gibs.earthdata.nasa.gov" && url.pathname.endsWith("wmts.cgi")) return route.fulfill({ contentType: "text/xml", body: "<Domains><DimensionDomain><Domain>2000-02-24/2026-11-23/P1D</Domain></DimensionDomain></Domains>" });
+    // ADS-B (simulated): adsb.lol answers; airplanes.live only if the primary fails.
+    if (url.hostname === "api.adsb.lol" || url.hostname === "api.airplanes.live") {
+      const now = Date.now();
+      return route.fulfill({ json: { now, total: 3, ctime: now, ptime: 1, msg: "No error", ac: [
+        { hex: "710101", flight: "SVA1020 ", r: "HZ-AK11", t: "B77W", alt_baro: 35000, gs: 480, track: 270, lat: 24.9, lon: 46.5, seen_pos: 2, dst: 12, seen: 1, messages: 1, mlat: [], tisb: [], rssi: -20, type: "adsb_icao" },
+        { hex: "710102", flight: "", alt_baro: "ground", gs: 0, track: 0, lat: 24.96, lon: 46.70, seen_pos: 1, dst: 15, seen: 1, messages: 1, mlat: [], tisb: [], rssi: -20, type: "adsb_icao" },
+        { hex: "710103", flight: "NOPOS1", alt_baro: 20000, seen: 9, messages: 1, mlat: [], tisb: [], rssi: -30, type: "adsb_icao" } ] } });
+    }
     return route.abort();
   });
   const results = [];
@@ -58,6 +66,12 @@ const hourly = n => { const t=[],v=[]; const s=Date.now(); for(let i=0;i<n;i++){
     ["coverage", "http://local.test/satellite/coverage.html", async p => { await p.waitForTimeout(800); await p.click("#runAll"); await p.waitForFunction(() => /اكتمل فحص الطبقات|توقف/.test(document.getElementById("status").textContent), null, { timeout: 60000 });
       const pills = await p.$$eval("#summary .pill", els => els.map(e => e.textContent));
       return "STATUS: " + (await p.textContent("#status")) + " || DATES: " + (await p.textContent("#dateStatus")).slice(0, 80) + " || LAYERS: " + pills.join(" ## "); }],
+    ["earth-memory", "http://local.test/earth-memory/index.html", async p => { await p.waitForFunction(() => document.querySelectorAll("#years button").length > 0, null, { timeout: 15000 });
+      await p.click("#back5"); await p.waitForTimeout(300);
+      return "A=" + (await p.inputValue("#dateA")) + " B=" + (await p.inputValue("#dateB")) + " | years=" + (await p.$$eval("#years button", b => b.length)) + " | " + (await p.textContent("#availability")).slice(0, 140); }],
+    ["flights", "http://local.test/flights/index.html", async p => { await p.waitForFunction(() => document.querySelectorAll("#list .ac").length > 0, null, { timeout: 15000 });
+      await p.click("#list .ac"); await p.waitForTimeout(300);
+      return "state=" + (await p.getAttribute("#dataState", "data-state")) + " | list=" + (await p.$$eval("#list .ac", b => b.length)) + " | " + (await p.textContent("#status")).slice(0, 120) + " | card: " + (await p.textContent("#card")).slice(0, 220); }],
     ["admin", "http://local.test/admin/index.html", async p => { await p.waitForTimeout(1200); return (await p.evaluate(() => document.body.innerText)).replace(/\s+/g, " ").slice(0, 300); }]
   ]) {
     const page = await ctx.newPage(); const errors = [];

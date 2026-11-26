@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b46">
+<meta name="description" content="ذاكرة الأرض — قارن أي مكان بين تاريخين من أرشيف صور الأقمار الصناعية اليومي لدى NASA منذ عام 2000.">
+<title>ذاكرة الأرض | مرصد السعودية</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+:root{--navy:#102b46;--blue:#1769aa;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}
+.top{background:linear-gradient(120deg,#102b46,#174d76);color:white;padding:22px max(16px,calc((100% - 1280px)/2))}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px}.brand h1{font-size:clamp(22px,3vw,30px);margin:0}.brand p{color:#c6d8e7;margin:7px 0 0;font-size:13px}
+.wrap{max-width:1280px;margin:auto;padding:18px 16px 42px}.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.nav a,.btn{display:inline-block;border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:white;color:var(--ink);text-decoration:none;font:inherit;cursor:pointer}.btn.primary{background:var(--blue);border-color:var(--blue);color:white}.panel{background:white;border:1px solid var(--line);border-radius:15px;overflow:hidden;margin-bottom:14px;box-shadow:0 3px 14px #183b5710}.head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}.head h2{font-size:16px;margin:0}.head small{color:var(--muted)}
+.controls{display:flex;align-items:end;gap:10px;flex-wrap:wrap;padding:13px}.controls label{display:grid;gap:5px;font-size:12px;color:var(--muted)}select,input{font:inherit;border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:white;color:var(--ink)}.status{padding:10px 14px;font-size:12px;color:var(--muted);line-height:1.7}.status.error{color:#b42318}.legend{padding:0 14px 13px;font-size:11px;color:var(--muted);line-height:1.8}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.item{padding:14px 16px}.item h3{font-size:14px;margin:0 0 7px}.item p{font-size:12px;color:var(--muted);line-height:1.8;margin:0 0 9px}.item a{color:var(--blue);font-size:12px;text-decoration:none}.tag{display:inline-block;border-radius:20px;padding:4px 8px;background:#eef6fc;color:#285b80;font-size:10px;margin:2px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.wrap{padding:13px 10px 32px}.top{padding:18px 14px}.controls label{flex:1;min-width:135px}.controls button{flex:1}}
+
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 13px 13px}.pane{border:1px solid var(--line);border-radius:12px;overflow:hidden}.pane h3{margin:0;padding:9px 12px;font-size:13px;background:#f6f9fb;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:8px}.pane h3 span{color:var(--muted);font-weight:400}.memMap{height:min(56vh,520px);min-height:300px;background:#e8eff4}.pane .status{min-height:44px}
+.years{display:flex;gap:6px;flex-wrap:wrap;padding:0 13px 13px}.years button{font:inherit;font-size:12px;border:1px solid var(--line);border-radius:18px;padding:6px 10px;background:white;color:var(--ink);cursor:pointer}.years button[aria-pressed="true"]{background:var(--blue);color:white;border-color:var(--blue)}.years button:disabled{opacity:.45;cursor:not-allowed;text-decoration:line-through}
+.controls label{max-width:100%;min-width:0}.controls select,.controls input{max-width:100%;min-width:0;width:100%}
+@media(max-width:700px){.pair{grid-template-columns:1fr}.memMap{height:44vh;min-height:260px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand"><div><h1>ذاكرة الأرض</h1><p>قارن أي مكان بين تاريخين من أرشيف صور الأقمار الصناعية اليومي</p></div><span id="sourceState" class="tag">NASA GIBS</span></div></header>
+<main class="wrap">
+<nav class="nav"><a href="../">الرئيسية</a><a href="../satellite/">صور الأقمار اليومية</a><a href="../flights/">رادار الطيران</a><a href="../seasons/">مواسم السنة والبستان</a></nav>
+<section class="panel">
+<div class="head"><h2>قبل وبعد</h2><small>صور مرئية نهارية · تاريخ المنتج بالتوقيت العالمي</small></div>
+<div class="controls">
+<label>المكان<select id="place"></select></label>
+<label>القمر / نوع الصورة<select id="layer">
+<option value="modisTerraTrue">MODIS Terra — منذ 2000</option>
+<option value="modisAquaTrue">MODIS Aqua — منذ 2002</option>
+<option value="viirsTrue">VIIRS Suomi NPP — منذ 2015</option>
+</select></label>
+<label>التاريخ الأول (قبل)<input id="dateA" type="date" disabled></label>
+<label>التاريخ الثاني (بعد)<input id="dateB" type="date" disabled></label>
+<button class="btn" type="button" id="back5">قبل 5 سنوات</button>
+<button class="btn" type="button" id="back10">قبل 10 سنوات</button>
+<button class="btn" type="button" id="back20">قبل 20 سنة</button>
+<button class="btn" type="button" id="swap">تبديل</button>
+</div>
+<div id="availability" class="status" aria-live="polite">جارٍ الاستعلام من NASA GIBS عن تواريخ الأرشيف…</div>
+<div class="pair">
+<div class="pane"><h3>قبل <span id="labelA">—</span></h3><div id="mapA" class="memMap" role="application" aria-label="صورة التاريخ الأول"></div><div id="statusA" class="status" aria-live="polite"></div></div>
+<div class="pane"><h3>بعد <span id="labelB">—</span></h3><div id="mapB" class="memMap" role="application" aria-label="صورة التاريخ الثاني"></div><div id="statusB" class="status" aria-live="polite"></div></div>
+</div>
+<div class="head"><h2>نفس اليوم عبر السنين</h2><small id="yearsCaption">اختر سنة لعرضها في «قبل»</small></div>
+<div class="years" id="years" role="group" aria-label="السنوات المتاحة"></div>
+<div class="legend">الخريطتان متزامنتان: التحريك والتكبير في إحداهما ينعكسان على الأخرى. كل تاريخ معروض مأخوذ من قائمة تواريخ الطبقة لدى NASA. إن لم تتوفر صورة في اليوم المطلوب يُستخدم أقرب يوم متاح خلال 7 أيام ويُذكر الفرق، وإلا تُعطَّل السنة. الصور فسيفساء يومية من عدة مرورات، وقد تغطيها السحب أو تظهر فيها فجوات، وأقصى تكبير أصلي لها المستوى 9. ليست صوراً عالية الدقة لمبنى أو شارع، ولا تثبت وحدها سبب أي تغير.</div>
+</section>
+<footer class="status">صور الأقمار من <a href="https://www.earthdata.nasa.gov/" target="_blank" rel="noopener">NASA Earthdata</a> / <a href="https://gibs.earthdata.nasa.gov/" target="_blank" rel="noopener">GIBS</a>. مرصد السعودية مشروع مستقل.</footer>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="../src/platform/http/client.js"></script>
+<script src="../src/platform/geo/cities.js"></script>
+<script src="../src/services/satellite/nasa-gibs.js"></script>
+<script src="../src/services/satellite/earth-memory.js"></script>
+<script>
+(function(){
+"use strict";
+var G=NasaGibsSatellite,E=EarthMemory,periods=[],cap=null,reqId=0,abort=null,maps={},layers={},sync=false;
+var places=CityRegistry.placesFor("dashboard");
+function $(id){return document.getElementById(id)}
+function status(id,text,err){$(id).textContent=text;$(id).classList.toggle("error",!!err)}
+Object.keys(places).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=places[k].name;$("place").appendChild(o)});
+function initMaps(){
+ if(!window.L){status("availability","تعذر تحميل مكتبة الخرائط.",true);return false}
+ var p=places[$("place").value];
+ ["A","B"].forEach(function(s){
+  maps[s]=L.map("map"+s,{zoomControl:true,minZoom:2,maxZoom:10,worldCopyJump:true}).setView([p.lat,p.lon],7);
+ });
+ // Keep the two maps aligned without feedback loops.
+ function link(a,b){maps[a].on("move",function(){if(sync)return;sync=true;maps[b].setView(maps[a].getCenter(),maps[a].getZoom(),{animate:false});sync=false})}
+ link("A","B");link("B","A");
+ return true;
+}
+function show(side){
+ var date=$("date"+side).value,key=$("layer").value;
+ if(layers[side]){maps[side].removeLayer(layers[side]);layers[side]=null}
+ $("label"+side).textContent=date||"—";
+ if(!G.validDate(date)){status("status"+side,"اختر تاريخاً صحيحاً.",true);return}
+ if(!G.isDateAvailable(date,periods)){
+  var near=E.nearestAvailable(date,periods,cap,7);
+  status("status"+side,near?"لا توجد صورة في "+date+". أقرب يوم متاح: "+E.describeGap(Object.assign({},near))+".":"لا توجد صورة لهذه الطبقة قرب "+date+".",true);
+  return;
+ }
+ var errors=0,lyr=L.tileLayer(G.buildTileUrl(key,date),{minZoom:2,maxZoom:10,maxNativeZoom:9,attribution:'Imagery © <a href="https://www.earthdata.nasa.gov/">NASA Earthdata</a> / GIBS'});
+ lyr.on("tileerror",function(){errors++;status("status"+side,"تعذر تحميل "+errors+" من مربعات الصورة؛ قد توجد فجوات ولا تُعد أرضاً خالية.",true)});
+ lyr.on("load",function(){if(!errors)status("status"+side,G.getLayer(key).title+" · تاريخ المنتج "+date+" (UTC) · اكتمل تحميل المربعات الظاهرة.")});
+ layers[side]=lyr.addTo(maps[side]);
+ status("status"+side,"جارٍ تحميل صورة "+date+"…");
+}
+function renderYears(){
+ var box=$("years");box.innerHTML="";
+ var base=$("dateB").value;if(!G.validDate(base))return;
+ var list=E.sameDayAcrossYears(base,periods,cap,7),available=list.filter(function(e){return e.date}).length;
+ $("yearsCaption").textContent="يوم "+base.slice(5)+" في كل سنة: "+available+" من "+list.length+" سنة متاحة. اختر سنة لعرضها في «قبل».";
+ list.forEach(function(e){
+  var b=document.createElement("button");b.type="button";b.textContent=e.year;
+  if(!e.date){b.disabled=true;b.title=e.reason==="no_image_near_date"?"لا صورة خلال 7 أيام من هذا اليوم":"خارج نطاق الأرشيف"}
+  else{b.title=E.describeGap(e);b.setAttribute("aria-pressed",String(e.date===$("dateA").value));b.addEventListener("click",function(){$("dateA").value=e.date;show("A");renderYears()})}
+  box.appendChild(b);
+ });
+}
+function yearsText(n){return n===1?"سنة":n===2?"سنتين":n<=10?n+" سنوات":n+" سنة"}
+function preset(years){
+ var hit=E.yearsBefore($("dateB").value,years,periods,cap,7);
+ if(!hit){status("availability","لا توجد صورة قبل "+yearsText(years)+" قريبة من اليوم نفسه لهذه الطبقة.",true);return}
+ $("dateA").value=hit.date;show("A");renderYears();
+ status("availability","«قبل» = "+E.describeGap(hit)+" · «بعد» = "+$("dateB").value+".");
+}
+async function loadAvailability(){
+ var key=$("layer").value,id=++reqId;
+ ["A","B"].forEach(function(s){if(layers[s]){maps[s].removeLayer(layers[s]);layers[s]=null}});
+ $("dateA").disabled=$("dateB").disabled=true;periods=[];
+ status("availability","جارٍ الاستعلام من NASA GIBS عن تواريخ أرشيف "+G.getLayer(key).title+"…");
+ try{
+  if(abort)abort.abort();abort=typeof AbortController==="function"?new AbortController():null;
+  var r=await G.getAvailableDates(key,null,{signal:abort?abort.signal:undefined,timeoutMs:15000});
+  if(id!==reqId)return;
+  periods=r.periods;cap=G.latestAvailableOnOrBefore(periods,G.productDateCap(new Date()));
+  var first=G.earliestAvailableDate(periods);
+  if(!cap||!first){status("availability","لم تُرجع الخدمة تواريخ متاحة لهذه الطبقة.",true);return}
+  ["A","B"].forEach(function(s){$("date"+s).min=first;$("date"+s).max=cap;$("date"+s).disabled=false});
+  if(!G.validDate($("dateB").value)||$("dateB").value>cap||!G.isDateAvailable($("dateB").value,periods))$("dateB").value=cap;
+  var a=G.validDate($("dateA").value)&&G.isDateAvailable($("dateA").value,periods)?{date:$("dateA").value}:E.yearsBefore($("dateB").value,10,periods,cap,7)||{date:first};
+  $("dateA").value=a.date;
+  status("availability","الأرشيف المتاح لهذه الطبقة: من "+first+" إلى "+cap+" (بفجوات أحياناً).");
+  show("A");show("B");renderYears();
+ }catch(error){
+  if(id!==reqId||(error&&error.kind==="aborted"))return;
+  status("availability","تعذر الاستعلام عن تواريخ الأرشيف من NASA GIBS ("+(error.message||"خطأ")+"). لم تُعرض صور بتاريخ مفترض.",true);
+ }
+}
+if(!initMaps())return;
+$("place").addEventListener("change",function(){var p=places[$("place").value];maps.A.setView([p.lat,p.lon],7)});
+$("layer").addEventListener("change",loadAvailability);
+$("dateA").addEventListener("change",function(){show("A");renderYears()});
+$("dateB").addEventListener("change",function(){show("B");renderYears()});
+$("back5").addEventListener("click",function(){preset(5)});
+$("back10").addEventListener("click",function(){preset(10)});
+$("back20").addEventListener("click",function(){preset(20)});
+$("swap").addEventListener("click",function(){var t=$("dateA").value;$("dateA").value=$("dateB").value;$("dateB").value=t;show("A");show("B");renderYears()});
+loadAvailability();
+})();
+</script>
+</body>
+</html>
