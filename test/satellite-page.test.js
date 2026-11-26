@@ -14,8 +14,21 @@ test("satellite page exposes date and layer controls with Saudi coverage", () =>
   assert.match(page, /لا تمثل هذه الصور تحذيراً رسمياً/);
 });
 
+test("satellite viewer includes polygon area measurement and KML export", () => {
+  for (const id of ["measureStart", "measureUndo", "measureClear", "measureExport", "measureReadout"]) {
+    assert.ok(page.includes('id="' + id + '"'), id);
+  }
+  assert.match(page, /GeoMeasure\.area\(measurePoints\)/);
+  assert.match(page, /GeoMeasure\.perimeter\(measurePoints\)/);
+  assert.match(page, /GoogleGeoLinks\.toPolygonKml/);
+  assert.match(page, /ليست رفعاً مساحياً/);
+  assert.match(page, /map\.on\("click",function\(event\)\{if\(measureMode\)/);
+});
+
 test("satellite viewer loads the dedicated service before its controller", () => {
   assert.ok(page.indexOf('src="../src/services/satellite/nasa-gibs.js"') < page.indexOf("(function(){"));
+  assert.ok(page.indexOf('src="../src/platform/geo/google-links.js"') < page.indexOf("(function(){"));
+  assert.ok(page.indexOf('src="../src/platform/geo/measure.js"') < page.indexOf("(function(){"));
   assert.match(page, /NasaGibsSatellite\.buildTileUrl/);
 });
 
