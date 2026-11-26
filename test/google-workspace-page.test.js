@@ -80,3 +80,11 @@ test("large imports are rejected rather than silently truncated",()=>{
   assert.doesNotMatch(page,/out\.length>=5000\)break/);
   assert.doesNotMatch(page,/features=features\.concat\(imported\)\.slice\(0,5000\)/);
 });
+
+test("polygon holes are imported, rendered and exported in GeoJSON and KML",()=>{
+  assert.match(page,/coords\|\|\[\]\)\.slice\(1\)/);
+  assert.match(page,/innerBoundaryIs/);
+  assert.match(page,/f\.holes\|\|\[\]/);
+  assert.match(page,/coordinates:f\.type==="point"/);
+  assert.match(page,/ringIndex===0\?"الخارجية":"الثقب "/);
+});
