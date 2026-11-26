@@ -68,7 +68,7 @@ input,select{font:inherit;border:1px solid var(--line);border-radius:9px;padding
 <p><b>التحديث:</b> يدوي أو كل خمس دقائق لتقليل استهلاك الحصة. التوقيت ووقت آخر اتصال يعرضان من بيانات المصدر.</p>
 <p><b>المعلومات المتاحة:</b> رمز الطائرة ICAO24، نداء الرحلة إن توفر، بلد التسجيل/المنشأ كما يورده المصدر، الإحداثيات، الارتفاع، السرعة، الاتجاه، معدل الصعود/الهبوط، وحالة الطائرة أرض/جو.</p>
 <p><b>غير المتاح من هذا المصدر وحده:</b> جداول الرحلات التجارية، التأخير والإلغاء، بوابات الصعود، أرقام الصالات، وبيانات المسافر. لا نعرضها كتخمينات.</p>
-<p><a href="https://opensky-network.org/" target="_blank" rel="noopener">OpenSky Network</a> · <a href="https://openskynetwork.github.io/opensky-api/rest.html" target="_blank" rel="noopener">توثيق API</a></p>
+<p><a href="https://flyitalyadsb.com/" target="_blank" rel="noopener">FlyItalyADSB</a> · <a href="https://flyitalyadsb.com/data/api/docs/" target="_blank" rel="noopener">توثيق API</a></p>
 </div></section>
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
@@ -105,7 +105,7 @@ function render(){
  if(selected){const a=aircraft.find(x=>x.icao24===selected);if(a)showDetail(a)}
 }
 async function refresh(){
- if(busy)return;busy=true;status("جارٍ جلب مواقع الطائرات من OpenSky Network…");
+ if(busy)return;busy=true;status("جارٍ جلب مواقع الطائرات من FlyItalyADSB…");
  try{
   const b=chosenBox(),area=(b[2]-b[0])*(b[3]-b[1]);
   if(area>25.5){throw new Error("النطاق المحدد واسع جداً للطلب المجاني. قرّب الخريطة أو اختر مدينة لتقليل مساحة البحث إلى نحو 25 درجة مربعة.")};
