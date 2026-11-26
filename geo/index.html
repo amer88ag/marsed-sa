@@ -166,12 +166,16 @@ $("exportKml").onclick=()=>{if(!features.length){status("لا توجد عناص�
 $("exportKmz").onclick=async()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}if(!window.JSZip){status("مكتبة ضغط KMZ غير متاحة؛ استخدم تصدير KML.",true);return}try{const zip=new JSZip();zip.file("doc.kml",Geo.toKml(features));const blob=await zip.generateAsync({type:"blob",compression:"DEFLATE"});download("marsed-google-workspace.kmz",blob);status("تم تجهيز ملف KMZ للتنزيل.")}catch(e){status("تعذر إنشاء ملف KMZ.",true)}};
 $("exportGeoJson").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-workspace.geojson",new Blob([JSON.stringify(toGeoJson(features),null,2)],{type:"application/geo+json;charset=utf-8"}));status("تم تجهيز GeoJSON للتنزيل.")};
 $("exportGpx").onclick=()=>{if(!features.length){status("لا توجد عناصر للتصدير.",true);return}download("marsed-workspace.gpx",new Blob([toGpx(features)],{type:"application/gpx+xml;charset=utf-8"}));status("تم تجهيز GPX؛ تُصدّر المضلعات كمسارات مغلقة لأن GPX لا يعرّف مضلعاً.")};
-function csvCell(value){return '"'+String(value==null?"":value).replace(/"/g,'""')+'"'}
+function csvCell(value){
+ let text=String(value==null?"":value);
+ if(typeof value==="string"&&/^[\\t\\r ]*[=+@-]/.test(text))text="'"+text;
+ return '"'+text.replace(/"/g,'""')+'"';
+}
 function toCsv(items){
  const rows=[["اسم العنصر","النوع","رقم النقطة","خط العرض","خط الطول","المساحة م²","المحيط م","طول المسار م"]];
  items.forEach(f=>{
   const m=Geo.measureFeature(f)||{};
-  f.coordinates.forEach((p,index)=>rows.push([f.name,f.type,index+1,p.lat.toFixed(7),p.lon.toFixed(7),index===0&&m.areaM2!==null?m.areaM2.toFixed(2):"",index===0&&m.perimeterM!==null?m.perimeterM.toFixed(2):"",index===0&&m.lengthM!==null?m.lengthM.toFixed(2):""]));
+  f.coordinates.forEach((p,index)=>rows.push([f.name,f.type,index+1,p.lat.toFixed(7),p.lon.toFixed(7),index===0&&m.areaM2!=null?m.areaM2.toFixed(2):"",index===0&&m.perimeterM!=null?m.perimeterM.toFixed(2):"",index===0&&m.lengthM!=null?m.lengthM.toFixed(2):""]));
  });
  return "\uFEFF"+rows.map(row=>row.map(csvCell).join(",")).join("\r\n");
 }
