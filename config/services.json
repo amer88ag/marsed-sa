@@ -173,7 +173,7 @@
       "id": "elevation",
       "title": "مستكشف الارتفاع",
       "category": "geography",
-      "description": "قياس ارتفاع التضاريس لنقطة على الخريطة من Copernicus DEM GLO-90.",
+      "description": "قياس ارتفاع نقطة أو مقطع تضاريسي مرسوم على الخريطة من Copernicus DEM GLO-90.",
       "status": "research",
       "ui_entry": "elevation/index.html",
       "provider_ids": [
@@ -184,10 +184,14 @@
       ],
       "capabilities": [
         "point_elevation",
+        "multi_point_elevation",
+        "terrain_profile",
+        "elevation_difference",
+        "approximate_segment_grade",
         "copy_coordinates"
       ],
       "data_class": "terrain_model",
-      "safety_notice": "دقة نحو 90 م؛ ليس مسحاً ميدانياً ولا ارتفاع مبانٍ."
+      "safety_notice": "دقة النموذج نحو 90 م؛ المقطع والانحدار تقديريان ولا يمثلان مسحاً ميدانياً أو انحدار طريق دقيقاً أو ارتفاع المباني."
     },
     {
       "id": "seasons-orchard",

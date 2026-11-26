@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#102b46">
-<meta name="description" content="قياس الارتفاع التضاريسي عن سطح البحر لأي نقطة في السعودية على الخريطة.">
+<meta name="description" content="قياس ارتفاع التضاريس لنقطة أو مسار على خريطة السعودية.">
 <title>قياس الارتفاع | مرصد السعودية</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <style>
@@ -14,6 +14,8 @@ header{background:linear-gradient(120deg,#102b46,#174d76);color:white;padding:18
 header a{color:#d9eafa;text-decoration:none;font-size:13px}h1{font-size:24px;margin:12px 0 5px}header p{margin:0;color:#d0dfeb;font-size:13px}
 main{max-width:1120px;margin:auto;padding:18px 14px 36px}.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px}
 button,input{font:inherit}button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 13px;color:var(--ink);cursor:pointer}button.primary{background:var(--blue);border-color:var(--blue);color:white}button:disabled{opacity:.55;cursor:wait}
+.path-tools,.flow-tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.flow-status{font-size:12px;color:var(--muted);line-height:1.8;margin:6px 2px}.path-help{font-size:12px;color:var(--muted);align-self:center}.profile-panel{margin-top:12px;padding:14px}.profile-panel h2{font-size:17px;margin:0 0 8px}.profile-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.profile-metrics .metric strong{font-size:21px}.profile-chart{width:100%;height:210px;display:block;margin-top:10px;background:#f8fafc;border-radius:10px}.profile-table-wrap{overflow:auto;margin-top:10px}.profile-table{width:100%;border-collapse:collapse;font-size:12px}.profile-table th,.profile-table td{padding:8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}.profile-empty{font-size:12px;color:var(--muted);line-height:1.8}
+@media(max-width:620px){.profile-metrics{grid-template-columns:1fr 1fr}}
 .search{display:flex;gap:8px;flex:1;min-width:260px}.search input{width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
 .panel{background:white;border:1px solid var(--line);border-radius:15px;overflow:hidden;box-shadow:0 3px 14px #183b5710}
 #map{height:min(66vh,650px);min-height:380px;background:#e8eff4}.map-head{padding:13px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center}.map-head b{font-size:15px}.map-head span{font-size:11px;color:var(--muted)}
@@ -23,12 +25,14 @@ button,input{font:inherit}button{border:1px solid var(--line);background:#fff;bo
 </style>
 </head>
 <body>
-<header><a href="../">← العودة إلى مرصد السعودية</a><h1>قياس الارتفاع عن سطح البحر</h1><p>اختر أي نقطة على الخريطة لمعرفة ارتفاع تضاريسها بالمتر</p></header>
+<header><a href="../">← العودة إلى مرصد السعودية</a><h1>قياس الارتفاع عن سطح البحر</h1><p>اختر نقطة منفردة أو ارسم مساراً لمعرفة ارتفاع التضاريس وتغيره بالمتر</p></header>
 <main>
 <div class="toolbar">
 <div class="search"><input id="coords" inputmode="decimal" placeholder="أدخل الإحداثيات: خط العرض، خط الطول" aria-label="الإحداثيات"><button id="searchPoint" class="primary">قياس النقطة</button></div>
 <button id="locate">موقعي الحالي</button><button id="copyResult" disabled>نسخ الإحداثيات والارتفاع</button><button id="reset">العودة إلى السعودية</button>
 </div>
+<div class="path-tools" aria-label="أدوات المسار التضاريسي"><button id="pathStart" class="primary">رسم مسار الارتفاع</button><button id="pathFinish" disabled>إنهاء وقياس المسار</button><button id="pathUndo" disabled>تراجع عن آخر نقطة</button><button id="pathClear" disabled>مسح المسار</button><button id="profileCsv" disabled>تصدير المقطع CSV</button><span class="path-help" id="pathHelp">ارسم مساراً بالنقر على نقطتين أو أكثر على الخريطة.</span></div>
+<div class="flow-tools"><button id="flowAnalyze" class="primary">تحليل اتجاه جريان المياه حول النقطة المحددة</button><button id="flowClear" disabled>مسح طبقة الجريان</button><span class="path-help">اختر نقطة قياس أولاً، ثم حلّل شبكة تضاريس محلية 9 × 9.</span></div><p class="flow-status" id="flowStatus" aria-live="polite">تحليل استرشادي للتضاريس فقط؛ لا يمثل توقعاً للسيول أو تحديداً رسمياً لمجاري الأودية.</p>
 <section class="panel">
 <div class="map-head"><b>خريطة اختيار نقطة القياس</b><span>اضغط على الخريطة لتحديد الموقع</span></div>
 <div id="map" role="application" aria-label="خريطة لقياس الارتفاع التضاريسي"></div>
@@ -40,17 +44,24 @@ button,input{font:inherit}button{border:1px solid var(--line);background:#fff;bo
 <div class="state" id="status">حدد نقطة على الخريطة أو استخدم زر «موقعي الحالي» لبدء القياس.</div>
 <div class="notice">النتيجة مستخرجة من نموذج الارتفاع الرقمي Copernicus DEM GLO-90 بدقة مكانية 90 متر تقريباً؛ لذلك فهي تقدير لارتفاع سطح التضاريس وليست قراءة جهاز GPS مساحي أو قياساً ميدانياً، وقد لا تمثل تفاصيل المباني أو الفروق الصغيرة في الأرض.</div>
 </section>
+
+<section class="panel profile-panel" id="profilePanel" aria-live="polite"><h2>المقطع التضاريسي للمسار</h2><p class="profile-empty" id="profileStatus">لم يُرسم مسار بعد. اختر «رسم مسار الارتفاع»، ثم انقر نقاط المسار على الخريطة.</p><div class="profile-metrics" id="profileMetrics" hidden><div class="metric"><small>أدنى ارتفاع</small><strong id="profileMin">—</strong><em>متر</em></div><div class="metric"><small>أعلى ارتفاع</small><strong id="profileMax">—</strong><em>متر</em></div><div class="metric"><small>فرق ارتفاع البداية والنهاية</small><strong id="profileDelta">—</strong><em>متر</em></div><div class="metric"><small>طول المسار</small><strong id="profileDistance">—</strong><em>كم</em></div><div class="metric"><small>الصعود التراكمي</small><strong id="profileAscent">—</strong><em>متر · بين العينات المتجاورة المتاحة</em></div><div class="metric"><small>الهبوط التراكمي</small><strong id="profileDescent">—</strong><em>متر · بين العينات المتجاورة المتاحة</em></div><div class="metric"><small>أكبر انحدار صاعد بالعينة</small><strong id="profileMaxUp">—</strong><em>% · تقديري</em></div><div class="metric"><small>أكبر انحدار هابط بالعينة</small><strong id="profileMaxDown">—</strong><em>% · تقديري</em></div></div><svg id="profileChart" class="profile-chart" viewBox="0 0 800 210" role="img" aria-label="رسم بياني يوضح تغير الارتفاع على امتداد المسار" hidden></svg><div class="profile-table-wrap" id="profileTableWrap" hidden><table class="profile-table"><thead><tr><th>المسافة من البداية</th><th>الارتفاع</th><th>انحدار المقطع</th></tr></thead><tbody id="profileRows"></tbody></table></div><p class="profile-empty">تقدير الارتفاع من نموذج Copernicus DEM GLO-90 بدقة تقارب 90 متراً. لا يصلح لتحديد انحدار طريق أو منحدر دقيق أو لاتخاذ قرار هندسي/مساحي؛ القيم المفقودة تبقى غير متاحة ولا تُستبدل بصفر.</p></section>
 <p class="state">مصدر الارتفاع: Copernicus DEM 2021 GLO-90 (© DLR e.V. 2010-2014 و© Airbus Defence and Space GmbH 2014-2018، مقدّم ضمن برنامج COPERNICUS من المفوضية الأوروبية) عبر Open-Meteo Elevation API — Elevation data by Open-Meteo.com. الترخيص: CC BY 4.0. الدقة المكانية للنموذج نحو 90 متراً؛ القيمة ليست مسحاً ميدانياً ولا قياساً هندسياً لارتفاع المباني. <a href="https://open-meteo.com/en/docs/elevation-api" target="_blank" rel="noopener">توثيق خدمة الارتفاع</a> · <a href="https://doi.org/10.5270/ESA-c5d3d65" target="_blank" rel="noopener">مرجع Copernicus DEM</a>.</p>
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="../src/platform/http/client.js"></script>
 <script src="../src/platform/geo/cities.js"></script>
 <script src="../src/platform/geo/map-frame.js"></script>
+<script src="../src/platform/geo/measure.js"></script>
+<script src="../src/platform/geo/elevation-profile.js"></script>
+<script src="../src/platform/geo/terrain-flow.js"></script>
 <script>
 (function(){
 "use strict";
 var $=function(id){return document.getElementById(id)};
 var map=L.map("map").setView([23.8,45.0],5),marker=null,requestId=0,activeAbort=null,lastResult=null,TIMEOUT_MS=12000;
+var pathMode=false,pathPoints=[],pathMarkers=[],pathLine=null,profileRequestId=0,lastProfile=null;
+var flowRequestId=0,flowLayers=[],flowPathLayers=[],lastFlow=null;
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
 if(typeof SaudiMapFrame!=="undefined")SaudiMapFrame.frame(map,L,{url:"../data/geo/saudi_boundary.geojson"});
 function status(message,isError){$("status").textContent=message;$("status").style.color=isError?"#b42318":""}
@@ -62,7 +73,7 @@ async function measure(lat,lon,zoom){
  // Cancel the previous point's request; the id check below also discards any late reply.
  if(activeAbort)activeAbort.abort();
  activeAbort=typeof AbortController==="function"?new AbortController():null;
- lastResult=null;$("copyResult").disabled=true;
+ lastResult=null;flowRequestId++;clearFlowLayers();lastFlow=null;$("flowClear").disabled=true;$("copyResult").disabled=true;
  $("elevation").textContent="…";$("latitude").textContent=fmt(lat);$("longitude").textContent=fmt(lon);
  $("coords").value=fmt(lat)+", "+fmt(lon);
  if(marker)marker.setLatLng([lat,lon]);else marker=L.marker([lat,lon]).addTo(map);
@@ -80,7 +91,142 @@ async function measure(lat,lon,zoom){
   status("اكتمل القياس. القيمة تمثل ارتفاع نموذج التضاريس Copernicus DEM GLO-90 (دقة ~90 م) عند الإحداثيات المحددة، وليست قياساً ميدانياً. المصدر: Open-Meteo.");
  }catch(error){if(id!==requestId||(error&&error.kind==="aborted"))return;$("elevation").textContent="—";status("تعذر جلب الارتفاع: "+(error&&error.kind?HttpClient.describeError(error):error.message)+" · حاول مرة أخرى.",true)}
 }
-map.on("click",function(event){measure(event.latlng.lat,event.latlng.lng)});
+function setPathHelp(message,isError){$("pathHelp").textContent=message;$("pathHelp").style.color=isError?"#b42318":""}
+function updatePathControls(){
+ $("pathFinish").disabled=!pathMode||pathPoints.length<2;
+ $("pathUndo").disabled=!pathMode||pathPoints.length===0;
+ $("pathClear").disabled=pathPoints.length===0;
+ $("pathStart").disabled=pathMode;
+}
+function clearPath(){
+ pathPoints=[];pathMarkers.forEach(function(item){map.removeLayer(item)});pathMarkers=[];
+ if(pathLine){map.removeLayer(pathLine);pathLine=null}
+ pathMode=false;updatePathControls();setPathHelp("ارسم مساراً بالنقر على نقطتين أو أكثر على الخريطة.");
+}
+function addPathPoint(lat,lon){
+ if(typeof SaudiMapFrame!=="undefined"&&!SaudiMapFrame.contains(lat,lon)){setPathHelp("النقطة خارج نطاق المرصد.",true);return}
+ pathPoints.push({lat:lat,lon:lon});
+ pathMarkers.push(L.circleMarker([lat,lon],{radius:5,color:"#075985",weight:2,fillColor:"#38bdf8",fillOpacity:1}).addTo(map));
+ if(pathLine)map.removeLayer(pathLine);
+ if(pathPoints.length>1)pathLine=L.polyline(pathPoints.map(function(p){return [p.lat,p.lon]}),{color:"#075985",weight:4,dashArray:"7 5"}).addTo(map);
+ updatePathControls();setPathHelp("أُضيفت النقطة "+pathPoints.length+". أضف نقاطاً أخرى ثم اختر «إنهاء وقياس المسار».");
+}
+function drawProfileChart(profile){
+ var svg=$("profileChart");while(svg.firstChild)svg.removeChild(svg.firstChild);
+ var known=profile.rows.filter(function(row){return row.elevationM!==null});
+ if(known.length<2){svg.hidden=true;return}
+ var ns="http://www.w3.org/2000/svg",left=54,right=18,top=18,bottom=34,w=800-left-right,h=210-top-bottom;
+ var min=Math.min.apply(null,known.map(function(p){return p.elevationM})),max=Math.max.apply(null,known.map(function(p){return p.elevationM}));
+ if(max===min){min-=1;max+=1}
+ var total=Math.max(1,profile.totalDistanceM);
+ function x(row){return left+row.distanceM/total*w}
+ function y(row){return top+(max-row.elevationM)/(max-min)*h}
+ function node(name,attrs){var el=document.createElementNS(ns,name);Object.keys(attrs).forEach(function(k){el.setAttribute(k,String(attrs[k]))});svg.appendChild(el);return el}
+ node("line",{x1:left,y1:top+h,x2:left+w,y2:top+h,stroke:"#94a3b8"});
+ node("line",{x1:left,y1:top,x2:left,y2:top+h,stroke:"#94a3b8"});
+ var segment=[];
+ profile.rows.forEach(function(row){if(row.elevationM===null){if(segment.length>1)node("polyline",{points:segment.map(function(p){return x(p)+","+y(p)}).join(" "),fill:"none",stroke:"#0f766e","stroke-width":3,"stroke-linejoin":"round"});segment=[]}else segment.push(row)});
+ if(segment.length>1)node("polyline",{points:segment.map(function(p){return x(p)+","+y(p)}).join(" "),fill:"none",stroke:"#0f766e","stroke-width":3,"stroke-linejoin":"round"});
+ node("text",{x:left,y:12,fill:"#475569","font-size":12}).textContent="الارتفاع (م)";
+ node("text",{x:left+w/2,y:202,fill:"#475569","font-size":12,"text-anchor":"middle"}).textContent="المسافة من البداية (م)";
+ svg.hidden=false;
+}
+function renderProfile(profile){
+ lastProfile=profile;$("profileCsv").disabled=false;
+ $("profileMetrics").hidden=false;$("profileTableWrap").hidden=false;
+ $("profileMin").textContent=profile.minElevationM===null?"—":profile.minElevationM.toLocaleString("ar-SA",{maximumFractionDigits:1});
+ $("profileMax").textContent=profile.maxElevationM===null?"—":profile.maxElevationM.toLocaleString("ar-SA",{maximumFractionDigits:1});
+ $("profileDelta").textContent=profile.elevationDifferenceM===null?"—":(profile.elevationDifferenceM>0?"+":"")+profile.elevationDifferenceM.toLocaleString("ar-SA",{maximumFractionDigits:1});
+ $("profileDistance").textContent=(profile.totalDistanceM/1000).toLocaleString("ar-SA",{maximumFractionDigits:2});
+ $("profileAscent").textContent=profile.cumulativeAscentM.toLocaleString("ar-SA",{maximumFractionDigits:1});
+ $("profileDescent").textContent=profile.cumulativeDescentM.toLocaleString("ar-SA",{maximumFractionDigits:1});
+ $("profileMaxUp").textContent=profile.maxUphillGradePercent===null?"—":profile.maxUphillGradePercent.toFixed(2);
+ $("profileMaxDown").textContent=profile.maxDownhillGradePercent===null?"—":profile.maxDownhillGradePercent.toFixed(2);
+ $("profileStatus").textContent="عدد نقاط العينة: "+profile.rows.length+" · بيانات متاحة: "+profile.validSampleCount+" · بيانات مفقودة: "+profile.missingSampleCount+" · متوسط الانحدار بين البداية والنهاية: "+(profile.averageGradePercent===null?"غير متاح":profile.averageGradePercent.toFixed(2)+"%");
+ var body=$("profileRows");body.textContent="";
+ profile.rows.forEach(function(row,index){var tr=document.createElement("tr"),values=[(row.distanceM/1000).toFixed(2)+" كم",row.elevationM===null?"غير متاح":row.elevationM.toFixed(1)+" م",index===0||row.gradePercent===null?"—":row.gradePercent.toFixed(2)+"%"];values.forEach(function(value){var td=document.createElement("td");td.textContent=value;tr.appendChild(td)});body.appendChild(tr)});
+ drawProfileChart(profile);
+}
+async function finishProfile(){
+ if(pathPoints.length<2)return;
+ pathMode=false;updatePathControls();$("pathFinish").disabled=true;
+ var id=++profileRequestId,samples=ElevationProfile.samplePath(pathPoints,24);
+ if(!samples){setPathHelp("تعذر إنشاء عينات صالحة من المسار.",true);return}
+ var url=ElevationProfile.elevationUrl(samples);
+ if(!url){setPathHelp("تعذر تجهيز طلب بيانات الارتفاع.",true);return}
+ $("profileStatus").textContent="جارٍ جلب بيانات الارتفاع على امتداد "+samples.length+" نقطة…";
+ $("profileMetrics").hidden=true;$("profileChart").hidden=true;$("profileTableWrap").hidden=true;$("profileCsv").disabled=true;
+ try{
+  var data=await HttpClient.request(url,{headers:{Accept:"application/json"},timeoutMs:18000,retries:1});
+  if(id!==profileRequestId)return;
+  if(!data||!Array.isArray(data.elevation)||data.elevation.length!==samples.length)throw new Error("عدد قيم الارتفاع لا يطابق عدد نقاط العينة.");
+  var profile=ElevationProfile.buildProfile(samples,data.elevation);
+  if(!profile||profile.validSampleCount===0)throw new Error("لم تتوفر قيم ارتفاع صالحة لهذا المسار.");
+  renderProfile(profile);
+  setPathHelp("اكتمل تحليل المسار. هذه تقديرات تضاريسية بدقة نموذجية ~90 م وليست قياسات هندسية.");
+ }catch(error){if(id!==profileRequestId)return;$("profileStatus").textContent="تعذر إنشاء المقطع التضاريسي: "+(error&&error.kind?HttpClient.describeError(error):error.message);setPathHelp("فشل طلب بيانات الارتفاع؛ يمكنك المحاولة مجدداً.",true)}
+}
+
+function clearFlowLayers(){flowLayers.concat(flowPathLayers).forEach(function(layer){map.removeLayer(layer)});flowLayers=[];flowPathLayers=[]}
+async function analyzeLocalFlow(){
+ if(!lastResult){$("flowStatus").textContent="حدد نقطة على الخريطة وانتظر ظهور ارتفاعها أولاً.";return}
+ var id=++flowRequestId,grid=TerrainFlow.createGrid({lat:lastResult.lat,lon:lastResult.lon},9,9,180);
+ if(!grid){$("flowStatus").textContent="تعذر إنشاء شبكة تضاريس صالحة حول النقطة.";return}
+ if(typeof SaudiMapFrame!=="undefined"&&grid.points.some(function(point){return !SaudiMapFrame.contains(point.lat,point.lon)})){
+  $("flowStatus").textContent="الشبكة تمتد خارج نطاق المرصد. اختر نقطة أبعد عن حدود المملكة أو الساحل.";return
+ }
+ var url=TerrainFlow.elevationUrl(grid.points);
+ if(!url){$("flowStatus").textContent="تعذر تجهيز طلب بيانات الارتفاع للشبكة.";return}
+ $("flowAnalyze").disabled=true;clearFlowLayers();lastFlow=null;$("flowClear").disabled=true;$("flowStatus").textContent="جارٍ طلب 81 عينة ارتفاع من Copernicus DEM GLO-90…";
+ try{
+  var data=await HttpClient.request(url,{headers:{Accept:"application/json"},timeoutMs:18000,retries:1});
+  if(id!==flowRequestId)return;
+  if(!data||!Array.isArray(data.elevation)||data.elevation.length!==grid.points.length)
+   throw new Error("عدد قيم الارتفاع لا يطابق عدد خلايا الشبكة.");
+  var result=TerrainFlow.analyze({rows:grid.rows,cols:grid.cols,cellSizeXM:grid.cellSizeXM,cellSizeYM:grid.cellSizeYM,points:grid.points,elevations:data.elevation});
+  if(!result||result.validCellCount<9)throw new Error("عدد خلايا الارتفاع المتاحة غير كافٍ للتحليل.");
+  clearFlowLayers();lastFlow=result;
+  result.cells.forEach(function(cell){
+   if(cell.elevationM===null||!Number.isFinite(cell.lat)||!Number.isFinite(cell.lon))return;
+   var radius=5+Math.min(6,Math.sqrt(cell.flowAccumulation||1));
+   var color=cell.isLocalSink?"#b45309":cell.isChannel?"#0369a1":"#64748b";
+   var circle=L.circleMarker([cell.lat,cell.lon],{radius:radius,color:color,weight:1.5,fillColor:color,fillOpacity:.62,bubblingMouseEvents:false});
+   circle.bindTooltip("الارتفاع: "+cell.elevationM.toFixed(1)+" م · تراكم الخلايا: "+cell.flowAccumulation+(cell.isLocalSink?" · منخفض محلي":cell.isChannel?" · تجمّع جريان محتمل":""));
+   circle.on("click",function(){
+    var trace=TerrainFlow.traceDownstream(result,cell.index);
+    flowPathLayers.forEach(function(layer){map.removeLayer(layer)});flowPathLayers=[];
+    if(!trace||trace.indices.length<2)return;
+    var points=trace.indices.map(function(index){var p=result.cells[index];return [p.lat,p.lon]});
+    flowPathLayers.push(L.polyline(points,{color:"#0f766e",weight:5,opacity:.9}).addTo(map));
+    $("flowStatus").textContent="مسار الانحدار من الخلية المحددة: "+trace.indices.length+" خلية · نهاية المسار: "+(trace.termination==="local_sink"?"منخفض محلي":trace.termination==="missing_data_edge"?"بيانات ارتفاع مفقودة":trace.termination==="grid_boundary"?"حدود الشبكة":"لا توجد خلية أدنى")+". انقر خلية أخرى لتغيير المسار.";
+   });
+   circle.addTo(map);flowLayers.push(circle);
+  });
+  $("flowClear").disabled=false;
+  $("flowStatus").textContent="اكتمل التحليل: "+result.validCellCount+" خلية متاحة، "+result.missingCellCount+" مفقودة، "+result.localSinkIndices.length+" منخفض محلي، و"+result.channelCellIndices.length+" خلية تجاوزت عتبة تراكم الجريان. انقر إحدى الخلايا لرسم مسار الانحدار. هذه ليست شبكة هيدرولوجية معايرة.";
+ }catch(error){
+  if(id!==flowRequestId)return;
+  $("flowStatus").textContent="تعذر تحليل الجريان: "+(error&&error.kind?HttpClient.describeError(error):error.message);
+ }finally{if(id===flowRequestId)$("flowAnalyze").disabled=false}
+}
+$("flowAnalyze").addEventListener("click",analyzeLocalFlow);
+$("flowClear").addEventListener("click",function(){flowRequestId++;clearFlowLayers();lastFlow=null;$("flowClear").disabled=true;$("flowStatus").textContent="تم مسح طبقة التحليل."});
+$("pathStart").addEventListener("click",function(){profileRequestId++;clearPath();lastProfile=null;$("profileCsv").disabled=true;$("profileMetrics").hidden=true;$("profileChart").hidden=true;$("profileTableWrap").hidden=true;$("profileStatus").textContent="جارٍ رسم مسار جديد.";pathMode=true;updatePathControls();setPathHelp("وضع الرسم نشط: انقر نقطتين أو أكثر على الخريطة.")});
+$("pathFinish").addEventListener("click",finishProfile);
+$("pathUndo").addEventListener("click",function(){if(!pathPoints.length)return;pathPoints.pop();var marker=pathMarkers.pop();if(marker)map.removeLayer(marker);if(pathLine)map.removeLayer(pathLine);pathLine=pathPoints.length>1?L.polyline(pathPoints.map(function(p){return [p.lat,p.lon]}),{color:"#075985",weight:4,dashArray:"7 5"}).addTo(map):null;updatePathControls();setPathHelp("عدد النقاط المتبقية: "+pathPoints.length)});
+$("pathClear").addEventListener("click",function(){profileRequestId++;clearPath();lastProfile=null;$("profileMetrics").hidden=true;$("profileChart").hidden=true;$("profileTableWrap").hidden=true;$("profileCsv").disabled=true;$("profileStatus").textContent="تم مسح المسار. ارسم مساراً جديداً للبدء."});
+$("profileCsv").addEventListener("click",function(){
+ if(!lastProfile||!lastProfile.rows.length)return;
+ var lines=[["المسافة_من_البداية_كم","خط_العرض","خط_الطول","الارتفاع_م","انحدار_المقطع_٪"].join(",")];
+ lastProfile.rows.forEach(function(row){
+  var values=[(row.distanceM/1000).toFixed(3),row.lat.toFixed(6),row.lon.toFixed(6),
+   row.elevationM===null?"":row.elevationM.toFixed(1),row.gradePercent===null?"":row.gradePercent.toFixed(3)];
+  lines.push(values.join(","));
+ });
+ var csv="\uFEFF"+lines.join("\r\n"),blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="marsed-terrain-profile.csv";document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+});
+map.on("click",function(event){if(pathMode){addPathPoint(event.latlng.lat,event.latlng.lng);return}measure(event.latlng.lat,event.latlng.lng)});
 $("searchPoint").addEventListener("click",function(){
  var parts=$("coords").value.split(/[،,\s]+/).filter(Boolean).map(Number);
  if(parts.length!==2||!parts.every(Number.isFinite)){status("أدخل إحداثيين بهذا الترتيب: خط العرض، خط الطول.",true);return}

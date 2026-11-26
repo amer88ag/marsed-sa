@@ -31,3 +31,39 @@ test('elevation route JavaScript parses without syntax errors', () => {
   assert.equal(scripts.length, 1);
   for (const script of scripts) new vm.Script(script, { filename: 'elevation/index.html' });
 });
+
+test('terrain profile drawing, sampled elevation and result chart are wired into the page',()=>{
+  assert.match(page,/id="pathStart"/);
+  assert.match(page,/id="pathFinish"/);
+  assert.match(page,/id="pathUndo"/);
+  assert.match(page,/id="pathClear"/);
+  assert.match(page,/ElevationProfile\.samplePath/);
+  assert.match(page,/ElevationProfile\.elevationUrl/);
+  assert.match(page,/ElevationProfile\.buildProfile/);
+  assert.match(page,/id="profileChart"/);
+  assert.match(page,/id="profileRows"/);
+  assert.match(page,/بيانات مفقودة/);
+});
+
+test('terrain profile exposes cumulative ascent/descent and CSV export',()=>{
+  assert.match(page,/id="profileAscent"/);
+  assert.match(page,/id="profileDescent"/);
+  assert.match(page,/id="profileMaxUp"/);
+  assert.match(page,/id="profileMaxDown"/);
+  assert.match(page,/id="profileCsv"/);
+  assert.match(page,/marsed-terrain-profile\.csv/);
+  assert.match(page,/lastProfile\.rows/);
+});
+
+test('local terrain flow overlay is wired to the elevation map and DEM source',()=>{
+  assert.match(page,/id="flowAnalyze"/);
+  assert.match(page,/id="flowClear"/);
+  assert.match(page,/id="flowStatus"/);
+  assert.match(page,/terrain-flow\.js/);
+  assert.match(page,/TerrainFlow\.createGrid/);
+  assert.match(page,/TerrainFlow\.elevationUrl/);
+  assert.match(page,/TerrainFlow\.analyze/);
+  assert.match(page,/TerrainFlow\.traceDownstream/);
+  assert.match(page,/شبكة تضاريس محلية 9 × 9/);
+  assert.match(page,/ليست شبكة هيدرولوجية معايرة/);
+});
