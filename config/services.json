@@ -209,6 +209,46 @@
       ],
       "data_class": "model_output",
       "safety_notice": "المواعيد إرشادية بحسب المصادر والمنطقة والصنف؛ مؤشرات الطقس نموذجية وليست قياسات مزرعة أو أوامر ري أو إنذارات صقيع."
+    },
+    {
+      "id": "earth-memory",
+      "title": "ذاكرة الأرض",
+      "category": "earth_observation",
+      "description": "مقارنة أي مكان بين تاريخين من أرشيف NASA GIBS اليومي، ونفس اليوم عبر السنين.",
+      "status": "research",
+      "ui_entry": "earth-memory/index.html",
+      "provider_ids": [
+        "nasa-gibs",
+        "openstreetmap"
+      ],
+      "capabilities": [
+        "before_after_compare",
+        "same_day_across_years",
+        "date_availability"
+      ],
+      "data_class": "satellite_imagery",
+      "safety_notice": "صور مرئية يومية مركبة بتاريخ المنتج؛ قد تغطيها السحب أو تظهر فيها فجوات، ولا تثبت وحدها سبب التغير."
+    },
+    {
+      "id": "flight-radar",
+      "title": "رادار الطيران",
+      "category": "aviation",
+      "description": "الطائرات حول موقع مختار من شبكات ADS-B المجتمعية، مع بطاقة لكل طائرة ومسار الجلسة.",
+      "status": "research",
+      "ui_entry": "flights/index.html",
+      "provider_ids": [
+        "adsb-lol",
+        "airplanes-live",
+        "openstreetmap"
+      ],
+      "capabilities": [
+        "live_positions",
+        "aircraft_card",
+        "session_trail",
+        "callsign_filter"
+      ],
+      "data_class": "aviation_positions",
+      "safety_notice": "مواقع من مستقبلات تطوعية وليست رادار ملاحة؛ التغطية ناقصة، وبين التحديثات موقع تقديري موسوم. لا تُستخدم للملاحة أو السلامة."
     }
   ]
 }

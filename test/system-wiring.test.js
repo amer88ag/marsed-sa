@@ -10,7 +10,7 @@ const Registry = require("../src/platform/registry/registry.js");
 const services = require("../config/services.json");
 const providers = require("../config/providers.json");
 
-const PAGES = ["index.html", "seasons/index.html", "elevation/index.html", "satellite/index.html", "satellite/coverage.html", "admin/index.html"];
+const PAGES = ["index.html", "seasons/index.html", "elevation/index.html", "satellite/index.html", "satellite/coverage.html", "admin/index.html", "earth-memory/index.html", "flights/index.html"];
 
 function walk(dir, out) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -38,7 +38,7 @@ test("every user-facing page is registered as a service, and every ui_entry reso
 });
 
 test("new services are research-stage, not silently activated", () => {
-  for (const id of ["satellite", "satellite-coverage", "elevation", "seasons-orchard"]) {
+  for (const id of ["satellite", "satellite-coverage", "elevation", "seasons-orchard", "earth-memory", "flight-radar"]) {
     assert.equal(services.services.find(s => s.id === id).status, "research", id);
   }
   assert.deepEqual(services.services.filter(s => s.status === "active").map(s => s.id), ["weather"]);
@@ -56,7 +56,8 @@ const TOOL_FILES = () => walk("tools", []);
 const DATA_HOSTS = {
   "api.open-meteo.com": "open-meteo", "archive-api.open-meteo.com": "open-meteo",
   "gibs.earthdata.nasa.gov": "nasa-gibs", "router.project-osrm.org": "osrm-demo",
-  "tile.openstreetmap.org": "openstreetmap", "data.chc.ucsb.edu": "chirps-v3"
+  "tile.openstreetmap.org": "openstreetmap", "data.chc.ucsb.edu": "chirps-v3",
+  "api.adsb.lol": "adsb-lol", "api.airplanes.live": "airplanes-live"
 };
 // Hosts that are not data sources. Every entry needs a reason, must actually occur
 // in the scanned files (no stale entries), and may not overlap DATA_HOSTS.
@@ -80,7 +81,9 @@ const NON_DATA_HOSTS = {
   "direct.ksu.edu.sa": "reference link in the seasons page",
   "www.almisnid.com": "reference link in the seasons page",
   "alojeiri.com": "reference link in the seasons page",
-  "aa.usno.navy.mil": "astronomical reference link in the seasons page"
+  "aa.usno.navy.mil": "astronomical reference link in the seasons page",
+  "adsb.lol": "ADSB.lol attribution link (flight radar)",
+  "airplanes.live": "airplanes.live attribution link (flight radar)"
 };
 // Test-only hosts: local servers and placeholders used by tools/browser-smoke.
 const TOOL_ONLY_HOSTS = {

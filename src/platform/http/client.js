@@ -76,7 +76,14 @@
       }
       if (!response || !response.ok) {
         const status = response && response.status !== undefined ? response.status : 0;
-        throw new RequestError("http", "HTTP " + status, { status: status });
+        const error = new RequestError("http", "HTTP " + status, { status: status });
+        // Keep the server's Retry-After (seconds) so callers can honour rate limits.
+        try {
+          const ra = response.headers && typeof response.headers.get === "function" ? response.headers.get("Retry-After") : null;
+          const seconds = ra === null || ra === undefined ? NaN : Number(ra);
+          if (Number.isFinite(seconds) && seconds >= 0) error.retryAfterSeconds = seconds;
+        } catch (ignored) { /* header unavailable */ }
+        throw error;
       }
       if (parse === "none") return response;
       try {
