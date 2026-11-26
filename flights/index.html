@@ -23,6 +23,65 @@
 .state{font-size:12px;padding:3px 9px;border-radius:12px;background:#eef6fc;color:#285b80}.state[data-state="stale"],.state[data-state="partial"]{background:#fff4e5;color:#8a5700}.state[data-state="unavailable"],.state[data-state="source_error"]{background:#fdecea;color:#b42318}
 .controls label{max-width:100%;min-width:0}.controls select,.controls input{max-width:100%;min-width:0;width:100%}
 @media(max-width:860px){.layout{grid-template-columns:1fr}.list{max-height:none}#flightMap{height:52vh;min-height:300px}}
+
+/* Flight radar interface refinement — mobile first */
+.wrap{max-width:1380px;padding-top:20px}
+.nav{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;scrollbar-width:thin}
+.nav a{white-space:nowrap;font-size:13px;font-weight:600}
+.panel{border-radius:18px}
+.head{padding:17px 19px;background:linear-gradient(180deg,#fff,#f9fbfd)}
+.head h2{font-size:18px;font-weight:750}
+.controls{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(125px,.8fr) minmax(190px,1.4fr) auto auto;align-items:end;gap:10px;padding:16px}
+.controls label{font-size:12px;font-weight:650;color:#526274;gap:7px}
+.controls select,.controls input{height:44px;border-radius:11px;border-color:#d5dfe8;background:#fbfdff}
+.controls .btn{height:44px;white-space:nowrap;font-weight:700;border-radius:11px;padding-inline:16px}
+.controls .btn.primary{box-shadow:0 4px 10px #1769aa26}
+#status{margin:0 14px 12px;border:1px solid #e3ebf2;border-radius:12px;background:#f7fafc;padding:12px 14px;font-size:13px}
+#status.error{background:#fff7f5;border-color:#f2d5d0}
+#liveMaps{margin:0 14px 14px;border:1px solid #e3ebf2;border-radius:12px;background:#fbfdff;padding:12px 14px}
+#liveMapLinks{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+#liveMapLinks .btn{padding:7px 11px;font-size:11px;border-radius:9px}
+.layout{grid-template-columns:minmax(0,1.85fr) minmax(300px,1fr);align-items:start;padding:0 14px 14px}
+#flightMap{height:min(68vh,680px);min-height:390px;border:1px solid #dbe4eb;border-radius:14px;overflow:hidden}
+.layout>div:last-child{display:flex;flex-direction:column;gap:10px;min-width:0}
+#card{border:1px solid #e2eaf1;border-radius:14px;background:#fbfdff;min-height:95px}
+#list{border:1px solid #e2eaf1;border-radius:14px;max-height:calc(min(68vh,680px) - 125px);min-height:210px}
+.ac{padding:12px 14px;transition:background .15s}
+.ac b{font-size:14px}
+.legend{margin:0 14px 14px;padding:13px 15px;border-radius:12px;background:#f8fafc;border:1px solid #e5ebf0;font-size:12px}
+footer.status{max-width:1380px;margin:0 auto;padding:16px}
+.state{font-weight:700;white-space:nowrap}
+@media(max-width:900px){
+ .controls{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .controls label:nth-child(3){grid-column:1/-1}
+ .layout{grid-template-columns:1fr}
+ #flightMap{height:54vh;min-height:340px}
+ #list{max-height:360px}
+}
+@media(max-width:560px){
+ .top{padding:17px 14px}
+ .brand{align-items:flex-start}
+ .brand h1{font-size:23px}
+ .brand p{font-size:12px;line-height:1.7;max-width:270px}
+ .wrap{padding:12px 9px 25px}
+ .nav{gap:6px;margin-bottom:11px}
+ .nav a{padding:9px 11px;font-size:12px}
+ .head{padding:14px}
+ .head h2{font-size:16px}
+ .head small{font-size:10px;text-align:left}
+ .controls{padding:12px;gap:8px}
+ .controls label{min-width:0;font-size:11px}
+ .controls .btn{padding:0 10px;font-size:12px}
+ #status,#liveMaps{margin-inline:10px;font-size:12px}
+ #liveMapLinks .btn{font-size:10px}
+ .layout{padding-inline:10px;gap:10px}
+ #flightMap{height:48vh;min-height:300px;border-radius:12px}
+ #card{padding:11px;font-size:12px}
+ #card dl{grid-template-columns:105px 1fr;gap:4px 8px}
+ #list{max-height:320px}
+ .legend{margin-inline:10px;font-size:11px}
+}
+
 </style>
 </head>
 <body>
