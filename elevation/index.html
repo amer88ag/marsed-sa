@@ -129,11 +129,16 @@ function drawProfileChart(profile){
  svg.hidden=false;
 }
 function renderProfile(profile){
+ lastProfile=profile;
  $("profileMetrics").hidden=false;$("profileTableWrap").hidden=false;
  $("profileMin").textContent=profile.minElevationM===null?"—":profile.minElevationM.toLocaleString("ar-SA",{maximumFractionDigits:1});
  $("profileMax").textContent=profile.maxElevationM===null?"—":profile.maxElevationM.toLocaleString("ar-SA",{maximumFractionDigits:1});
  $("profileDelta").textContent=profile.elevationDifferenceM===null?"—":(profile.elevationDifferenceM>0?"+":"")+profile.elevationDifferenceM.toLocaleString("ar-SA",{maximumFractionDigits:1});
- $("profileDistance").textContent=(profile.totalDistanceM/1000).toLocaleString("ar-SA",{maximumFractionDigits:2});\n $("profileAscent").textContent=profile.cumulativeAscentM.toLocaleString("ar-SA",{maximumFractionDigits:1});\n $("profileDescent").textContent=profile.cumulativeDescentM.toLocaleString("ar-SA",{maximumFractionDigits:1});\n $("profileMaxUp").textContent=profile.maxUphillGradePercent===null?"—":profile.maxUphillGradePercent.toFixed(2);\n $("profileMaxDown").textContent=profile.maxDownhillGradePercent===null?"—":profile.maxDownhillGradePercent.toFixed(2);
+ $("profileDistance").textContent=(profile.totalDistanceM/1000).toLocaleString("ar-SA",{maximumFractionDigits:2});
+ $("profileAscent").textContent=profile.cumulativeAscentM.toLocaleString("ar-SA",{maximumFractionDigits:1});
+ $("profileDescent").textContent=profile.cumulativeDescentM.toLocaleString("ar-SA",{maximumFractionDigits:1});
+ $("profileMaxUp").textContent=profile.maxUphillGradePercent===null?"—":profile.maxUphillGradePercent.toFixed(2);
+ $("profileMaxDown").textContent=profile.maxDownhillGradePercent===null?"—":profile.maxDownhillGradePercent.toFixed(2);
  $("profileStatus").textContent="عدد نقاط العينة: "+profile.rows.length+" · بيانات متاحة: "+profile.validSampleCount+" · بيانات مفقودة: "+profile.missingSampleCount+" · متوسط الانحدار بين البداية والنهاية: "+(profile.averageGradePercent===null?"غير متاح":profile.averageGradePercent.toFixed(2)+"%");
  var body=$("profileRows");body.textContent="";
  profile.rows.forEach(function(row,index){var tr=document.createElement("tr"),values=[(row.distanceM/1000).toFixed(2)+" كم",row.elevationM===null?"غير متاح":row.elevationM.toFixed(1)+" م",index===0||row.gradePercent===null?"—":row.gradePercent.toFixed(2)+"%"];values.forEach(function(value){var td=document.createElement("td");td.textContent=value;tr.appendChild(td)});body.appendChild(tr)});
@@ -161,7 +166,8 @@ async function finishProfile(){
 $("pathStart").addEventListener("click",function(){profileRequestId++;clearPath();pathMode=true;updatePathControls();setPathHelp("وضع الرسم نشط: انقر نقطتين أو أكثر على الخريطة.")});
 $("pathFinish").addEventListener("click",finishProfile);
 $("pathUndo").addEventListener("click",function(){if(!pathPoints.length)return;pathPoints.pop();var marker=pathMarkers.pop();if(marker)map.removeLayer(marker);if(pathLine)map.removeLayer(pathLine);pathLine=pathPoints.length>1?L.polyline(pathPoints.map(function(p){return [p.lat,p.lon]}),{color:"#075985",weight:4,dashArray:"7 5"}).addTo(map):null;updatePathControls();setPathHelp("عدد النقاط المتبقية: "+pathPoints.length)});
-$("pathClear").addEventListener("click",function(){profileRequestId++;clearPath();lastProfile=null;$("profileMetrics").hidden=true;$("profileChart").hidden=true;$("profileTableWrap").hidden=true;$("profileCsv").disabled=true;$("profileStatus").textContent="تم مسح المسار. ارسم مساراً جديداً للبدء."});\n$("profileCsv").addEventListener("click",function(){
+$("pathClear").addEventListener("click",function(){profileRequestId++;clearPath();lastProfile=null;$("profileMetrics").hidden=true;$("profileChart").hidden=true;$("profileTableWrap").hidden=true;$("profileCsv").disabled=true;$("profileStatus").textContent="تم مسح المسار. ارسم مساراً جديداً للبدء."});
+$("profileCsv").addEventListener("click",function(){
  if(!lastProfile||!lastProfile.rows.length)return;
  var lines=[["المسافة_من_البداية_كم","خط_العرض","خط_الطول","الارتفاع_م","انحدار_المقطع_٪"].join(",")];
  lastProfile.rows.forEach(function(row){
@@ -171,7 +177,7 @@ $("pathClear").addEventListener("click",function(){profileRequestId++;clearPath(
  });
  var csv="\\uFEFF"+lines.join("\\r\\n"),blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");
  a.href=url;a.download="marsed-terrain-profile.csv";document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-});;
+});
 map.on("click",function(event){if(pathMode){addPathPoint(event.latlng.lat,event.latlng.lng);return}measure(event.latlng.lat,event.latlng.lng)});
 $("searchPoint").addEventListener("click",function(){
  var parts=$("coords").value.split(/[،,\s]+/).filter(Boolean).map(Number);
