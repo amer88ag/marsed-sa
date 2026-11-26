@@ -47,6 +47,12 @@ const hourly = n => { const t=[],v=[]; const s=Date.now(); for(let i=0;i<n;i++){
     // Tiles are deliberately NOT served here: Playwright route.fulfill bypasses CORS,
     // so tile content/CORS behaviour is tested by coverage-real-cors.js instead.
     if (url.hostname === "gibs.earthdata.nasa.gov" && url.pathname.endsWith("wmts.cgi")) return route.fulfill({ contentType: "text/xml", body: "<Domains><DimensionDomain><Domain>2000-02-24/2026-11-23/P1D</Domain></DimensionDomain></Domains>" });
+    // CelesTrak GP (simulated, synthetic elements with a recent epoch).
+    if (url.hostname === "celestrak.org") {
+      const ep = new Date(Date.now() - 86400000).toISOString().replace("Z", "");
+      const mk = (id, name, raan, ma) => ({ OBJECT_NAME: name, OBJECT_ID: "1998-067A", EPOCH: ep, MEAN_MOTION: 15.5, ECCENTRICITY: 0.0005, INCLINATION: 51.64, RA_OF_ASC_NODE: raan, ARG_OF_PERICENTER: 90, MEAN_ANOMALY: ma, EPHEMERIS_TYPE: 0, CLASSIFICATION_TYPE: "U", NORAD_CAT_ID: id, ELEMENT_SET_NO: 999, REV_AT_EPOCH: 50000, BSTAR: 0.0002, MEAN_MOTION_DOT: 0.0001, MEAN_MOTION_DDOT: 0 });
+      return route.fulfill({ json: [mk(25544, "TEST STATION A", 120, 270), mk(48274, "TEST STATION B", 40, 10), mk(99999, "TEST STATION C", 300, 180)] });
+    }
     // ADS-B (simulated): adsb.lol answers; airplanes.live only if the primary fails.
     if (url.hostname === "api.adsb.lol" || url.hostname === "api.airplanes.live") {
       const now = Date.now();
@@ -72,6 +78,9 @@ const hourly = n => { const t=[],v=[]; const s=Date.now(); for(let i=0;i<n;i++){
     ["flights", "http://local.test/flights/index.html", async p => { await p.waitForFunction(() => document.querySelectorAll("#list .ac").length > 0, null, { timeout: 15000 });
       await p.click("#list .ac"); await p.waitForTimeout(300);
       return "state=" + (await p.getAttribute("#dataState", "data-state")) + " | list=" + (await p.$$eval("#list .ac", b => b.length)) + " | " + (await p.textContent("#status")).slice(0, 120) + " | card: " + (await p.textContent("#card")).slice(0, 220); }],
+    ["sat-radar", "http://local.test/sat-radar/index.html", async p => { await p.waitForFunction(() => document.getElementById("dataState").getAttribute("data-state") !== "not_loaded", null, { timeout: 15000 });
+      await p.click("#tabAll"); await p.waitForSelector("#list .sat"); await p.click("#list .sat"); await p.waitForTimeout(400);
+      return "state=" + (await p.getAttribute("#dataState", "data-state")) + " | markers=" + (await p.$$eval(".dot", e => e.length)) + " | tracks=" + (await p.$$eval("path.leaflet-interactive", e => e.length)) + " | " + (await p.textContent("#status")).slice(0, 100) + " | card: " + (await p.textContent("#card")).slice(0, 400); }],
     ["admin", "http://local.test/admin/index.html", async p => { await p.waitForTimeout(1200); return (await p.evaluate(() => document.body.innerText)).replace(/\s+/g, " ").slice(0, 300); }]
   ]) {
     const page = await ctx.newPage(); const errors = [];

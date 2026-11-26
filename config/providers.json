@@ -201,6 +201,25 @@
       "rate_limit": "1 request/second",
       "health_status": "not_monitored",
       "notes": "Fallback only, used when ADSB.lol has no response or a server error. Live access and CORS not yet verified."
+    },
+    {
+      "id": "celestrak",
+      "name": "CelesTrak GP data",
+      "official_url": "https://celestrak.org/NORAD/documentation/gp-data-formats.php",
+      "domain": "space",
+      "products": [
+        "GROUP=stations",
+        "GROUP=visual",
+        "GROUP=gnss"
+      ],
+      "auth_mode": "none",
+      "license_status": "approved_with_conditions",
+      "license": "Free public access under the CelesTrak usage policy; credit CelesTrak",
+      "attribution": "Orbital elements: CelesTrak (T.S. Kelso)",
+      "coverage": "Unclassified objects with public GP data; small groups only in phase 1",
+      "rate_limit": "New GP data checked once every 2 hours; re-download only if the local copy is older; limits enforced on large sets (Active, Starlink) with HTTP errors",
+      "health_status": "not_monitored",
+      "notes": "Positions are computed with SGP4 (satellite.js 6.0.1, vendored), not observed. Group names, live access and browser CORS not yet verified."
     }
   ]
 }

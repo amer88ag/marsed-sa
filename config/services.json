@@ -249,6 +249,26 @@
       ],
       "data_class": "aviation_positions",
       "safety_notice": "مواقع من مستقبلات تطوعية وليست رادار ملاحة؛ التغطية ناقصة، وبين التحديثات موقع تقديري موسوم. لا تُستخدم للملاحة أو السلامة."
+    },
+    {
+      "id": "satellite-radar",
+      "title": "رادار الأقمار الصناعية",
+      "category": "space",
+      "description": "مواقع الأقمار المحسوبة فوق موقع المستخدم، والمسار الماضي والقادم، والمرور القادم، من عناصر CelesTrak المدارية.",
+      "status": "research",
+      "ui_entry": "sat-radar/index.html",
+      "provider_ids": [
+        "celestrak",
+        "openstreetmap"
+      ],
+      "capabilities": [
+        "above_horizon",
+        "ground_track",
+        "next_pass",
+        "search"
+      ],
+      "data_class": "computed_orbital_positions",
+      "safety_notice": "مواقع محسوبة بنموذج SGP4 وليست رصداً؛ تقل الدقة مع عمر العناصر المدارية، و«فوق الأفق» لا يعني أن القمر مرئي بالعين."
     }
   ]
 }
