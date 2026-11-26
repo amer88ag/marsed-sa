@@ -109,11 +109,11 @@ async function refresh(){
  try{
   const b=chosenBox(),area=(b[2]-b[0])*(b[3]-b[1]);
   if(area>25.5){throw new Error("النطاق المحدد واسع جداً للطلب المجاني. قرّب الخريطة أو اختر مدينة لتقليل مساحة البحث إلى نحو 25 درجة مربعة.")};
-  const url="https://opensky-network.org/api/states/all? lamin="+b[0]+"&lomin="+b[1]+"&lamax="+b[2]+"&lomax="+b[3];
-  const response=await fetch(url.replace("? lamin=","?lamin="),{headers:{Accept:"application/json"}});
+  const params=new URLSearchParams({south:String(b[0]),west:String(b[1]),north:String(b[2]),east:String(b[3])});
+  const response=await fetch("/api/aircraft?"+params.toString(),{headers:{Accept:"application/json"}});
   if(!response.ok){if(response.status===429)throw new Error("تجاوزنا حصة طلبات مصدر الطيران مؤقتاً. انتظر قبل المحاولة التالية.");throw new Error("تعذر جلب بيانات الطيران (HTTP "+response.status+").")}
-  const data=await response.json();const states=Array.isArray(data.states)?data.states:[];
-  aircraft=states.map(s=>({icao24:s[0],callsign:(s[1]||"").trim(),origin_country:s[2],time_position:s[3],last_contact:s[4],longitude:s[5],latitude:s[6],baro_altitude:s[7],on_ground:s[8],velocity:s[9],true_track:s[10],vertical_rate:s[11],geo_altitude:s[13],squawk:s[14]})).filter(a=>a.icao24);
+  const data=await response.json();const rows=Array.isArray(data.aircraft)?data.aircraft:[];
+  aircraft=rows.map(a=>({icao24:a.icao24,callsign:a.callsign,origin_country:"غير متاح من المصدر",longitude:a.longitude,latitude:a.latitude,baro_altitude:typeof a.altitude_feet==="number"?a.altitude_feet*0.3048:null,geo_altitude:null,on_ground:a.on_ground,velocity:typeof a.speed_knots==="number"?a.speed_knots*0.514444:null,true_track:a.true_track,vertical_rate:typeof a.vertical_rate_fpm==="number"?a.vertical_rate_fpm*0.00508:null,last_contact:typeof data.source_time==="number"?data.source_time-(a.seen_seconds||0):null,registration:a.registration,aircraft_type:a.aircraft_type,squawk:a.squawk})).filter(a=>a.icao24);
   lastUpdated=new Date();render();
   status("آخر تحديث: "+lastUpdated.toLocaleString("ar-SA")+" · المصدر: FlyItalyADSB · عدد الطائرات: "+fmt(data.count)+" · النطاق: "+fmt(area,1)+" درجة²");
  }catch(e){status(e.message||"تعذر الاتصال بمصدر الطيران.",true)}
