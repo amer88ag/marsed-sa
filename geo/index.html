@@ -120,7 +120,7 @@ function render(){
  if(!features.length)list.innerHTML='<div class="empty">لا توجد عناصر بعد.</div>';
  updateActions();
 }
-function select(featureId){selectedId=featureId;render();const f=features.find(x=>x.id===selectedId);if(f){const b=L.latLngBounds(f.coordinates.map(p=>[p.lat,p.lon]));if(f.type==="point")map.setView(f.coordinates.map(p=>p.lat),Math.max(map.getZoom(),12));else map.fitBounds(b.pad(.2));}}
+function select(featureId){selectedId=featureId;render();const f=features.find(x=>x.id===selectedId);if(f){const b=L.latLngBounds(f.coordinates.map(p=>[p.lat,p.lon]));if(f.type==="point")map.setView([f.coordinates[0].lat,f.coordinates[0].lon],Math.max(map.getZoom(),12));else map.fitBounds(b.pad(.2));}}
 function updateActions(){const f=features.find(x=>x.id===selectedId);$("openMaps").disabled=!f;$("openEarth").disabled=!f;$("openDirections").disabled=!f||f.type!=="line"}
 function addFeature(type,coordinates,name){
  const feature=Geo.normalizeFeature({id:id(),type,coordinates,name:safeName(name|| (type==="point"?"موقع جديد":type==="line"?"مسار جديد":"حدود جديدة"))});
