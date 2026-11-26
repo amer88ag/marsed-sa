@@ -70,7 +70,7 @@
         const nr=r+dr,nc=c+dc;
         if(nr<0||nr>=grid.rows||nc<0||nc>=grid.cols){boundary[index]=true;continue}
         const next=nr*grid.cols+nc,height=grid.elevations[next];
-        if(height===null)continue;
+        if(height===null){touchesMissing[index]=true;continue;}
         const distance=Math.hypot(dc*grid.cellSizeXM,dr*grid.cellSizeYM);
         const drop=grid.elevations[index]-height;
         const grade=drop/distance;
@@ -92,8 +92,8 @@
       downstreamIndex:downstream[index],slopeRatio:slope[index],
       flowAccumulation:accumulation[index],
       isChannel:accumulation[index]!==null&&accumulation[index]>=threshold,
-      isBoundary:boundary[index],
-      isLocalSink:valid[index]&&downstream[index]===null&&!boundary[index]
+      isBoundary:boundary[index],isDataEdge:touchesMissing[index],
+      isLocalSink:valid[index]&&downstream[index]===null&&!boundary[index]&&!touchesMissing[index]
     }));
     return {
       rows:grid.rows,cols:grid.cols,cellSizeXM:grid.cellSizeXM,cellSizeYM:grid.cellSizeYM,
