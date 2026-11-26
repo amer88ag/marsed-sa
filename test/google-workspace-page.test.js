@@ -10,7 +10,7 @@ test("Google geospatial workspace exposes Maps and Earth actions",()=>{
   assert.match(page,/Geo\.mapsUrl/);assert.match(page,/Geo\.earthUrl/);assert.match(page,/Geo\.directionsUrl/);
 });
 test("Google geospatial workspace supports KML and KMZ interchange",()=>{
-  assert.match(page,/function parseKml/);assert.match(page,/DOMParser/);assert.match(page,/JSZip\.loadAsync/);
+  assert.match(page,/function parseKml/);assert.match(page,/DOMParser/);assert.match(page,/JSZip\.loadAsync/);assert.match(page,/MultiGeometry/);
   assert.match(page,/application\/vnd\.google-earth\.kml\+xml/);assert.match(page,/application\/vnd\.google-earth\.kmz/);
 });
 test("Google geospatial workspace has local project persistence and draw modes",()=>{
