@@ -13,7 +13,7 @@
   // - Polling every 30 s keeps one open tab well under adsb.lol's 500 requests/day
   //   per IP for a few hours; the page pauses polling while hidden.
   // - Between polls positions are ESTIMATED by dead reckoning and labelled so.
-  const ORDER = ["adsblol", "airplaneslive"];
+  const ORDER = ["adsbfi", "adsblol", "airplaneslive"];
   const POLL_SECONDS = 30;
   const MAX_ESTIMATE_SECONDS = 60;   // never extrapolate further than this
   const TRAIL_MAX_POINTS = 60, TRAIL_MAX_MINUTES = 30;
