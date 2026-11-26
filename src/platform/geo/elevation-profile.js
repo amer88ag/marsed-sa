@@ -107,15 +107,30 @@
       }
     }
     const known=rows.filter(row=>row.elevationM !== null);
-    if (!known.length) return { rows, totalDistanceM:rows[rows.length-1].distanceM,
+    const totalDistanceM=rows[rows.length-1].distanceM;
+    let cumulativeAscentM=0,cumulativeDescentM=0,maxUphillGradePercent=null,maxDownhillGradePercent=null;
+    for(let i=1;i<rows.length;i++){
+      const previous=rows[i-1],current=rows[i];
+      // Never bridge a missing DEM sample: only adjacent known samples contribute.
+      if(previous.elevationM===null||current.elevationM===null)continue;
+      const delta=current.elevationM-previous.elevationM;
+      if(delta>0)cumulativeAscentM+=delta;
+      else if(delta<0)cumulativeDescentM+=Math.abs(delta);
+      if(current.gradePercent!==null){
+        if(current.gradePercent>0)maxUphillGradePercent=maxUphillGradePercent===null?current.gradePercent:Math.max(maxUphillGradePercent,current.gradePercent);
+        if(current.gradePercent<0)maxDownhillGradePercent=maxDownhillGradePercent===null?current.gradePercent:Math.min(maxDownhillGradePercent,current.gradePercent);
+      }
+    }
+    if (!known.length) return { rows, totalDistanceM,
       minElevationM:null,maxElevationM:null,elevationDifferenceM:null,averageGradePercent:null,
+      cumulativeAscentM:0,cumulativeDescentM:0,maxUphillGradePercent:null,maxDownhillGradePercent:null,
       validSampleCount:0,missingSampleCount:rows.length };
     const values=known.map(row=>row.elevationM);
     const first=rows[0].elevationM, last=rows[rows.length-1].elevationM;
-    const totalDistanceM=rows[rows.length-1].distanceM;
     return { rows,totalDistanceM,minElevationM:Math.min(...values),maxElevationM:Math.max(...values),
       elevationDifferenceM:first===null||last===null?null:last-first,
       averageGradePercent:first===null||last===null||totalDistanceM<=0?null:(last-first)/totalDistanceM*100,
+      cumulativeAscentM,cumulativeDescentM,maxUphillGradePercent,maxDownhillGradePercent,
       validSampleCount:known.length,missingSampleCount:rows.length-known.length };
   }
 
