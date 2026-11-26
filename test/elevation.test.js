@@ -31,3 +31,16 @@ test('elevation route JavaScript parses without syntax errors', () => {
   assert.equal(scripts.length, 1);
   for (const script of scripts) new vm.Script(script, { filename: 'elevation/index.html' });
 });
+
+test('terrain profile drawing, sampled elevation and result chart are wired into the page',()=>{
+  assert.match(page,/id="pathStart"/);
+  assert.match(page,/id="pathFinish"/);
+  assert.match(page,/id="pathUndo"/);
+  assert.match(page,/id="pathClear"/);
+  assert.match(page,/ElevationProfile\.samplePath/);
+  assert.match(page,/ElevationProfile\.elevationUrl/);
+  assert.match(page,/ElevationProfile\.buildProfile/);
+  assert.match(page,/id="profileChart"/);
+  assert.match(page,/id="profileRows"/);
+  assert.match(page,/بيانات مفقودة/);
+});
