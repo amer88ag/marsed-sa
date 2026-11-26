@@ -106,3 +106,21 @@ test("GeoJSON multi-geometry expansion stops at the workspace feature limit",()=
   const coordinates=Array.from({length:5001},(_,i)=>[46+i/100000,24]);
   assert.throws(()=>Geo.fromGeoJson({type:"Feature",properties:{name:"مجموعة كبيرة"},geometry:{type:"MultiPoint",coordinates}}),/5000/);
 });
+
+
+test("KML export round trip retains geometry coordinates and polygon interior rings",()=>{
+  const source=[
+    {type:"point",name:"نقطة",coordinates:[{lat:24.1,lon:46.2}]},
+    {type:"line",name:"مسار",coordinates:[{lat:24,lon:46},{lat:24.5,lon:46.5}]},
+    {type:"polygon",name:"قطعة",coordinates:[{lat:24,lon:46},{lat:24,lon:46.02},{lat:24.02,lon:46.02},{lat:24.02,lon:46}],holes:[[{lat:24.005,lon:46.005},{lat:24.005,lon:46.01},{lat:24.01,lon:46.01},{lat:24.01,lon:46.005}]]}
+  ];
+  const kml=Geo.toKml(source);
+  const blocks=[...kml.matchAll(/<coordinates>([\\s\\S]*?)<\\/coordinates>/g)].map(match=>Geo.parseCoordinateText(match[1]));
+  assert.equal(blocks.length,4);
+  assert.deepEqual(blocks[0],source[0].coordinates);
+  assert.deepEqual(blocks[1],source[1].coordinates);
+  const unclose=ring=>ring.slice(0,-1);
+  assert.deepEqual(unclose(blocks[2]),source[2].coordinates);
+  assert.deepEqual(unclose(blocks[3]),source[2].holes[0]);
+  assert.match(kml,/<innerBoundaryIs>/);
+});
