@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b46">
+<meta name="description" content="رادار حركة الطيران المباشر فوق السعودية والمطارات">
+<title>رادار الطيران | مرصد السعودية</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<style>
+:root{--navy:#102b46;--blue:#1769aa;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}
+header{background:linear-gradient(120deg,#102b46,#174d76);color:#fff;padding:20px max(16px,calc((100% - 1320px)/2))}
+header a{color:#d9eafa;text-decoration:none;font-size:13px}h1{font-size:clamp(22px,3vw,29px);margin:10px 0 5px}header p{margin:0;color:#c6d8e7;font-size:13px}
+main{max-width:1320px;margin:auto;padding:16px 14px 40px}.panel{background:white;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:13px;box-shadow:0 3px 14px #183b5710}
+.toolbar,.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px}.btn{border:1px solid var(--line);background:white;color:var(--ink);border-radius:9px;padding:9px 12px;font:inherit;font-size:13px;cursor:pointer}.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+input,select{font:inherit;border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:white;color:var(--ink);min-width:0}
+.status{font-size:12px;color:var(--muted);line-height:1.8;padding:0 13px 10px}.status.error{color:#b42318}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:13px}
+#map{height:min(72vh,760px);min-height:430px;background:#e8eff4}
+.map-head,.section-head{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px}.map-head b,.section-head b{font-size:14px}.map-head small,.section-head small{font-size:11px;color:var(--muted)}
+.sidebar{padding:12px}.sidebar h2{font-size:15px;margin:0 0 10px}.sidebar p{font-size:12px;color:var(--muted);line-height:1.8;margin:7px 0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:12px}.stat{background:#f6f9fc;border:1px solid #e8eef3;border-radius:10px;padding:10px}.stat small{display:block;color:var(--muted);font-size:11px}.stat strong{font-size:22px;display:block;margin-top:5px}
+.list{max-height:340px;overflow:auto;display:grid;gap:6px}.aircraft{border:1px solid var(--line);border-radius:9px;padding:9px;display:flex;justify-content:space-between;gap:8px;cursor:pointer}.aircraft.active{border-color:var(--blue);background:#eff7fc}.aircraft b{font-size:12px}.aircraft small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.aircraft span{font-size:11px;color:var(--muted);white-space:nowrap}
+.detail{border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px;background:#f8fafc}.detail h3{font-size:13px;margin:0 0 8px}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.detail-grid div{font-size:11px;color:var(--muted)}.detail-grid b{display:block;color:var(--ink);font-size:13px;margin-top:3px;overflow-wrap:anywhere}
+.notice{background:#fff8e8;border:1px solid #f2dfb4;border-radius:9px;padding:10px;font-size:11px;line-height:1.8;color:#80520b;margin:10px 12px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;padding:9px 14px;font-size:11px;color:var(--muted)}
+.air-icon{font-size:18px;text-align:center;line-height:24px;text-shadow:0 1px 2px #fff}
+.airport-board{padding:12px}.airport-board label{font-size:12px;color:var(--muted)}.airport-board p{font-size:12px;color:var(--muted);line-height:1.8}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.sidebar{order:2}#map{height:55vh;min-height:360px}.list{max-height:250px}}
+</style></head>
+<body>
+<header><a href="../">← العودة إلى المرصد</a><h1>✈️ رادار الطيران العالمي</h1><p>متابعة الطائرات التي ترسل بيانات موقعها عبر ADS-B فوق المنطقة المحددة</p></header>
+<main>
+<section class="panel">
+<div class="toolbar">
+<label for="area">منطقة المتابعة</label>
+<select id="area"><option value="sa">السعودية (نطاق واسع)</option><option value="riyadh" selected>الرياض وما حولها</option><option value="jeddah">جدة وما حولها</option><option value="dammam">الدمام وما حولها</option><option value="makkah">مكة والطائف</option><option value="abha">أبها وجنوب غرب المملكة</option><option value="custom">حدود الخريطة الحالية</option></select>
+<button class="btn primary" id="refresh">تحديث حركة الطيران</button>
+<button class="btn" id="locate">موقعي</button>
+</div>
+<div id="status" class="status" role="status" aria-live="polite">جارٍ تهيئة رادار الطيران…</div>
+<div class="stats"><div class="stat"><small>طائرات مرصودة</small><strong id="count">—</strong></div><div class="stat"><small>في الجو</small><strong id="airborne">—</strong></div><div class="stat"><small>على الأرض</small><strong id="ground">—</strong></div></div>
+</section>
+<div class="layout">
+<section class="panel">
+<div class="map-head"><b>الحركة الجوية على الخريطة</b><small>الموقع والاتجاه والارتفاع</small></div>
+<div id="map" role="application" aria-label="خريطة حركة الطائرات"></div>
+<div class="legend"><span>✈️ طائرة مرصودة</span><span>الأسهم توضح اتجاه الحركة</span></div>
+<div class="notice">البيانات من OpenSky Network وتعتمد على استقبال رسائل الطائرات؛ قد لا تظهر كل الطائرات أو كل الرحلات، وقد تتأخر بعض المواقع. لا تستخدم هذه الصفحة للملاحة أو السلامة الجوية.</div>
+</section>
+<aside>
+<section class="panel sidebar">
+<h2>الطائرات في النطاق</h2>
+<div class="filters"><input id="search" type="search" placeholder="بحث برقم النداء أو ICAO" aria-label="بحث عن طائرة"><select id="filter"><option value="all">كل الطائرات</option><option value="air">في الجو فقط</option><option value="ground">على الأرض فقط</option></select></div>
+<div id="list" class="list"><div class="aircraft">لم تُجلب البيانات بعد</div></div>
+<div id="detail" class="detail" hidden></div>
+</section>
+<section class="panel sidebar airport-board">
+<h2>لوحة المطارات والرحلات</h2>
+<label for="airport">المطار</label>
+<select id="airport" style="width:100%;margin-top:6px"><option value="OERK">الملك خالد الدولي – الرياض (OERK)</option><option value="OEJN">الملك عبدالعزيز الدولي – جدة (OEJN)</option><option value="OEDF">الملك فهد الدولي – الدمام (OEDF)</option><option value="OEMA">الأمير محمد بن عبدالعزيز – المدينة (OEMA)</option><option value="OERF">مطار أبها الدولي (OEAB)</option><option value="OETF">مطار الطائف الدولي (OETF)</option></select>
+<p id="airportInfo">يمكن عرض الطائرات المرصودة حول المطار على الخريطة. جداول الوصول والمغادرة وأرقام البوابات تحتاج موصلاً مستقلاً لبيانات شركات الطيران أو المطارات، ولا تُستنتج من مواقع ADS-B.</p>
+<button class="btn" id="showAirport">عرض منطقة المطار</button>
+</section>
+</aside></div>
+<section class="panel"><div class="section-head"><b>مصدر البيانات وحدودها</b><small>شفافية التغطية والتحديث</small></div><div class="sidebar">
+<p><b>المصدر:</b> OpenSky Network API، بيانات ADS-B/Mode S المفتوحة. لا يلزم مفتاح للقراءة المجهولة ضمن حدود الحصة.</p>
+<p><b>التحديث:</b> يدوي أو كل خمس دقائق لتقليل استهلاك الحصة. التوقيت ووقت آخر اتصال يعرضان من بيانات المصدر.</p>
+<p><b>المعلومات المتاحة:</b> رمز الطائرة ICAO24، نداء الرحلة إن توفر، بلد التسجيل/المنشأ كما يورده المصدر، الإحداثيات، الارتفاع، السرعة، الاتجاه، معدل الصعود/الهبوط، وحالة الطائرة أرض/جو.</p>
+<p><b>غير المتاح من هذا المصدر وحده:</b> جداول الرحلات التجارية، التأخير والإلغاء، بوابات الصعود، أرقام الصالات، وبيانات المسافر. لا نعرضها كتخمينات.</p>
+<p><a href="https://opensky-network.org/" target="_blank" rel="noopener">OpenSky Network</a> · <a href="https://openskynetwork.github.io/opensky-api/rest.html" target="_blank" rel="noopener">توثيق API</a></p>
+</div></section>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const areas={sa:{center:[24.2,45.2],zoom:5,bbox:[16,34,33,56]},riyadh:{center:[24.7136,46.6753],zoom:8,bbox:[23.3,45.2,26.2,48.1]},jeddah:{center:[21.5433,39.1728],zoom:8,bbox:[20.2,37.8,22.9,40.6]},dammam:{center:[26.4207,50.0888],zoom:8,bbox:[25.1,48.6,27.7,51.5]},makkah:{center:[21.9,40.0],zoom:7,bbox:[20.2,38.2,23.6,41.8]},abha:{center:[18.2,42.5],zoom:7,bbox:[16.8,41.0,19.6,44.0]}};
+const map=L.map("map").setView(areas.riyadh.center,areas.riyadh.zoom);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+let markers=new Map(),aircraft=[],selected=null,lastUpdated=null,busy=false;
+const fmt=(n,d=0)=>n==null?"—":new Intl.NumberFormat("ar-SA",{maximumFractionDigits:d}).format(n);
+const kmh=v=>v==null?null:v*3.6;
+function status(t,error=false){$("status").textContent=t;$("status").classList.toggle("error",error)}
+function boxFromMap(){const b=map.getBounds();return [b.getSouth(),b.getWest(),b.getNorth(),b.getEast()]}
+function chosenBox(){return $("area").value==="custom"?boxFromMap():areas[$("area").value].bbox}
+function markerIcon(track){return L.divIcon({className:"",html:'<div class="air-icon" style="transform:rotate('+(Number(track)||0)+'deg)">✈</div>',iconSize:[26,26],iconAnchor:[13,13]})}
+function showDetail(a){
+ selected=a.icao24;const box=$("detail");box.hidden=false;
+ const fields=[["نداء الرحلة",a.callsign||"غير متاح"],["رمز ICAO24",a.icao24],["بلد المصدر",a.origin_country||"غير متاح"],["الارتفاع البارومتري",a.baro_altitude==null?"غير متاح":fmt(a.baro_altitude)+" م"],["الارتفاع الهندسي",a.geo_altitude==null?"غير متاح":fmt(a.geo_altitude)+" م"],["السرعة الأرضية",a.velocity==null?"غير متاح":fmt(kmh(a.velocity),1)+" كم/س"],["الاتجاه",a.true_track==null?"غير متاح":fmt(a.true_track)+"°"],["معدل الصعود/الهبوط",a.vertical_rate==null?"غير متاح":fmt(a.vertical_rate,1)+" م/ث"],["الحالة",a.on_ground?"على الأرض":"في الجو"],["آخر اتصال",a.last_contact?new Date(a.last_contact*1000).toLocaleString("ar-SA"):"غير متاح"]];
+ box.innerHTML='<h3>تفاصيل الطائرة المحددة</h3><div class="detail-grid">'+fields.map(([k,v])=>'<div>'+k+'<b>'+String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))+'</b></div>').join("")+'</div>';
+ map.setView([a.latitude,a.longitude],Math.max(map.getZoom(),8));
+}
+function render(){
+ const query=$("search").value.trim().toLowerCase(),filter=$("filter").value;
+ const visible=aircraft.filter(a=>(filter==="all"||(filter==="air"&&!a.on_ground)||(filter==="ground"&&a.on_ground))&&(!query||String(a.callsign||"").toLowerCase().includes(query)||a.icao24.includes(query)));
+ $("count").textContent=fmt(aircraft.length);$("airborne").textContent=fmt(aircraft.filter(a=>!a.on_ground).length);$("ground").textContent=fmt(aircraft.filter(a=>a.on_ground).length);
+ const list=$("list");list.replaceChildren();
+ if(!visible.length){const e=document.createElement("div");e.className="aircraft";e.textContent="لا توجد طائرات مطابقة في البيانات المستلمة.";list.append(e)}
+ visible.slice(0,250).forEach(a=>{const row=document.createElement("div");row.className="aircraft"+(a.icao24===selected?" active":"");row.innerHTML='<div><b></b><small></small></div><span></span>';row.querySelector("b").textContent=(a.callsign||"نداء غير متاح").trim();row.querySelector("small").textContent=a.icao24+" · "+(a.origin_country||"");row.querySelector("span").textContent=a.on_ground?"أرض":"جو";row.onclick=()=>showDetail(a);list.append(row)});
+ const current=new Set(aircraft.filter(a=>Number.isFinite(a.latitude)&&Number.isFinite(a.longitude)).map(a=>a.icao24));
+ markers.forEach((m,id)=>{if(!current.has(id)){map.removeLayer(m);markers.delete(id)}});
+ aircraft.forEach(a=>{if(!Number.isFinite(a.latitude)||!Number.isFinite(a.longitude))return;let m=markers.get(a.icao24);if(!m){m=L.marker([a.latitude,a.longitude],{icon:markerIcon(a.true_track)}).addTo(map);m.on("click",()=>showDetail(a));markers.set(a.icao24,m)}else{m.setLatLng([a.latitude,a.longitude]);m.setIcon(markerIcon(a.true_track));m.off("click");m.on("click",()=>showDetail(a))}});
+ if(selected){const a=aircraft.find(x=>x.icao24===selected);if(a)showDetail(a)}
+}
+async function refresh(){
+ if(busy)return;busy=true;status("جارٍ جلب مواقع الطائرات من OpenSky Network…");
+ try{
+  const b=chosenBox(),area=(b[2]-b[0])*(b[3]-b[1]);
+  if(area>25.5){throw new Error("النطاق المحدد واسع جداً للطلب المجاني. قرّب الخريطة أو اختر مدينة لتقليل مساحة البحث إلى نحو 25 درجة مربعة.")};
+  const url="https://opensky-network.org/api/states/all? lamin="+b[0]+"&lomin="+b[1]+"&lamax="+b[2]+"&lomax="+b[3];
+  const response=await fetch(url.replace("? lamin=","?lamin="),{headers:{Accept:"application/json"}});
+  if(!response.ok){if(response.status===429)throw new Error("وصلنا إلى حد الطلبات المتاح حالياً من OpenSky. انتظر قبل المحاولة التالية.");throw new Error("تعذر جلب بيانات الطيران (HTTP "+response.status+").")}
+  const data=await response.json();const states=Array.isArray(data.states)?data.states:[];
+  aircraft=states.map(s=>({icao24:s[0],callsign:(s[1]||"").trim(),origin_country:s[2],time_position:s[3],last_contact:s[4],longitude:s[5],latitude:s[6],baro_altitude:s[7],on_ground:s[8],velocity:s[9],true_track:s[10],vertical_rate:s[11],geo_altitude:s[13],squawk:s[14]})).filter(a=>a.icao24);
+  lastUpdated=new Date();render();
+  status("آخر تحديث: "+lastUpdated.toLocaleString("ar-SA")+" · استجابة المصدر: "+new Date((data.time||Date.now()/1000)*1000).toLocaleTimeString("ar-SA")+" · النطاق: "+fmt(area,1)+" درجة²");
+ }catch(e){status(e.message||"تعذر الاتصال بمصدر الطيران.",true)}
+ finally{busy=false}
+}
+$("refresh").onclick=refresh;$("search").oninput=render;$("filter").onchange=render;
+$("area").onchange=()=>{const key=$("area").value;if(areas[key])map.setView(areas[key].center,areas[key].zoom);refresh()};
+$("locate").onclick=()=>{if(!navigator.geolocation){status("تحديد الموقع غير مدعوم في هذا المتصفح.",true);return}navigator.geolocation.getCurrentPosition(p=>{map.setView([p.coords.latitude,p.coords.longitude],9);$("area").value="custom";refresh()},()=>status("لم نتمكن من الوصول إلى موقعك. يمكنك اختيار منطقة يدوياً.",true),{enableHighAccuracy:false,timeout:10000})};
+$("showAirport").onclick=()=>{const coords={OERK:[24.9576,46.6988],OEJN:[21.6796,39.1565],OEDF:[26.4712,49.7979],OEMA:[24.5534,39.7051],OEAB:[18.2404,42.6566],OETF:[21.4834,40.5443]};const p=coords[$("airport").value];map.setView(p,10);$("area").value="custom";status("تم توجيه الخريطة إلى منطقة المطار. حدّث البيانات لعرض الطائرات المرصودة حوله.")};
+map.on("moveend",()=>{if($("area").value==="custom")status("تم تغيير نطاق الخريطة. اضغط تحديث حركة الطيران لجلب الطائرات في النطاق الحالي.")});
+refresh();
+})();
+</script></body></html>
