@@ -42,20 +42,22 @@ class TileNamingTests(unittest.TestCase):
           <Contents><Key>tile/quality_mask.tif</Key></Contents>
           <Contents><Key>tile/Copernicus_DSM_COG_30_N18_00_E042_00_DEM.tif</Key></Contents>
         </ListBucketResult>"""
-        response = io.BytesIO(xml)
-        response.__enter__ = lambda: response
-        response.__exit__ = lambda *args: None
-        with patch.object(MODULE, "_request", return_value=response):
+        class Response:
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+            def read(self): return xml
+        with patch.object(MODULE, "_request", return_value=Response()):
             key = MODULE.discover_tile("tile")
         self.assertEqual(key, "tile/Copernicus_DSM_COG_30_N18_00_E042_00_DEM.tif")
 
     def test_discovery_reports_missing_tile(self):
         xml = b"""<?xml version="1.0" encoding="UTF-8"?>
         <ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"></ListBucketResult>"""
-        response = io.BytesIO(xml)
-        response.__enter__ = lambda: response
-        response.__exit__ = lambda *args: None
-        with patch.object(MODULE, "_request", return_value=response):
+        class Response:
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+            def read(self): return xml
+        with patch.object(MODULE, "_request", return_value=Response()):
             with self.assertRaises(FileNotFoundError):
                 MODULE.discover_tile("missing")
 
