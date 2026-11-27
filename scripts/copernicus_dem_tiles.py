@@ -37,6 +37,13 @@ def tile_prefix(latitude: float, longitude: float) -> str:
     return f"Copernicus_DSM_COG_{RESOLUTION_CODE}_{northing}_{easting}_DEM"
 
 
+def tile_object_key(prefix: str) -> str:
+    """Return the canonical COG key inside its one-degree tile folder."""
+    if not prefix.startswith("Copernicus_DSM_COG_30_") or not prefix.endswith("_DEM"):
+        raise ValueError("expected a Copernicus GLO-90 tile prefix")
+    return f"{prefix}/{prefix}.tif"
+
+
 def _request(url: str):
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     return urllib.request.urlopen(request, timeout=45)
@@ -50,12 +57,10 @@ def discover_tile(prefix: str) -> str:
     root = ET.fromstring(payload)
     ns = {"s3": "http://s3.amazonaws.com/doc/2006-03-01/"}
     keys = [node.text for node in root.findall(".//s3:Contents/s3:Key", ns) if node.text]
-    candidates = [key for key in keys if key.lower().endswith((".tif", ".tiff"))]
-    if not candidates:
-        raise FileNotFoundError(f"No GeoTIFF object listed for tile prefix: {prefix}")
-    # Prefer the primary DEM raster, not masks or auxiliary quality layers.
-    primary = [key for key in candidates if re.search(r"(^|[/_])DEM([._]|$)", key, re.I)]
-    return sorted(primary or candidates)[0]
+    expected = tile_object_key(prefix)
+    if expected not in keys:
+        raise FileNotFoundError(f"Primary DEM COG not listed for tile prefix: {prefix}")
+    return expected
 
 
 def download_object(key: str, destination: Path) -> tuple[int, str]:
