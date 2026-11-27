@@ -141,7 +141,7 @@
         "Open-Meteo point-elevation API"
       ],
       "auth_mode": "none",
-      "license_status": "non_commercial_public_use_only_pending_acceptance",
+      "license_status": "approval_required",
       "license": "The public GLO-90 licence grants general-public users rights for non-commercial activities (clause 3.4.3). Download-service use requires acceptance of the applicable terms; redistribution of primary/altered DEM data is restricted. Non-commercial public web display requires the prescribed attribution and must not allow reconstruction/download of the dataset. Commercial use is not assumed permitted.",
       "attribution": "© DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; Elevation data by Open-Meteo.com",
       "coverage": "Global terrain model, ~90 m",
