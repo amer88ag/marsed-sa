@@ -28,7 +28,7 @@ const hourly = n => { const t=[],v=[]; const s=Date.now(); for(let i=0;i<n;i++){
       return route.fulfill({ status: 200, contentType: type + "; charset=utf-8", body: fs.readFileSync(p) });
     }
     if (url.hostname === "unpkg.com") { const f = path.join(leafletDir, url.pathname.includes("/images/") ? "images/"+path.basename(url.pathname) : path.basename(url.pathname)); if (!fs.existsSync(f)) return route.abort(); return route.fulfill({ status: 200, contentType: f.endsWith(".css") ? "text/css" : "application/javascript", body: fs.readFileSync(f) }); }
-    if (url.hostname === "api.open-meteo.com" && url.pathname === "/v1/elevation") return route.fulfill({ json: { elevation: [2210] } });
+    if (url.hostname === "api.open-meteo.com" && url.pathname === "/v1/elevation") { const k = (url.searchParams.get("latitude") || "").split(",").length; return route.fulfill({ json: { elevation: k === 1 ? [2210] : Array.from({ length: k }, (_, i) => 2210 + (4 - Math.floor(i / 5)) * 9) } }); }
     if (url.hostname === "api.open-meteo.com" && url.searchParams.get("models")) {
       // Multi-model mock: suffixed keys per model; GFS deliberately empty to exercise "unavailable".
       const ids = url.searchParams.get("models").split(","), vars = url.searchParams.get("hourly").split(","), n = 72, t0 = Date.now() - 2 * 3600e3, h = { time: [] };
@@ -74,7 +74,7 @@ const hourly = n => { const t=[],v=[]; const s=Date.now(); for(let i=0;i<n;i++){
   for (const [name, url, action] of [
     ["dashboard", "http://local.test/index.html", async p => { await p.waitForTimeout(800); await p.click("#planTrip"); await p.waitForTimeout(800); return await p.textContent("#tripStatus"); }],
     ["seasons", "http://local.test/seasons/index.html", async p => { await p.fill("#orchardLat","18.2164"); await p.fill("#orchardLon","42.5053"); await p.fill("#farmElevation","2400"); await p.click("#loadOrchardWeather"); await p.waitForTimeout(800); return (await p.textContent("#orchardWeatherStatus"))+" | "+(await p.textContent("#orchardElevation"))+" | disabled="+(await p.isDisabled("#loadOrchardWeather")); }],
-    ["elevation", "http://local.test/elevation/index.html", async p => { await p.fill("#coords","18.2, 42.5"); await p.click("#searchPoint"); await p.waitForTimeout(600); return (await p.textContent("#elevation"))+" | copy disabled="+(await p.isDisabled("#copyResult")); }],
+    ["elevation", "http://local.test/elevation/index.html", async p => { await p.fill("#coords","18.2, 42.5"); await p.click("#searchPoint"); await p.waitForTimeout(600); await p.waitForFunction(() => !document.getElementById("terrain").hidden, null, { timeout: 10000 }); return (await p.textContent("#elevation"))+" | copy disabled="+(await p.isDisabled("#copyResult"))+" | slope="+(await p.textContent("#slope"))+" aspect="+(await p.textContent("#aspect"))+" flow="+(await p.textContent("#flow"))+" pos="+(await p.textContent("#tpos")); }],
     ["satellite", "http://local.test/satellite/index.html", async p => { await p.waitForTimeout(800); return (await p.inputValue("#imageDate"))+" | "+(await p.textContent("#imageStatus")).slice(0,120); }],
     ["coverage", "http://local.test/satellite/coverage.html", async p => { await p.waitForTimeout(800); await p.click("#runAll"); await p.waitForFunction(() => /اكتمل فحص الطبقات|توقف/.test(document.getElementById("status").textContent), null, { timeout: 60000 });
       const pills = await p.$$eval("#summary .pill", els => els.map(e => e.textContent));
