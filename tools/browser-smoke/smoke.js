@@ -90,9 +90,13 @@ const hourly = n => { const t=[],v=[]; const s=Date.now(); for(let i=0;i<n;i++){
       return "state=" + (await p.getAttribute("#dataState", "data-state")) + " | markers=" + (await p.$$eval(".dot", e => e.length)) + " | tracks=" + (await p.$$eval("path.leaflet-interactive", e => e.length)) + " | " + (await p.textContent("#status")).slice(0, 100) + " | card: " + (await p.textContent("#card")).slice(0, 400); }],
     ["models", "http://local.test/models/index.html", async p => { await p.click("#load"); await p.waitForFunction(() => !document.getElementById("rainPanel").hidden, null, { timeout: 15000 });
       const ok = (await p.textContent("#status")) + " | " + (await p.textContent("#rainVerdict")) + " | rows=" + (await p.$$eval("#rainRows tr", r => r.length)) + " | " + (await p.textContent("#rainRows")).includes("لم يُرجع النموذج بيانات");
+      await p.fill("#coords", "99, 99"); await p.click("#load"); const bad = await p.textContent("#status");
+      await p.fill("#coords", "19.12, 42.13"); await p.click("#load"); await p.waitForFunction(() => /تم الجلب/.test(document.getElementById("status").textContent), null, { timeout: 15000 });
+      const pt = await p.textContent("#status"); await p.fill("#coords", "");
+      const asirOpts = await p.$$eval("#place optgroup:first-child option", o => o.map(x => x.textContent).join("،"));
       await p.route("**/api.open-meteo.com/**", r => r.abort()); await p.selectOption("#place", "riyadh"); await p.click("#load"); await p.waitForTimeout(1500);
       const down = await p.textContent("#status"); await p.selectOption("#place", "abha"); await p.click("#load"); await p.waitForTimeout(1500);
-      return ok + " || outage-new: " + down + " || outage-cached: " + (await p.textContent("#status")) + " state=" + (await p.getAttribute("#dataState", "data-state")); }],
+      return ok + " || bad: " + bad + " || point: " + pt + " || asir: " + asirOpts + " || outage-new: " + down + " || outage-cached: " + (await p.textContent("#status")) + " state=" + (await p.getAttribute("#dataState", "data-state")); }],
     ["admin", "http://local.test/admin/index.html", async p => { await p.waitForTimeout(1200); return (await p.evaluate(() => document.body.innerText)).replace(/\s+/g, " ").slice(0, 300); }]
   ]) {
     const page = await ctx.newPage(); const errors = [];

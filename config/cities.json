@@ -4,7 +4,8 @@
   "groups": {
     "dashboard": "Weather dashboard, city layer and road trips (index.html)",
     "chirps": "CHIRPS extraction points (scripts/chirps_extract.py, data/chirps_daily.json). Changing a coordinate requires re-extracting CHIRPS.",
-    "coverage": "NASA GIBS tile sampling points (satellite/coverage.html)"
+    "coverage": "NASA GIBS tile sampling points (satellite/coverage.html)",
+    "asir": "Detailed Asir points for multi-model comparison (models/). Not CHIRPS-sampled; adding a point here needs no re-extraction."
   },
   "map_bounds": {
     "south": 12.5,
@@ -99,7 +100,8 @@
       "groups": [
         "dashboard",
         "chirps",
-        "coverage"
+        "coverage",
+        "asir"
       ],
       "coordinate_source": "Project legacy value (index.html / chirps_extract.py since PR #1); original source not recorded",
       "natural_earth_name": "Abha",
@@ -435,7 +437,8 @@
       "lat": 18.3064,
       "lon": 42.729,
       "groups": [
-        "coverage"
+        "coverage",
+        "asir"
       ],
       "coordinate_source": "Project legacy value (nasa-gibs-coverage.js); original source not recorded",
       "natural_earth_name": null,
@@ -455,6 +458,90 @@
       "natural_earth_name": null,
       "inside_boundary": true,
       "region_id": "najran",
+      "reference": null
+    },
+    {
+      "id": "ahad_rafidah",
+      "name_ar": "أحد رفيدة",
+      "lat": 18.20444,
+      "lon": 42.81306,
+      "groups": [
+        "asir"
+      ],
+      "coordinate_source": "Wikipedia 'Ahad Rafidah' infobox (18°12′16″N 42°48′47″E), retrieved 2026-11-27",
+      "natural_earth_name": null,
+      "inside_boundary": true,
+      "region_id": "asir",
+      "reference": null
+    },
+    {
+      "id": "alnamas",
+      "name_ar": "النماص",
+      "lat": 19.12,
+      "lon": 42.13,
+      "groups": [
+        "asir"
+      ],
+      "coordinate_source": "Wikipedia 'Al-Namas' infobox (19°07′12″N 42°07′48″E), retrieved 2026-11-27; Discover Aseer lists 19.1127, 42.1550 (~2.6 km apart)",
+      "natural_earth_name": null,
+      "inside_boundary": true,
+      "region_id": "asir",
+      "reference": null
+    },
+    {
+      "id": "tanomah",
+      "name_ar": "تنومة",
+      "lat": 18.94722,
+      "lon": 42.17639,
+      "groups": [
+        "asir"
+      ],
+      "coordinate_source": "Wikipedia 'Tanomah' infobox (18°56′50″N 42°10′35″E), retrieved 2026-11-27; GeoNames 8020223 gives 18.95353, 42.17026 (~1 km)",
+      "natural_earth_name": null,
+      "inside_boundary": true,
+      "region_id": "asir",
+      "reference": null
+    },
+    {
+      "id": "muhayil",
+      "name_ar": "محايل عسير",
+      "lat": 18.54639,
+      "lon": 42.04889,
+      "groups": [
+        "asir"
+      ],
+      "coordinate_source": "GeoNames 103947 / NGA GNS 'Muhayil' (18°32′47″N 42°02′56″E), retrieved 2026-11-27",
+      "natural_earth_name": null,
+      "inside_boundary": true,
+      "region_id": "asir",
+      "reference": null
+    },
+    {
+      "id": "rijal_almaa",
+      "name_ar": "رجال ألمع",
+      "lat": 18.2125,
+      "lon": 42.27361,
+      "groups": [
+        "asir"
+      ],
+      "coordinate_source": "Wikipedia 'Rijal Almaa' heritage village (18°12′45″N 42°16′25″E), retrieved 2026-11-27",
+      "natural_earth_name": null,
+      "inside_boundary": true,
+      "region_id": "asir",
+      "reference": null
+    },
+    {
+      "id": "sarat_abidah",
+      "name_ar": "سراة عبيدة",
+      "lat": 18.084764,
+      "lon": 43.138569,
+      "groups": [
+        "asir"
+      ],
+      "coordinate_source": "Wikipedia 'Sarat Abidah' (18.084764, 43.138569), retrieved 2026-11-27",
+      "natural_earth_name": null,
+      "inside_boundary": true,
+      "region_id": "asir",
       "reference": null
     }
   ],

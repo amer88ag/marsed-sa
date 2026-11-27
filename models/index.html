@@ -15,7 +15,7 @@
 .panel{background:white;border:1px solid var(--line);border-radius:14px;margin-bottom:14px;overflow:hidden}
 .panel h2{font-size:16px;margin:0;padding:13px 14px;border-bottom:1px solid var(--line)}
 .controls{display:flex;align-items:end;gap:10px;flex-wrap:wrap;padding:13px}.controls label{display:grid;gap:5px;font-size:12px;color:var(--muted);min-width:0;flex:1}
-select,button{font:inherit;border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:white;color:var(--ink);max-width:100%}
+select,button,input{font:inherit;border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:white;color:var(--ink);max-width:100%}
 button.primary{background:var(--blue);color:white;border-color:var(--blue);cursor:pointer}
 .status{padding:10px 14px;font-size:13px;color:var(--muted)}.status.error{color:#a12a1d}
 .state{font-size:12px;padding:3px 9px;border-radius:12px;background:#eef6fc;color:#285b80;white-space:nowrap}.state[data-state="cached"],.state[data-state="stale"],.state[data-state="partial"]{background:#fff4e5;color:#8a5700}.state[data-state="unavailable"],.state[data-state="source_error"]{background:#fdecea;color:#a12a1d}
@@ -40,6 +40,7 @@ details.about{margin:0 0 14px;border:1px solid var(--line);border-radius:12px;ba
 <section class="panel">
 <div class="controls">
 <label for="place">الموقع<select id="place"></select></label>
+<label for="coords">أو إحداثيات (خط العرض، خط الطول)<input id="coords" inputmode="decimal" placeholder="18.22, 42.50" autocomplete="off"></label>
 <label for="days">المدى<select id="days"><option value="3">3 أيام</option><option value="5" selected>5 أيام</option><option value="7">7 أيام</option></select></label>
 <button type="button" class="primary" id="load">قارن النماذج</button>
 </div>
@@ -81,7 +82,7 @@ details.about{margin:0 0 14px;border:1px solid var(--line);border-radius:12px;ba
 <script>
 (function(){
 "use strict";
-var MC=ModelComparison,RA=RainAccumulation,places=CityRegistry.placesFor("dashboard"),data=null,currentVar="precipitation",tracker=HttpClient.createLatestTracker();
+var MC=ModelComparison,RA=RainAccumulation,asir=CityRegistry.placesFor("asir"),dash=CityRegistry.placesFor("dashboard"),places={},data=null,currentVar="precipitation",tracker=HttpClient.createLatestTracker();
 var COLORS=["#1769aa","#7b3fa0","#c0392b","#1e8449"];
 function $(id){return document.getElementById(id)}
 function esc(t){return String(t).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
@@ -90,8 +91,14 @@ var DAYS=["الأحد","الاثنين","الثلاثاء","الأربعاء","�
 function when(t){if(!t)return "—";var w=SaudiTime.saudiWeekday(t.slice(0,10));return (w===null?t.slice(0,10):DAYS[w])+" "+t.slice(11,16)}
 function status(t,e){$("status").textContent=t;$("status").classList.toggle("error",!!e)}
 function setState(s,l){$("dataState").setAttribute("data-state",s);$("dataState").textContent=l}
-Object.keys(places).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=places[k].name;$("place").appendChild(o)});
+function group(label,src){var g=document.createElement("optgroup");g.label=label;Object.keys(src).forEach(function(k){if(places[k])return;places[k]=src[k];var o=document.createElement("option");o.value=k;o.textContent=src[k].name;g.appendChild(o)});$("place").appendChild(g)}
+group("منطقة عسير (أولوية)",asir);group("مدن المملكة",dash);
 if(places.abha)$("place").value="abha";
+// Custom point: limited to the observatory frame; precision is still the model grid (~13–28 km).
+function customPoint(){var t=$("coords").value.trim();if(!t)return null;var m=t.replace(/،/g,",").split(/[ ,]+/).filter(Boolean).map(Number);
+ if(m.length!==2||!m.every(isFinite))return {error:"اكتب الإحداثيات بالشكل: 18.22, 42.50"};
+ if(m[0]<16||m[0]>32.5||m[1]<34||m[1]>56)return {error:"النقطة خارج إطار المملكة الذي يغطيه المرصد."};
+ return {name:"النقطة "+m[0].toFixed(4)+"، "+m[1].toFixed(4),lat:m[0],lon:m[1],key:"pt:"+m[0].toFixed(3)+","+m[1].toFixed(3)}}
 function nowLocal(){var d=new Date();return SaudiTime.saudiDate(d)+"T"+SaudiTime.saudiClock(d)}
 var LEVEL={high:"اتفاق عالٍ",medium:"اتفاق متوسط",low:"اختلاف واضح"};
 function renderRain(){
@@ -137,7 +144,7 @@ function renderChart(){
 }
 function render(){renderRain();renderAgree();renderTabs();renderChart();$("chartPanel").hidden=false}
 async function load(){
- var key=$("place").value,p=places[key],days=Number($("days").value),id=key+":"+days,tok=tracker.start();
+ var cp=customPoint();if(cp&&cp.error){status(cp.error,true);return}var key=cp?cp.key:$("place").value,p=cp||places[key],days=Number($("days").value),id=key+":"+days,tok=tracker.start();
  status("جارٍ جلب توقعات "+MC.MODELS.length+" نماذج لـ"+p.name+"…");setState("not_loaded","جارٍ الجلب");
  try{
   var payload=await HttpClient.request(MC.buildUrl(p,{days:days}),{signal:tok.signal,timeoutMs:20000});

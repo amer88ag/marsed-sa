@@ -66,3 +66,9 @@ python3 scripts/build_geo.py --countries-sau ne_10m_admin_0_countries_sau.geojso
 ## قرار مطلوب منك
 
 إن أردت اعتماد إحداثيات أدق للمدن الأربع المعلّمة (`riyadh`، `makkah`، `najran`، `sakaka`)، فالخطوات: حدد المصدر المعتمد، عدّل `config/cities.json`، شغّل `scripts/build_geo.py`، ثم أعد استخراج CHIRPS لتلك المدن.
+
+## مجموعة `asir` (أُضيفت 2026-11-27)
+نقاط تفصيلية لعسير تُستخدم في صفحة مقارنة النماذج فقط؛ لم تُستخرج لها عينة CHIRPS ولا تدخل قوائم الرحلات أو طبقة المدن.
+- `ahad_rafidah`، `alnamas`، `tanomah`، `rijal_almaa`، `sarat_abidah`: من صناديق معلومات ويكيبيديا؛ `muhayil`: من GeoNames 103947 / NGA GNS. المصدر الدقيق مسجل في `coordinate_source` لكل مدينة.
+- لا مرجع Natural Earth لها (`reference: null`)؛ اختبار السجل يتحقق أنها داخل حدود منطقة عسير.
+- أُعيد توليد `src/platform/geo/cities.js` بدالة `render_module` من `scripts/build_geo.py` دون تشغيل الجزء الذي يحتاج ملفات Natural Earth.
