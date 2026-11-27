@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b46">
+<meta name="description" content="مقارنة النماذج الجوية — توقعات ECMWF وGFS وICON جنباً إلى جنب مع قياس التباين ومدى الاتفاق.">
+<title>مقارنة النماذج الجوية | مرصد السعودية</title>
+<style>
+:root{--navy:#102b46;--blue:#1769aa;--ink:#182635;--muted:#687789;--line:#dce4eb;--bg:#f4f7fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}
+.top{background:linear-gradient(120deg,#102b46,#174d76);color:white;padding:22px max(16px,calc((100% - 1280px)/2))}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px}.brand h1{font-size:clamp(22px,3vw,30px);margin:0}.brand p{color:#c6d8e7;margin:7px 0 0;font-size:13px}
+.wrap{max-width:1280px;margin:auto;padding:18px 16px 42px}
+.panel{background:white;border:1px solid var(--line);border-radius:14px;margin-bottom:14px;overflow:hidden}
+.panel h2{font-size:16px;margin:0;padding:13px 14px;border-bottom:1px solid var(--line)}
+.controls{display:flex;align-items:end;gap:10px;flex-wrap:wrap;padding:13px}.controls label{display:grid;gap:5px;font-size:12px;color:var(--muted);min-width:0;flex:1}
+select,button,input{font:inherit;border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:white;color:var(--ink);max-width:100%}
+button.primary{background:var(--blue);color:white;border-color:var(--blue);cursor:pointer}
+.status{padding:10px 14px;font-size:13px;color:var(--muted)}.status.error{color:#a12a1d}
+.state{font-size:12px;padding:3px 9px;border-radius:12px;background:#eef6fc;color:#285b80;white-space:nowrap}.state[data-state="cached"],.state[data-state="stale"],.state[data-state="partial"]{background:#fff4e5;color:#8a5700}.state[data-state="unavailable"],.state[data-state="source_error"]{background:#fdecea;color:#a12a1d}
+.verdict{padding:14px;font-size:15px;line-height:1.8}.verdict strong{color:var(--navy)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;padding:12px 14px}
+.card{border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px}.card b{display:block;margin-bottom:4px}
+.lvl{display:inline-block;font-size:12px;border-radius:10px;padding:2px 8px}.lvl.high{background:#e6f6ec;color:#16653a}.lvl.medium{background:#fff4e5;color:#8a5700}.lvl.low{background:#fdecea;color:#a12a1d}
+.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:start;white-space:nowrap}th{color:var(--muted);font-weight:600;background:#fafcfd}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px}.tabs button{font-size:12px;border-radius:16px;padding:5px 11px;cursor:pointer}.tabs button[aria-pressed="true"]{background:var(--blue);color:white;border-color:var(--blue)}
+#chart{width:100%;height:auto;display:block}.legend{display:flex;flex-wrap:wrap;gap:12px;padding:4px 14px 12px;font-size:12px}.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-inline-end:5px}
+details.about{margin:0 0 14px;border:1px solid var(--line);border-radius:12px;background:white}details.about summary{cursor:pointer;padding:12px 14px;font-weight:700;color:#285b80;font-size:13px}
+.note{padding:0 14px 12px;font-size:13px;line-height:1.9;color:#33475b}
+@media(max-width:700px){.wrap{padding:13px 10px 32px}.top{padding:18px 14px}}
+</style>
+<link rel="stylesheet" href="../assets/css/observatory-ui.css">
+</head>
+<body>
+<header class="top"><div class="brand"><div><h1>مقارنة النماذج الجوية</h1><p>ماذا تقول النماذج العالمية الكبرى عن موقعك، وأين تتفق وأين تختلف</p></div><span id="dataState" class="state" data-state="not_loaded">لم يتم جلبها بعد</span></div></header>
+<main class="wrap">
+<nav class="global-nav" aria-label="التنقل الرئيسي"><a href="../index.html">الرئيسية</a><a href="../index.html#weather">الطقس والأمطار</a><a href="../models/" aria-current="page">مقارنة النماذج</a><a href="../seasons/">المواسم والزراعة</a><a href="../satellite/">الأقمار الصناعية</a><a href="../earth-memory/">ذاكرة الأرض</a><a href="../flights/">رادار الطيران</a><a href="../sat-radar/">رادار الأقمار</a><a href="../elevation/">قياس الارتفاع</a><a href="../geo/">المساحة الجغرافية</a><a href="../admin/">المصادر والإدارة</a></nav>
+
+<section class="panel">
+<div class="controls">
+<label for="place">الموقع<select id="place"></select></label>
+<label for="coords">أو إحداثيات (خط العرض، خط الطول)<input id="coords" inputmode="decimal" placeholder="18.22, 42.50" autocomplete="off"></label>
+<label for="days">المدى<select id="days"><option value="3">3 أيام</option><option value="5" selected>5 أيام</option><option value="7">7 أيام</option></select></label>
+<button type="button" class="primary" id="load">قارن النماذج</button>
+</div>
+<div class="status" id="status" role="status">اختر الموقع ثم «قارن النماذج».</div>
+</section>
+
+<section class="panel" id="rainPanel" hidden>
+<h2>المطر: هل تتفق النماذج؟</h2>
+<div class="verdict" id="rainVerdict"></div>
+<div class="table-wrap"><table><thead><tr><th>النموذج</th><th>بداية المطر</th><th>نهايته</th><th>ساعات ممطرة</th><th>المجموع (ملم)</th><th>أشد ساعة</th><th>الـ24 ساعة القادمة</th><th>الـ72 ساعة القادمة</th></tr></thead><tbody id="rainRows"></tbody></table></div>
+</section>
+
+<section class="panel" id="agreePanel" hidden>
+<h2>مدى الاتفاق في كل عنصر</h2>
+<div class="cards" id="agreeCards"></div>
+</section>
+
+<section class="panel" id="chartPanel" hidden>
+<h2>المنحنيات جنباً إلى جنب</h2>
+<div class="tabs" id="varTabs" role="group" aria-label="العنصر"></div>
+<svg id="chart" viewBox="0 0 720 260" role="img" aria-label="منحنى العنصر المختار لكل نموذج"></svg>
+<div class="legend" id="legend"></div>
+</section>
+
+<details class="about"><summary>كيف تُقرأ هذه الصفحة وحدودها</summary>
+<p class="note">المصدر: واجهة Open-Meteo المفتوحة التي تنشر مخرجات نماذج ECMWF (IFS وAIFS) وNOAA GFS وDWD ICON بعد استيفائها إلى قيمة لكل ساعة عند إحداثيات الموقع. هذه نواتج نماذج عددية وليست رصد محطات.</p>
+<p class="note">«متوسط النماذج» ملخص حسابي للمقارنة فقط وليس توقعاً مؤكداً. «مدى الاتفاق» مبني على الفرق بين أعلى وأدنى نموذج مقارنةً بحدّ ثابت لكل عنصر (الحرارة 2°، الضغط 3 hPa، الرطوبة 15٪، الرياح 10 كم/س، المطر 2 ملم/ساعة)، وهي حدود تشغيلية اخترناها للعرض وليست معياراً رسمياً.</p>
+<p class="note">لا تُعرض «أدق نموذج» لأنه لا توجد بعد سجلات تحقق كافية تقارن التوقعات بقياسات فعلية لهذه المواقع. الدقة المكانية محدودة بشبكة كل نموذج (نحو 13–28 كم)، فقد لا تعكس التضاريس الحادة في عسير.</p>
+<p class="note">ساعة ممطرة = 0.1 ملم فأكثر. شدة الهطول وفق تصنيف الجمعية الأمريكية للأرصاد: خفيف أقل من 2.5 ملم/ساعة، متوسط حتى 7.6، غزير حتى 50، غزير جداً فوقها.</p>
+<p class="note">الاستخدام: Open-Meteo مجاني للاستخدام غير التجاري مع نسبة المصدر (CC BY 4.0).</p>
+</details>
+</main>
+<script src="../src/platform/http/client.js"></script>
+<script src="../src/platform/time/saudi-time.js"></script>
+<script src="../src/platform/data/source-state.js"></script>
+<script src="../src/platform/geo/cities.js"></script>
+<script src="../src/services/weather/model-comparison.js"></script>
+<script src="../src/services/precipitation/accumulation.js"></script>
+<script>
+(function(){
+"use strict";
+var MC=ModelComparison,RA=RainAccumulation,asir=CityRegistry.placesFor("asir"),dash=CityRegistry.placesFor("dashboard"),places={},data=null,currentVar="precipitation",tracker=HttpClient.createLatestTracker();
+var COLORS=["#1769aa","#7b3fa0","#c0392b","#1e8449"];
+function $(id){return document.getElementById(id)}
+function esc(t){return String(t).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function num(v,d,u){return v===null||v===undefined||!isFinite(v)?"غير متاح":'<bdi dir="ltr">'+Number(v).toLocaleString("en-US",{maximumFractionDigits:d,minimumFractionDigits:d})+(u||"")+'</bdi>'}
+var DAYS=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+function when(t){if(!t)return "—";var w=SaudiTime.saudiWeekday(t.slice(0,10));return (w===null?t.slice(0,10):DAYS[w])+" "+t.slice(11,16)}
+function status(t,e){$("status").textContent=t;$("status").classList.toggle("error",!!e)}
+function setState(s,l){$("dataState").setAttribute("data-state",s);$("dataState").textContent=l}
+function group(label,src){var g=document.createElement("optgroup");g.label=label;Object.keys(src).forEach(function(k){if(places[k])return;places[k]=src[k];var o=document.createElement("option");o.value=k;o.textContent=src[k].name;g.appendChild(o)});$("place").appendChild(g)}
+group("منطقة عسير (أولوية)",asir);group("مدن المملكة",dash);
+if(places.abha)$("place").value="abha";
+// Custom point: limited to the observatory frame; precision is still the model grid (~13–28 km).
+function customPoint(){var t=$("coords").value.trim();if(!t)return null;var m=t.replace(/،/g,",").split(/[ ,]+/).filter(Boolean).map(Number);
+ if(m.length!==2||!m.every(isFinite))return {error:"اكتب الإحداثيات بالشكل: 18.22, 42.50"};
+ if(m[0]<16||m[0]>32.5||m[1]<34||m[1]>56)return {error:"النقطة خارج إطار المملكة الذي يغطيه المرصد."};
+ return {name:"النقطة "+m[0].toFixed(4)+"، "+m[1].toFixed(4),lat:m[0],lon:m[1],key:"pt:"+m[0].toFixed(3)+","+m[1].toFixed(3)}}
+function nowLocal(){var d=new Date();return SaudiTime.saudiDate(d)+"T"+SaudiTime.saudiClock(d)}
+var LEVEL={high:"اتفاق عالٍ",medium:"اتفاق متوسط",low:"اختلاف واضح"};
+function renderRain(){
+ var r=MC.compareRain(data),v=$("rainVerdict"),now=nowLocal();
+ var txt={no_data:"لم يُرجع أي نموذج قيم هطول لهذا الموقع.",all_dry:"كل النماذج المتاحة ("+r.models_with_data+") لا تتوقع هطولاً يُذكر خلال المدى المختار.",all_wet:"كل النماذج المتاحة ("+r.models_with_data+") تتوقع هطولاً خلال المدى المختار.",split:"النماذج منقسمة: "+r.models_with_rain+" من "+r.models_with_data+" تتوقع هطولاً."}[r.verdict];
+ if(r.onset_spread_hours!==null)txt+=" الفرق بين أبكر وأخّر بداية متوقعة: "+r.onset_spread_hours+" ساعة.";
+ if(r.totals.count>=2)txt+=" مجموع المطر يتراوح بين "+r.totals.min.toFixed(1)+" و"+r.totals.max.toFixed(1)+" ملم (متوسط النماذج "+r.totals.mean.toFixed(1)+" ملم، للمقارنة فقط).";
+ v.innerHTML="<strong>"+esc(txt)+"</strong>";
+ $("rainRows").innerHTML=data.models.map(function(m){
+  if(!m.available)return "<tr><td>"+esc(m.label)+"</td><td colspan='7'>لم يُرجع النموذج بيانات لهذا الموقع</td></tr>";
+  var e=MC.rainEvent(data.times,m.series.precipitation);
+  var rows=data.times.map(function(t,i){return {time:t,mm:m.series.precipitation[i]}});
+  var acc=RA.accumulate(rows,now,[24,72]),peak=e.available?Math.max.apply(null,m.series.precipitation.filter(isFinite)):null,cls=RA.intensity(peak);
+  function w(x){return x?(x.complete?num(x.mm,1):"ناقص ("+x.covered+"/"+x.hours+" ساعة)"):"—"}
+  return "<tr><td>"+esc(m.label)+"</td><td>"+esc(when(e.start))+"</td><td>"+esc(when(e.end))+"</td><td>"+num(e.wet_hours,0)+"</td><td>"+num(e.total_mm,1)+"</td><td>"+(peak===null?"—":num(peak,1," ملم/س")+" · "+esc(cls?cls.label:""))+"</td><td>"+(acc.found?w(acc.next[0]):"—")+"</td><td>"+(acc.found?w(acc.next[1]):"—")+"</td></tr>";
+ }).join("");
+ $("rainPanel").hidden=false;
+}
+function renderAgree(){
+ $("agreeCards").innerHTML=MC.summarize(data).map(function(s){
+  var d=s.variable==="precipitation"?1:s.variable==="temperature_2m"?1:0;
+  return '<div class="card"><b>'+esc(s.label)+'</b>'+(s.level?'<span class="lvl '+s.level+'">'+LEVEL[s.level]+'</span><div>متوسط الفرق بين النماذج: '+num(s.mean_spread,d," "+s.unit)+'</div><div>أكبر فرق: '+num(s.max_spread,d," "+s.unit)+'</div>':'<div>يحتاج نموذجين على الأقل بقيم متاحة</div>')+'</div>';
+ }).join("");
+ $("agreePanel").hidden=false;
+}
+function renderTabs(){
+ $("varTabs").innerHTML=MC.VARIABLES.map(function(v){return '<button type="button" data-v="'+v.key+'" aria-pressed="'+(v.key===currentVar)+'">'+esc(v.label)+'</button>'}).join("");
+ Array.prototype.forEach.call($("varTabs").querySelectorAll("button"),function(b){b.addEventListener("click",function(){currentVar=b.getAttribute("data-v");renderTabs();renderChart()})});
+}
+function renderChart(){
+ var svg=$("chart"),W=720,H=260,L=46,R=12,T=14,B=30,n=data.times.length,vmeta=MC.VARIABLES.find(function(v){return v.key===currentVar});
+ var all=[];data.models.forEach(function(m){m.series[currentVar].forEach(function(x){if(x!==null)all.push(x)})});
+ if(!all.length){svg.innerHTML='<text x="360" y="130" text-anchor="middle" font-size="14" fill="#687789">لا توجد قيم لهذا العنصر</text>';$("legend").innerHTML="";return}
+ var lo=Math.min.apply(null,all),hi=Math.max.apply(null,all);if(currentVar==="precipitation"){lo=0;hi=Math.max(hi,1)}if(hi-lo<1e-9){hi=lo+1}var pad=(hi-lo)*0.08;if(currentVar!=="precipitation")lo-=pad;hi+=pad;
+ function x(i){return L+(W-L-R)*i/Math.max(1,n-1)}function y(v){return T+(H-T-B)*(1-(v-lo)/(hi-lo))}
+ var out=[];for(var k=0;k<=4;k++){var vv=lo+(hi-lo)*k/4,yy=y(vv);out.push('<line x1="'+L+'" x2="'+(W-R)+'" y1="'+yy+'" y2="'+yy+'" stroke="#e6edf3"/><text x="'+(L-6)+'" y="'+(yy+4)+'" text-anchor="end" font-size="10" fill="#687789">'+vv.toFixed(currentVar==="pressure_msl"?0:1)+'</text>')}
+ for(var i=0;i<n;i++){if(data.times[i].slice(11,13)==="00"){out.push('<line x1="'+x(i)+'" x2="'+x(i)+'" y1="'+T+'" y2="'+(H-B)+'" stroke="#d3dde6" stroke-dasharray="3 3"/><text x="'+x(i)+'" y="'+(H-10)+'" text-anchor="middle" font-size="10" fill="#687789">'+esc(data.times[i].slice(5,10))+'</text>')}}
+ data.models.forEach(function(m,mi){var d="",pen=false;m.series[currentVar].forEach(function(v,i){if(v===null){pen=false;return}d+=(pen?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1);pen=true});if(d)out.push('<path d="'+d+'" fill="none" stroke="'+COLORS[mi%COLORS.length]+'" stroke-width="1.8"/>')});
+ var st=MC.hourlyStats(data,currentVar),dm="",pm=false;st.forEach(function(s,i){if(s.count<2){pm=false;return}dm+=(pm?"L":"M")+x(i).toFixed(1)+" "+y(s.mean).toFixed(1);pm=true});
+ if(dm)out.push('<path d="'+dm+'" fill="none" stroke="#182635" stroke-width="2.4" stroke-dasharray="6 4"/>');
+ svg.innerHTML=out.join("");
+ $("legend").innerHTML=data.models.map(function(m,mi){return '<span><i style="background:'+COLORS[mi%COLORS.length]+'"></i>'+esc(m.label)+(m.available?"":" (غير متاح)")+'</span>'}).join("")+'<span><i style="background:#182635"></i>متوسط النماذج (للمقارنة)</span><span>الوحدة: '+esc(vmeta.unit)+'</span>';
+}
+function render(){renderRain();renderAgree();renderTabs();renderChart();$("chartPanel").hidden=false}
+async function load(){
+ var cp=customPoint();if(cp&&cp.error){status(cp.error,true);return}var key=cp?cp.key:$("place").value,p=cp||places[key],days=Number($("days").value),id=key+":"+days,tok=tracker.start();
+ status("جارٍ جلب توقعات "+MC.MODELS.length+" نماذج لـ"+p.name+"…");setState("not_loaded","جارٍ الجلب");
+ try{
+  var payload=await HttpClient.request(MC.buildUrl(p,{days:days}),{signal:tok.signal,timeoutMs:20000});
+  if(!tok.isCurrent())return;
+  data=MC.normalize(payload);
+  var missing=data.models.filter(function(m){return !m.available}).length;
+  SourceState.remember("model_comparison",id,payload);
+  var st=SourceState.onSuccess({issues:missing});setState(st.state,st.label);
+  status("تم الجلب: "+(data.models.length-missing)+" من "+data.models.length+" نماذج أرجعت بيانات لـ"+p.name+(missing?" — النماذج الناقصة موسومة بوضوح.":"."));
+  render();
+ }catch(err){
+  if(!tok.isCurrent()||HttpClient.isAbortError(err))return;
+  var f=SourceState.onFailure("model_comparison",id,err);setState(f.state,f.label);
+  if(f.payload){data=MC.normalize(f.payload);status("تعذّر الجلب الآن؛ تُعرض آخر نسخة محفوظة (عمرها: "+SaudiTime.ageText(f.age_minutes)+").",true);render()}
+  else{status("تعذّر جلب النماذج: "+HttpClient.describeError(err)+". لم تُعرض أي قيم بديلة.",true)}
+ }
+}
+$("load").addEventListener("click",load);
+})();
+</script>
+</body>
+</html>

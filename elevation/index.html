@@ -20,10 +20,13 @@ button,input{font:inherit}button{border:1px solid var(--line);background:#fff;bo
 .results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:13px}.metric{background:#f6f9fc;border:1px solid #e8eef3;border-radius:12px;padding:13px}.metric small{font-size:12px;color:var(--muted)}.metric strong{display:block;font-size:27px;margin:7px 0 2px}.metric em{font-size:11px;color:var(--muted);font-style:normal}
 .state{padding:0 14px 14px;font-size:12px;color:var(--muted);line-height:1.8}.notice{margin:0 13px 13px;padding:11px 12px;border-radius:10px;background:#fff7e8;color:#79500b;font-size:12px;line-height:1.8}
 @media(max-width:620px){main{padding:12px 10px 25px}#map{height:55vh;min-height:340px}.results{grid-template-columns:1fr 1fr}.metric:first-child{grid-column:1/-1}.search{min-width:100%}.map-head{align-items:flex-start;flex-direction:column}}
+.results.terrain{grid-template-columns:repeat(2,minmax(0,1fr));padding-top:0}.results.terrain .metric:first-child{grid-column:auto}
 </style>
+<link rel="stylesheet" href="../assets/css/observatory-ui.css">
 </head>
 <body>
 <header><a href="../">← العودة إلى مرصد السعودية</a><h1>قياس الارتفاع عن سطح البحر</h1><p>اختر أي نقطة على الخريطة لمعرفة ارتفاع تضاريسها بالمتر</p></header>
+<nav class="global-nav" aria-label="التنقل الرئيسي"><a href="../index.html">الرئيسية</a><a href="../index.html#weather">الطقس والأمطار</a><a href="../models/">مقارنة النماذج</a><a href="../seasons/">المواسم والزراعة</a><a href="../satellite/">الأقمار الصناعية</a><a href="../earth-memory/">ذاكرة الأرض</a><a href="../flights/">رادار الطيران</a><a href="../sat-radar/">رادار الأقمار</a><a href="../elevation/" aria-current="page">قياس الارتفاع</a><a href="../geo/">المساحة الجغرافية</a><a href="../admin/">المصادر والإدارة</a></nav>
 <main>
 <div class="toolbar">
 <div class="search"><input id="coords" inputmode="decimal" placeholder="أدخل الإحداثيات: خط العرض، خط الطول" aria-label="الإحداثيات"><button id="searchPoint" class="primary">قياس النقطة</button></div>
@@ -37,6 +40,13 @@ button,input{font:inherit}button{border:1px solid var(--line);background:#fff;bo
 <div class="metric"><small>خط العرض</small><strong id="latitude">—</strong><em>درجة شمالاً / جنوباً</em></div>
 <div class="metric"><small>خط الطول</small><strong id="longitude">—</strong><em>درجة شرقاً / غرباً</em></div>
 </div>
+<div class="results terrain" id="terrain" aria-live="polite" hidden>
+<div class="metric"><small>الانحدار</small><strong id="slope">—</strong><em id="slopePct">درجة</em></div>
+<div class="metric"><small>اتجاه الانحدار (الوجهة)</small><strong id="aspect">—</strong><em>الجهة التي يواجهها السفح</em></div>
+<div class="metric"><small>اتجاه جريان المياه</small><strong id="flow">—</strong><em>أشد انحدار نحو الأسفل (D8)</em></div>
+<div class="metric"><small>موقع النقطة في التضاريس</small><strong id="tpos">—</strong><em id="relief">فرق الارتفاع المحلي</em></div>
+</div>
+<div class="state" id="terrainStatus" hidden></div>
 <div class="state" id="status">حدد نقطة على الخريطة أو استخدم زر «موقعي الحالي» لبدء القياس.</div>
 <div class="notice">النتيجة مستخرجة من نموذج الارتفاع الرقمي Copernicus DEM GLO-90 بدقة مكانية 90 متر تقريباً؛ لذلك فهي تقدير لارتفاع سطح التضاريس وليست قراءة جهاز GPS مساحي أو قياساً ميدانياً، وقد لا تمثل تفاصيل المباني أو الفروق الصغيرة في الأرض.</div>
 </section>
@@ -46,6 +56,7 @@ button,input{font:inherit}button{border:1px solid var(--line);background:#fff;bo
 <script src="../src/platform/http/client.js"></script>
 <script src="../src/platform/geo/cities.js"></script>
 <script src="../src/platform/geo/map-frame.js"></script>
+<script src="../src/services/terrain/terrain.js"></script>
 <script>
 (function(){
 "use strict";
@@ -77,8 +88,26 @@ async function measure(lat,lon,zoom){
   if(value===null||value===undefined||!Number.isFinite(Number(value)))throw new Error("لم تُرجع الخدمة قيمة ارتفاع صالحة لهذه النقطة.");
   $("elevation").textContent=Number(value).toLocaleString("ar-SA",{maximumFractionDigits:1});
   lastResult={lat:lat,lon:lon,elevation:Number(value)};$("copyResult").disabled=false;
+  analyseTerrain(lat,lon,id);
   status("اكتمل القياس. القيمة تمثل ارتفاع نموذج التضاريس Copernicus DEM GLO-90 (دقة ~90 م) عند الإحداثيات المحددة، وليست قياساً ميدانياً. المصدر: Open-Meteo.");
  }catch(error){if(id!==requestId||(error&&error.kind==="aborted"))return;$("elevation").textContent="—";status("تعذر جلب الارتفاع: "+(error&&error.kind?HttpClient.describeError(error):error.message)+" · حاول مرة أخرى.",true)}
+}
+// Terrain around the point: 5×5 grid at ~90 m (one request). Independent of the point value above.
+async function analyseTerrain(lat,lon,id){
+ if(typeof TerrainEngine==="undefined")return;
+ var box=$("terrain"),ts=$("terrainStatus");ts.hidden=false;ts.style.color="";ts.textContent="جارٍ تحليل التضاريس حول النقطة (شبكة 5×5 بتباعد ~90 م)…";
+ try{
+  var grid=TerrainEngine.gridPoints(lat,lon,90,5);
+  var data=await HttpClient.request(TerrainEngine.buildUrl(grid),{headers:{Accept:"application/json"},timeoutMs:TIMEOUT_MS});
+  if(id!==requestId)return;
+  var r=TerrainEngine.analyse(data,grid);
+  $("slope").textContent=r.slope.slope_deg.toFixed(1)+"°";$("slopePct").textContent="درجة · "+r.slope.slope_pct.toFixed(0)+"٪";
+  $("aspect").textContent=r.slope.aspect+(r.slope.aspect_deg===null?"":" ("+Math.round(r.slope.aspect_deg)+"°)");
+  $("flow").textContent=r.flow.direction===null?"لا يوجد":r.flow.label;
+  $("tpos").textContent=r.position.class.label;$("relief").textContent="فرق الارتفاع ضمن "+r.window_m+" م: "+Math.round(r.position.relief_m)+" م";
+  box.hidden=false;
+  ts.textContent="تحليل محسوب من نموذج Copernicus DEM GLO-90 عبر Open-Meteo على مساحة نحو "+r.window_m+"×"+r.window_m+" م. الانحدار بطريقة Horn واتجاه الجريان بطريقة D8؛ تصنيف القمة/الوادي بحدّ ±"+TerrainEngine.TPI_METRES+" م اختياري للعرض. ليس مسحاً ميدانياً، ولا يكفي وحده لتقدير مخاطر السيول."+(r.flow.direction===null?" "+r.flow.label+".":"");
+ }catch(error){if(id!==requestId)return;box.hidden=true;ts.style.color="#b42318";ts.textContent="تعذّر تحليل التضاريس حول النقطة: "+(error&&error.kind?HttpClient.describeError(error):error.message)+". قيمة الارتفاع أعلاه غير متأثرة."}
 }
 map.on("click",function(event){measure(event.latlng.lat,event.latlng.lng)});
 $("searchPoint").addEventListener("click",function(){

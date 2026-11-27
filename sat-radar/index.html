@@ -25,11 +25,12 @@
 .tabs{display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid var(--line)}.tabs button{font:inherit;font-size:12px;border:1px solid var(--line);border-radius:16px;padding:5px 10px;background:white;cursor:pointer}.tabs button[aria-pressed="true"]{background:var(--blue);color:white;border-color:var(--blue)}
 @media(max-width:860px){.layout{grid-template-columns:1fr}.list{max-height:none}#satRadarMap{height:50vh;min-height:300px}}
 </style>
+<link rel="stylesheet" href="../assets/css/observatory-ui.css">
 </head>
 <body>
 <header class="top"><div class="brand"><div><h1>رادار الأقمار الصناعية</h1><p>أين الأقمار الآن فوق موقعك، ومساراتها، ومرورها القادم</p></div><span id="dataState" class="state" data-state="not_loaded">لم يتم جلبها بعد</span></div></header>
 <main class="wrap">
-<nav class="nav"><a href="../">الرئيسية</a><a href="../flights/">رادار الطيران</a><a href="../earth-memory/">ذاكرة الأرض</a><a href="../satellite/">صور الأقمار اليومية</a></nav>
+<nav class="global-nav" aria-label="التنقل الرئيسي"><a href="../index.html">الرئيسية</a><a href="../index.html#weather">الطقس والأمطار</a><a href="../models/">مقارنة النماذج</a><a href="../seasons/">المواسم والزراعة</a><a href="../satellite/">الأقمار الصناعية</a><a href="../earth-memory/">ذاكرة الأرض</a><a href="../flights/">رادار الطيران</a><a href="../sat-radar/" aria-current="page">رادار الأقمار</a><a href="../elevation/">قياس الارتفاع</a><a href="../geo/">المساحة الجغرافية</a><a href="../admin/">المصادر والإدارة</a></nav>
 <section class="panel">
 <div class="head"><h2>الأقمار فوق الموقع</h2><small id="sourceLine">المصدر: CelesTrak · الحساب: SGP4</small></div>
 <div class="controls">
