@@ -62,6 +62,13 @@ class RasterMetadataTests(unittest.TestCase):
                 "left": 181, "bottom": 18, "right": 182, "top": 19
             }))
 
+    def test_expected_tile_footprint_is_checked_when_supplied(self):
+        expected = {"left": 42, "bottom": 18, "right": 43, "top": 19}
+        MODULE.validate_metadata(metadata(), expected_bounds=expected)
+        wrong = dict(expected, left=41)
+        with self.assertRaisesRegex(ValueError, "requested DEM tile footprint"):
+            MODULE.validate_metadata(metadata(), expected_bounds=wrong)
+
     def test_rejects_rotated_grid_and_transform_bounds_mismatch(self):
         with self.assertRaisesRegex(ValueError, "skewed"):
             MODULE.validate_metadata(metadata(transform=(
