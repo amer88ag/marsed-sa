@@ -91,6 +91,7 @@
     const dx = Number.isFinite(cellSizeX) && cellSizeX > 0 ? cellSizeX : 90;
     const dy = Number.isFinite(cellSizeY) && cellSizeY > 0 ? cellSizeY : dx;
     const direction = Array.from({ length: rows }, () => Array(cols).fill(NODATA));
+    const valid = dem.map(row => row.map(Number.isFinite));
     const downstream = Array(rows * cols).fill(-1);
     for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
       if (!Number.isFinite(dem[r][c])) continue;
@@ -106,7 +107,7 @@
       }
       if (best) { direction[r][c] = best.k; downstream[r * cols + c] = best.index; }
     }
-    return { direction: direction, downstream: downstream, rows: rows, cols: cols,
+    return { direction: direction, downstream: downstream, valid: valid, rows: rows, cols: cols,
       cell_size_x_m: dx, cell_size_y_m: dy };
   }
 
@@ -145,7 +146,7 @@
     if (!Number.isInteger(row) || !Number.isInteger(col) || !inBounds(row, col, rows, cols))
       throw new RangeError("pour point is outside the DEM grid");
     const target = row * cols + col;
-    if (routing.direction[row][col] === NODATA) throw new TypeError("pour point is NoData");
+    if (!routing.valid[row][col]) throw new TypeError("pour point is NoData");
     const seen = new Uint8Array(rows * cols), stack = [target], cells = [];
     seen[target] = 1;
     while (stack.length) {
