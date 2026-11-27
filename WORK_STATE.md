@@ -25,6 +25,18 @@
 - التحقق الحي من Open-Meteo multi-model من بيئة التطوير.
 
 
+
+## Copernicus GLO-90 raster acquisition and inspection (2026-11-28)
+- `scripts/copernicus_dem_tiles.py`: يحسب بادئة بلاطة 1°، ويطلب قائمة S3 العامة، ويقبل المفتاح الأساسي المحدد فقط `<tile>/<tile>.tif`، ثم ينزّل الملف ويحفظ SHA-256. لا يستخدم AWS credentials.
+- `tests/test_copernicus_dem_tiles.py`: اختبارات حدود الإحداثيات وتنسيق N/E/S/W، ومفتاح COG، واكتشاف الملف في قائمة S3.
+- `scripts/inspect_copernicus_dem.py`: فاحص اختياري يتطلب rasterio؛ يتحقق من metadata وCRS وNoData والقيم الإحصائية، ولا يعيد الإسقاط ولا يشهد بمطابقة COG أو الصلاحية الهيدرولوجية.
+- `tests/test_inspect_copernicus_dem.py`: اختبارات metadata السليمة والبيانات المفقودة وCRS والتحويل والحدود.
+- تم تعديل حالة ترخيص Copernicus في `config/providers.json` إلى `review_required`؛ مصدر AWS يذكر أن GLO-90 مجاني للجمهور وفق رخصة Copernicus، لكن شروط إعادة التوزيع والإسناد لم تراجع بالكامل.
+- README المصدر يصف COG، وتخزيناً ضمن خلايا 1°×1°، ورمز 30 ثانية قوسية لـGLO-90؛ أبعاد 1200×1200 تخص نطاق 0–50° فقط.
+- آخر CI ناجح على Commit `262f256`: Node 411/411، Python 23/23.
+- **لم يتم تنزيل بلاطة حية أو فحص GeoTIFF فعلياً**؛ DNS في بيئة التنفيذ تعذر، وCI الحالي يشغل اختبارات محاكاة فقط.
+- لا تزال معالجة CRS متري، Mosaic، التحقق من datum الرأسي، NoData على بيانات حقيقية، والمرجع الهيدرولوجي غير منجزة.
+
 ## نواة هيدرولوجيا شبكية — بحثية فقط (2026-11-28)
 - أضيف `src/services/hydrology/d8.js`: Priority-Flood لتهيئة المنخفضات، D8 لتوجيه الخلايا، تراكم التدفق، وتحديد منطقة الإسهام upstream من نقطة مصب.
 - تستبعد NoData، وتتعامل مع حدود NoData كحدود تصريف في النسخة الحالية؛ هذا افتراض يجب مراجعته على بيانات حقيقية.
