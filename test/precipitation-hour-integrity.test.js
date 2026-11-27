@@ -100,3 +100,21 @@ test("zero is valid while null, negative and non-numeric rainfall are not", () =
   assert.equal(RA.intensity(0).id, "none");
   assert.equal(RA.intensity(-1), null);
 });
+
+
+test("calendar totals reject out-of-order hourly records", () => {
+  const rows = hours("2026-11-27T00", 24, 1);
+  [rows[7], rows[8]] = [rows[8], rows[7]];
+  const day = RA.calendarTotals(rows, "day")[0];
+  assert.equal(day.complete, false);
+  assert.equal(day.mm, null);
+  assert.ok(day.missing > 0);
+});
+
+test("calendar totals do not claim completeness when an invalid timestamp is present", () => {
+  const rows = hours("2026-11-27T00", 24, 1);
+  rows.push({ time: "2026-11-27T25:00", mm: 3 });
+  const day = RA.calendarTotals(rows, "day")[0];
+  assert.equal(day.complete, false);
+  assert.equal(day.mm, null);
+});
