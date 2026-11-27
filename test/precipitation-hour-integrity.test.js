@@ -28,7 +28,7 @@ test("a missing hour breaks the window instead of shifting row indexes", () => {
 
 test("duplicate timestamps make lookup ambiguous and windows incomplete", () => {
   const rows = hours("2026-11-26T00", 24);
-  rows[9] = { ...rows[8], mm: 4 };
+  rows[9] = { ...rows[23], mm: 4 };
   assert.equal(RA.indexAt(rows, "2026-11-26T23:00"), -1);
   const result = RA.accumulate(rows, "2026-11-26T23:00", [24]);
   assert.equal(result.found, false);
