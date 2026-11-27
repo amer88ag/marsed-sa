@@ -141,13 +141,13 @@
         "Open-Meteo point-elevation API"
       ],
       "auth_mode": "none",
-      "license_status": "approved_with_conditions",
-      "license": "Free public access under Copernicus DEM licence; retain required DLR/Airbus/Copernicus attribution. Confirm exact licence terms before redistribution.",
+      "license_status": "review_required",
+      "license": "GLO-90 is free for the general public under the Copernicus DEM licence linked from the AWS dataset readme; exact redistribution and attribution conditions must be reviewed before public redistribution.",
       "attribution": "© DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; Elevation data by Open-Meteo.com",
       "coverage": "Global terrain model, ~90 m",
       "rate_limit": "Open-Meteo free tier limits apply",
       "health_status": "not_monitored",
-      "notes": "The public GLO-90 AWS bucket provides 1x1-degree Cloud Optimized GeoTIFF tiles without AWS credentials. Open-Meteo Elevation API remains point-only. GLO-90 is a DSM (includes buildings and vegetation), not bare-earth DTM. Research-stage source; raster validation and hydrology reference checks are pending."
+      "notes": "Public AWS GLO-90 bucket provides 1x1-degree COG GeoTIFF tiles without AWS credentials. GLO-90 is a DSM (includes buildings and vegetation), not bare-earth DTM. Open-Meteo Elevation API is point-only. Research source; licence details, raster validation and hydrology reference checks remain pending."
     },
     {
       "id": "natural-earth",
