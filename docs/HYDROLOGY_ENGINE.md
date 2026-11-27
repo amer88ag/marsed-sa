@@ -74,3 +74,15 @@ https://open-meteo.com/en/docs/elevation-api
 - Copernicus DEM product handbook (DSM والمرجع الرأسي): https://dataspace.copernicus.eu/sites/default/files/media/files/2024-06/geo1988-copernicusdem-spe-002_producthandbook_i5.0.pdf
 
 لا تزال تجربة الوصول الحي إلى بلاطة عسير غير مثبتة من بيئة التنفيذ الحالية؛ محاولة الاتصال المباشر تعذرت بسبب فشل DNS في بيئة العمل. نجاح CI يثبت اختبارات المنطق الاصطناعية فقط، ولا يثبت توفر الملف الحي.
+
+## فحص ملف الراستر قبل المعالجة
+أضيفت `scripts/inspect_copernicus_dem.py` كفاحص أولي لملف GeoTIFF محلي:
+- يتطلب `rasterio` اختيارياً، ولا يضيف اعتماداً إلزامياً إلى لوحة الويب.
+- يتحقق من أبعاد معقولة، نطاق EPSG:4326، حزمة ارتفاع واحدة، affine north-up، وحدود صحيحة، وNoData صريح.
+- يقرأ القيم الصالحة ويحسب عددها، عدد NoData، والحد الأدنى/الأقصى/المتوسط، ويرفض نطاق ارتفاع غير معقول وفق حدود sanity واسعة.
+- يعرض وسوم الملف ووسوم IMAGE_STRUCTURE إن وجدت.
+
+مثال بعد تنزيل البلاطة:
+`python scripts/inspect_copernicus_dem.py data/dem/copernicus-glo90/Copernicus_DSM_COG_30_N18_00_E042_00_DEM.tif`
+
+هذا الفحص لا يشهد بمطابقة COG لمعيارها، ولا يتحقق من datum الرأسي أو دقة الارتفاع أو جودة البيانات الهيدرولوجية، ولا يعيد الإسقاط. يجب أن يبقى الملف الأصلي محفوظاً مع بصمته، وأن تُجرى المعالجة على نسخة مشتقة.
