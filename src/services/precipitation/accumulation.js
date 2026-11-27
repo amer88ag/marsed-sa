@@ -75,7 +75,7 @@
 
   function indexAt(rows, nowLocal) {
     if (!Array.isArray(rows)) return -1;
-    const stamp = hourStamp(typeof nowLocal === "string" ? nowLocal.slice(0, 16) : nowLocal);
+    const stamp = hourStamp(typeof nowLocal === "string" ? nowLocal.slice(0, 13) + ":00" : nowLocal);
     if (stamp === null) return -1;
     let found = -1;
     for (let i = 0; i < rows.length; i++) {
