@@ -56,7 +56,7 @@ class TileNamingTests(unittest.TestCase):
             def __exit__(self, *args): return False
             def read(self): return xml
         with patch.object(MODULE, "_request", return_value=Response()):
-            key = MODULE.discover_tile("tile")
+            key = MODULE.discover_tile("Copernicus_DSM_COG_30_N18_00_E042_00_DEM")
         self.assertEqual(key, "Copernicus_DSM_COG_30_N18_00_E042_00_DEM/Copernicus_DSM_COG_30_N18_00_E042_00_DEM.tif")
 
     def test_discovery_reports_missing_tile(self):
@@ -68,7 +68,7 @@ class TileNamingTests(unittest.TestCase):
             def read(self): return xml
         with patch.object(MODULE, "_request", return_value=Response()):
             with self.assertRaises(FileNotFoundError):
-                MODULE.discover_tile("missing")
+                MODULE.discover_tile("Copernicus_DSM_COG_30_N18_00_E042_00_DEM")
 
 
 if __name__ == "__main__":
