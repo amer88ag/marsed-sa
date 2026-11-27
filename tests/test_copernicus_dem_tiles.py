@@ -18,6 +18,12 @@ class TileNamingTests(unittest.TestCase):
             "Copernicus_DSM_COG_30_N18_00_E042_00_DEM",
         )
 
+    def test_abha_tile_is_n18_e042(self):
+        self.assertEqual(
+            MODULE.tile_prefix(18.2164, 42.5053),
+            "Copernicus_DSM_COG_30_N18_00_E042_00_DEM",
+        )
+
     def test_negative_coordinates_use_south_west_and_floor(self):
         self.assertEqual(
             MODULE.tile_prefix(-18.2, -42.5),
