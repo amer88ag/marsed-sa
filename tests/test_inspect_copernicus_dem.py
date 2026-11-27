@@ -15,7 +15,7 @@ def metadata(**overrides):
         "count": 1,
         "crs": "EPSG:4326",
         "bounds": {"left": 42, "bottom": 18, "right": 43, "top": 19},
-        "transform": (1 / 1200, 1 / 1200, 0, 19, 0, -1 / 1200, 0, 0, 1),
+        "transform": (1 / 1200, 0, 42, 0, -1 / 1200, 19, 0, 0, 1),
         "dtype": "float32",
         "nodata": -32767.0,
     }
@@ -56,6 +56,20 @@ class RasterMetadataTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "bounds"):
             MODULE.validate_metadata(metadata(bounds={
                 "left": 43, "bottom": 18, "right": 42, "top": 19
+            }))
+        with self.assertRaisesRegex(ValueError, "longitude/latitude"):
+            MODULE.validate_metadata(metadata(bounds={
+                "left": 181, "bottom": 18, "right": 182, "top": 19
+            }))
+
+    def test_rejects_rotated_grid_and_transform_bounds_mismatch(self):
+        with self.assertRaisesRegex(ValueError, "skewed"):
+            MODULE.validate_metadata(metadata(transform=(
+                1 / 1200, 0.0001, 42, 0, -1 / 1200, 19, 0, 0, 1
+            )))
+        with self.assertRaisesRegex(ValueError, "do not match"):
+            MODULE.validate_metadata(metadata(bounds={
+                "left": 42.1, "bottom": 18, "right": 43, "top": 19
             }))
 
 
