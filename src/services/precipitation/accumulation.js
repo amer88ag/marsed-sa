@@ -103,12 +103,13 @@
     if (!Array.isArray(rows)) return [];
     const len = period === "month" ? 7 : 10;
     const groups = new Map();
-    rows.forEach(function (row) {
+    let invalidTimestampCount = 0;
+    rows.forEach(function (row, index) {
       const stamp = hourStamp(row && row.time);
       const key = stamp === null ? null : new Date(stamp).toISOString().slice(0, len);
-      if (key === null) return;
+      if (key === null) { invalidTimestampCount++; return; }
       if (!groups.has(key)) groups.set(key, []);
-      groups.get(key).push({ stamp: stamp, row: row });
+      groups.get(key).push({ stamp: stamp, row: row, index: index });
     });
     return Array.from(groups.entries()).sort(function (a, b) {
       return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0;
@@ -120,8 +121,11 @@
         expected = new Date(Date.UTC(y, m, 0)).getUTCDate() * 24;
       }
       const seen = new Set();
-      let sum = 0, valid = 0, duplicates = 0, invalid = 0;
+      let sum = 0, valid = 0, duplicates = 0, invalid = 0, outOfOrder = false;
+      let previousStamp = null;
       items.forEach(function (item) {
+        if (previousStamp !== null && item.stamp <= previousStamp) outOfOrder = true;
+        previousStamp = item.stamp;
         const hourKey = String(item.stamp);
         if (seen.has(hourKey)) { duplicates++; return; }
         seen.add(hourKey);
@@ -129,10 +133,13 @@
         else invalid++;
       });
       const missingHours = Math.max(0, expected - seen.size);
-      const missing = missingHours + invalid + duplicates;
-      const complete = missing === 0 && seen.size === expected && valid === expected;
+      // Any invalid timestamp cannot be assigned safely to a calendar bucket;
+      // conservatively prevent a complete total from being claimed.
+      const defects = missingHours + invalid + duplicates + (outOfOrder ? 1 : 0) +
+        (invalidTimestampCount ? 1 : 0);
+      const complete = defects === 0 && seen.size === expected && valid === expected;
       return { period: key, mm: complete ? sum : null, hours: valid,
-        missing: missing, complete: complete };
+        missing: defects, complete: complete };
     });
   }
 
