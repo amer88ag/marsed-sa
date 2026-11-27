@@ -55,6 +55,7 @@ const TOOL_FILES = () => walk("tools", []);
 // Data hosts → provider ids in config/providers.json.
 const DATA_HOSTS = {
   "api.open-meteo.com": "open-meteo", "archive-api.open-meteo.com": "open-meteo",
+  "copernicus-dem-90m.s3.eu-central-1.amazonaws.com": "copernicus-dem",
   "gibs.earthdata.nasa.gov": "nasa-gibs", "router.project-osrm.org": "osrm-demo",
   "tile.openstreetmap.org": "openstreetmap", "data.chc.ucsb.edu": "chirps-v3",
   "api.adsb.lol": "adsb-lol", "api.airplanes.live": "airplanes-live", "celestrak.org": "celestrak"
