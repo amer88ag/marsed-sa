@@ -122,9 +122,9 @@
       const seen = new Set();
       let sum = 0, valid = 0, duplicates = 0, invalid = 0;
       items.forEach(function (item) {
-        const hour = new Date(item.stamp).getUTCHours();
-        if (seen.has(hour)) { duplicates++; return; }
-        seen.add(hour);
+        const hourKey = String(item.stamp);
+        if (seen.has(hourKey)) { duplicates++; return; }
+        seen.add(hourKey);
         if (validRain(item.row)) { sum += item.row.mm; valid++; }
         else invalid++;
       });
