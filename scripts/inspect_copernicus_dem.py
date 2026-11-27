@@ -31,16 +31,31 @@ def validate_metadata(meta: dict) -> dict:
     bounds = meta["bounds"]
     if not (bounds["left"] < bounds["right"] and bounds["bottom"] < bounds["top"]):
         raise ValueError("invalid raster bounds")
+    if not (-180 <= bounds["left"] < bounds["right"] <= 180 and
+            -90 <= bounds["bottom"] < bounds["top"] <= 90):
+        raise ValueError("EPSG:4326 raster bounds fall outside longitude/latitude limits")
     transform = meta["transform"]
-    if len(transform) < 6 or transform[1] <= 0 or transform[5] >= 0:
+    if len(transform) < 6 or transform[0] <= 0 or transform[4] >= 0:
         raise ValueError("unexpected north-up raster affine transform")
+    if abs(transform[1]) > 1e-12 or abs(transform[3]) > 1e-12:
+        raise ValueError("rotated or skewed raster grid is not supported")
+    expected_right = transform[2] + meta["width"] * transform[0]
+    expected_bottom = transform[5] + meta["height"] * transform[4]
+    tolerance = max(abs(transform[0]), abs(transform[4])) * 1e-6
+    if (abs(bounds["left"] - transform[2]) > tolerance or
+            abs(bounds["top"] - transform[5]) > tolerance or
+            abs(bounds["right"] - expected_right) > tolerance or
+            abs(bounds["bottom"] - expected_bottom) > tolerance):
+        raise ValueError("raster bounds do not match affine transform and dimensions")
+    if not str(meta["dtype"]).startswith(("float", "int", "uint")):
+        raise ValueError("elevation band must use a numeric raster dtype")
     return {
         "width": int(meta["width"]),
         "height": int(meta["height"]),
         "band_count": int(meta["count"]),
         "crs": meta["crs"],
         "bounds": bounds,
-        "pixel_size_degrees": [abs(float(transform[1])), abs(float(transform[5]))],
+        "pixel_size_degrees": [abs(float(transform[0])), abs(float(transform[4]))],
         "dtype": str(meta["dtype"]),
         "nodata": float(meta["nodata"]),
     }
