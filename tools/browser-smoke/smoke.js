@@ -29,6 +29,13 @@ const hourly = n => { const t=[],v=[]; const s=Date.now(); for(let i=0;i<n;i++){
     }
     if (url.hostname === "unpkg.com") { const f = path.join(leafletDir, url.pathname.includes("/images/") ? "images/"+path.basename(url.pathname) : path.basename(url.pathname)); if (!fs.existsSync(f)) return route.abort(); return route.fulfill({ status: 200, contentType: f.endsWith(".css") ? "text/css" : "application/javascript", body: fs.readFileSync(f) }); }
     if (url.hostname === "api.open-meteo.com" && url.pathname === "/v1/elevation") return route.fulfill({ json: { elevation: [2210] } });
+    if (url.hostname === "api.open-meteo.com" && url.searchParams.get("models")) {
+      // Multi-model mock: suffixed keys per model; GFS deliberately empty to exercise "unavailable".
+      const ids = url.searchParams.get("models").split(","), vars = url.searchParams.get("hourly").split(","), n = 72, t0 = Date.now() - 2 * 3600e3, h = { time: [] };
+      for (let i = 0; i < n; i++) h.time.push(new Date(t0 + 3 * 3600e3 + i * 3600e3).toISOString().slice(0, 13) + ":00");
+      ids.forEach((id, k) => vars.forEach(v => { h[v + "_" + id] = h.time.map((_, i) => id.startsWith("gfs") ? null : v === "precipitation" ? (i >= 10 + k * 3 && i < 16 + k * 3 ? 1.5 + k : 0) : v === "pressure_msl" ? 1012 + k : 20 + k + (i % 6)); }));
+      return route.fulfill({ json: { latitude: 18.2, longitude: 42.5, hourly: h, hourly_units: {} } });
+    }
     if (url.hostname.endsWith("open-meteo.com")) {
       const lats = (url.searchParams.get("latitude") || "").split(",");
       const one = { latitude: 18.2, longitude: 42.5, elevation: 2150,
@@ -81,6 +88,11 @@ const hourly = n => { const t=[],v=[]; const s=Date.now(); for(let i=0;i<n;i++){
     ["sat-radar", "http://local.test/sat-radar/index.html", async p => { await p.waitForFunction(() => document.getElementById("dataState").getAttribute("data-state") !== "not_loaded", null, { timeout: 15000 });
       await p.click("#tabAll"); await p.waitForSelector("#list .sat"); await p.click("#list .sat"); await p.waitForTimeout(400);
       return "state=" + (await p.getAttribute("#dataState", "data-state")) + " | markers=" + (await p.$$eval(".dot", e => e.length)) + " | tracks=" + (await p.$$eval("path.leaflet-interactive", e => e.length)) + " | " + (await p.textContent("#status")).slice(0, 100) + " | card: " + (await p.textContent("#card")).slice(0, 400); }],
+    ["models", "http://local.test/models/index.html", async p => { await p.click("#load"); await p.waitForFunction(() => !document.getElementById("rainPanel").hidden, null, { timeout: 15000 });
+      const ok = (await p.textContent("#status")) + " | " + (await p.textContent("#rainVerdict")) + " | rows=" + (await p.$$eval("#rainRows tr", r => r.length)) + " | " + (await p.textContent("#rainRows")).includes("لم يُرجع النموذج بيانات");
+      await p.route("**/api.open-meteo.com/**", r => r.abort()); await p.selectOption("#place", "riyadh"); await p.click("#load"); await p.waitForTimeout(1500);
+      const down = await p.textContent("#status"); await p.selectOption("#place", "abha"); await p.click("#load"); await p.waitForTimeout(1500);
+      return ok + " || outage-new: " + down + " || outage-cached: " + (await p.textContent("#status")) + " state=" + (await p.getAttribute("#dataState", "data-state")); }],
     ["admin", "http://local.test/admin/index.html", async p => { await p.waitForTimeout(1200); return (await p.evaluate(() => document.body.innerText)).replace(/\s+/g, " ").slice(0, 300); }]
   ]) {
     const page = await ctx.newPage(); const errors = [];

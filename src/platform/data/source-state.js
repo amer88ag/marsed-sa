@@ -26,6 +26,7 @@
     city_overview: { reuse_max_minutes: 6 * 60, basis: "طبقة المدن: مثل الطقس الحالي" },
     orchard_forecast: { reuse_max_minutes: 24 * 60, basis: "توقع: يبقى مفيداً بوسم واضح حتى 24 ساعة" },
     orchard_reanalysis: { reuse_max_minutes: 72 * 60, basis: "إعادة تحليل لأيام سابقة: تتغير ببطء" },
+    model_comparison: { reuse_max_minutes: 24 * 60, basis: "مقارنة نماذج: توقع يبقى مفيداً بوسم واضح حتى 24 ساعة" },
     celestrak_gp: { reuse_max_minutes: 72 * 60, basis: "عناصر مدارية: تبقى صالحة للحساب أياماً مع تراجع الدقة؛ يُعرض عمرها دائماً" }
   });
 
