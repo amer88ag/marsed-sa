@@ -30,6 +30,15 @@ class TileNamingTests(unittest.TestCase):
         self.assertEqual(MODULE.tile_prefix(-90, -180),
                          "Copernicus_DSM_COG_30_S90_00_W180_00_DEM")
 
+    def test_canonical_cog_key_is_inside_tile_folder(self):
+        prefix = MODULE.tile_prefix(18.2, 42.5)
+        self.assertEqual(
+            MODULE.tile_object_key(prefix),
+            prefix + "/" + prefix + ".tif",
+        )
+        with self.assertRaises(ValueError):
+            MODULE.tile_object_key("not-a-dem-tile")
+
     def test_invalid_coordinates_are_rejected(self):
         with self.assertRaises(ValueError):
             MODULE.tile_prefix(91, 42)
@@ -40,7 +49,7 @@ class TileNamingTests(unittest.TestCase):
         xml = b"""<?xml version="1.0" encoding="UTF-8"?>
         <ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
           <Contents><Key>tile/quality_mask.tif</Key></Contents>
-          <Contents><Key>tile/Copernicus_DSM_COG_30_N18_00_E042_00_DEM.tif</Key></Contents>
+          <Contents><Key>Copernicus_DSM_COG_30_N18_00_E042_00_DEM/Copernicus_DSM_COG_30_N18_00_E042_00_DEM.tif</Key></Contents>
         </ListBucketResult>"""
         class Response:
             def __enter__(self): return self
@@ -48,7 +57,7 @@ class TileNamingTests(unittest.TestCase):
             def read(self): return xml
         with patch.object(MODULE, "_request", return_value=Response()):
             key = MODULE.discover_tile("tile")
-        self.assertEqual(key, "tile/Copernicus_DSM_COG_30_N18_00_E042_00_DEM.tif")
+        self.assertEqual(key, "Copernicus_DSM_COG_30_N18_00_E042_00_DEM/Copernicus_DSM_COG_30_N18_00_E042_00_DEM.tif")
 
     def test_discovery_reports_missing_tile(self):
         xml = b"""<?xml version="1.0" encoding="UTF-8"?>
