@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_type": "providers",
-  "updated_at": "2026-11-26",
+  "updated_at": "2026-11-28",
   "providers": [
     {
       "id": "open-meteo",
@@ -133,20 +133,21 @@
     },
     {
       "id": "copernicus-dem",
-      "name": "Copernicus DEM GLO-90 (via Open-Meteo Elevation API)",
-      "official_url": "https://open-meteo.com/en/docs/elevation-api",
+      "name": "Copernicus DEM GLO-90 (AWS COG and Open-Meteo Elevation API)",
+      "official_url": "https://copernicus-dem-90m.s3.eu-central-1.amazonaws.com/readme.html",
       "domain": "geography",
       "products": [
-        "GLO-90 2021"
+        "GLO-90 2021 COG GeoTIFF",
+        "Open-Meteo point-elevation API"
       ],
       "auth_mode": "none",
       "license_status": "approved_with_conditions",
-      "license": "CC BY 4.0 with Copernicus/DLR/Airbus attribution",
+      "license": "Free public access under Copernicus DEM licence; retain required DLR/Airbus/Copernicus attribution. Confirm exact licence terms before redistribution.",
       "attribution": "© DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; Elevation data by Open-Meteo.com",
       "coverage": "Global terrain model, ~90 m",
       "rate_limit": "Open-Meteo free tier limits apply",
       "health_status": "not_monitored",
-      "notes": "Terrain model, not a field survey or building height."
+      "notes": "The public GLO-90 AWS bucket provides 1x1-degree Cloud Optimized GeoTIFF tiles without AWS credentials. Open-Meteo Elevation API remains point-only. GLO-90 is a DSM (includes buildings and vegetation), not bare-earth DTM. Research-stage source; raster validation and hydrology reference checks are pending."
     },
     {
       "id": "natural-earth",
