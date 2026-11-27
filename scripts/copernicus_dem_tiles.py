@@ -21,8 +21,8 @@ RESOLUTION_CODE = "30"  # arc-seconds: GLO-90, not 30 metres
 USER_AGENT = "SaudiObservatory-DEM-research/1.0"
 
 
-def _hemisphere(value: int, positive: str, negative: str) -> str:
-    return f"{positive if value >= 0 else negative}{abs(value):02d}_00"
+def _hemisphere(value: int, positive: str, negative: str, width: int) -> str:
+    return f"{positive if value >= 0 else negative}{abs(value):0{width}d}_00"
 
 
 def tile_prefix(latitude: float, longitude: float) -> str:
@@ -32,8 +32,8 @@ def tile_prefix(latitude: float, longitude: float) -> str:
     # At the north/east outer limits, use the last intersecting 1-degree cell.
     south = min(int(latitude // 1), 89)
     west = min(int(longitude // 1), 179)
-    northing = _hemisphere(south, "N", "S")
-    easting = _hemisphere(west, "E", "W")
+    northing = _hemisphere(south, "N", "S", 2)
+    easting = _hemisphere(west, "E", "W", 3)
     return f"Copernicus_DSM_COG_{RESOLUTION_CODE}_{northing}_{easting}_DEM"
 
 
