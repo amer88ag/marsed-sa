@@ -50,7 +50,7 @@ function openMeteo(url, temp) {
     if (url.hostname === "local.test") {
       let p = path.join(ROOT, decodeURIComponent(url.pathname)); if (p.endsWith("/")) p += "index.html";
       if (!fs.existsSync(p)) return route.fulfill({ status: 404, body: "nf" });
-      const type = p.endsWith(".html") ? "text/html" : p.endsWith(".js") ? "application/javascript" : p.endsWith(".json") ? "application/json" : "text/plain";
+      const type = p.endsWith(".html") ? "text/html" : p.endsWith(".js") ? "application/javascript" : p.endsWith(".json") ? "application/json" : p.endsWith(".css") ? "text/css" : "text/plain";
       return route.fulfill({ status: 200, contentType: type + "; charset=utf-8", body: fs.readFileSync(p) });
     }
     if (url.hostname === "unpkg.com") { const f = path.join(LD, url.pathname.includes("/images/") ? "images/" + path.basename(url.pathname) : path.basename(url.pathname)); return fs.existsSync(f) ? route.fulfill({ status: 200, contentType: f.endsWith(".css") ? "text/css" : "application/javascript", headers: { "access-control-allow-origin": "*" }, body: fs.readFileSync(f) }) : route.abort(); }

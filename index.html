@@ -19,17 +19,26 @@
 .scroll-hint{display:none;font-size:12px;color:#4c5b6b;margin:6px 0}@media (max-width:640px){.scroll-hint{display:block}}
 </style>
 <link rel="stylesheet" href="assets/css/observatory-ui.css">
+<style>
+/* Decluttering: secondary information stays available behind explicit toggles. */
+details.more,details.about{margin:10px 14px;border:1px solid var(--line,#dce4eb);border-radius:12px;background:#fbfdfe}
+details.more>summary,details.about>summary,details.sources-wrap>summary{cursor:pointer;padding:11px 14px;font-size:13px;font-weight:700;color:#285b80;list-style:none}
+details.more>summary::-webkit-details-marker,details.about>summary::-webkit-details-marker{display:none}
+details.more>summary:before,details.about>summary:before{content:"＋ ";color:#1769aa}details.more[open]>summary:before,details.about[open]>summary:before{content:"－ "}
+details.about>.notice,details.about>.data-state,details.about>.data-meta{margin:0 12px 12px}
+details.sources-wrap{margin:18px 0}details.sources-wrap>summary{font-size:16px}
+.link-btn{border:0;background:none;color:#1769aa;font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:4px 6px}
+#hourlyForecast:not(.expanded) .extra,#dailyForecast:not(.expanded) .extra{display:none}
+.extra{display:contents}
+.toolbar{gap:10px}
+@media(max-width:760px){.grid .side{order:-1}}
+</style>
 </head>
 <body>
 <header class="top"><div class="brand"><div><h1>مرصد السعودية للمناخ والمياه</h1><p>لوحة متابعة الطقس والأمطار والبيانات المناخية للمملكة</p></div><div class="status" id="connection">● جاهز للاتصال</div></div></header>
 <nav class="global-nav" aria-label="التنقل الرئيسي"><a href="index.html" aria-current="page">الرئيسية</a><a href="index.html#weather">الطقس والأمطار</a><a href="seasons/">المواسم والزراعة</a><a href="satellite/">الأقمار الصناعية</a><a href="earth-memory/">ذاكرة الأرض</a><a href="flights/">رادار الطيران</a><a href="sat-radar/">رادار الأقمار</a><a href="elevation/">قياس الارتفاع</a><a href="geo/">المساحة الجغرافية</a><a href="admin/">المصادر والإدارة</a></nav>
 <main class="wrap">
 <div class="toolbar">
-<a class="btn" href="elevation/" aria-label="فتح مسار قياس الارتفاع">⛰️ قياس الارتفاع</a>
-<a class="btn" href="seasons/" aria-label="فتح المواسم والزراعة والنباتات">🌦️ المواسم والزراعة</a>
-<a class="btn" href="satellite/" aria-label="فتح مرصد الأقمار الصناعية">🛰️ الأقمار الصناعية</a>
-<a class="btn" href="geo/" aria-label="فتح مساحة العمل الجغرافية">🌍 مساحة Google الجغرافية</a><a class="btn" href="earth-memory/" aria-label="فتح ذاكرة الأرض">🌍 ذاكرة الأرض</a><a class="btn" href="flights/" aria-label="فتح رادار الطيران">✈️ رادار الطيران</a><a class="btn" href="sat-radar/" aria-label="فتح رادار الأقمار الصناعية">📡 رادار الأقمار</a>
-<a class="btn" href="admin/">مركز إدارة الخدمات والمصادر</a>
 <label for="place">الموقع</label>
 <select id="place" aria-label="اختر مدينة أو منطقة">
 <option value="riyadh">الرياض</option><option value="abha">أبها</option><option value="jeddah">جدة</option><option value="dammam">الدمام</option><option value="tabuk">تبوك</option><option value="hail">حائل</option><option value="buraidah">بريدة</option><option value="madinah">المدينة المنورة</option><option value="makkah">مكة المكرمة</option><option value="jazan">جازان</option><option value="najran">نجران</option><option value="arar">عرعر</option><option value="sakaka">سكاكا</option>
@@ -38,18 +47,6 @@
 <div class="updated" id="updated">لم يتم جلب البيانات بعد</div>
 <div class="data-state-badge" id="dataState" data-state="not_loaded" aria-live="polite">الحالة: لم يتم جلبها بعد</div>
 </div>
-<section class="panel trip-panel" id="road-trips">
-<div class="panel-head"><h2>عين الطريق والرحلات</h2><span>تجربة أولية بين المدن</span></div>
-<div class="trip-controls">
-<label for="tripOrigin">مدينة الانطلاق<select id="tripOrigin" aria-label="مدينة الانطلاق"><option value="riyadh">الرياض</option><option value="abha">أبها</option><option value="jeddah">جدة</option><option value="dammam">الدمام</option><option value="tabuk">تبوك</option><option value="hail">حائل</option><option value="buraidah">بريدة</option><option value="madinah">المدينة المنورة</option><option value="makkah">مكة المكرمة</option><option value="jazan">جازان</option><option value="najran">نجران</option><option value="arar">عرعر</option><option value="sakaka">سكاكا</option></select></label>
-<label for="tripDestination">مدينة الوصول<select id="tripDestination" aria-label="مدينة الوصول"><option value="riyadh">الرياض</option><option value="abha">أبها</option><option value="jeddah">جدة</option><option value="dammam">الدمام</option><option value="tabuk">تبوك</option><option value="hail">حائل</option><option value="buraidah">بريدة</option><option value="madinah">المدينة المنورة</option><option value="makkah">مكة المكرمة</option><option value="jazan">جازان</option><option value="najran">نجران</option><option value="arar">عرعر</option><option value="sakaka">سكاكا</option></select></label>
-<label for="tripDeparture">وقت الانطلاق (اختياري)<input id="tripDeparture" type="datetime-local" step="900" aria-label="وقت الانطلاق بتوقيت السعودية"></label>
-<p class="trip-time-help">اتركه فارغاً للانطلاق الآن. التوقعات المتاحة تغطي 48 ساعة قادمة فقط، ويُفسّر الوقت بتوقيت السعودية.</p>
-<button class="btn primary" id="planTrip" type="button">احسب الطريق والطقس</button>
-</div>
-<div class="trip-results"><div id="tripStatus" class="data-state">اختر مدينتين لعرض مسار القيادة وملخص الطقس المتوقع على امتداده.</div><div id="tripOutput"></div>
-<div class="trip-note">المسار تقديري من خدمة OSRM التجريبية المبنية على بيانات OpenStreetMap، وزمنه لا يتضمن حركة المرور الحية. الطقس توقع نموذجي عند نقاط مختارة على الطريق، وليس رصداً ميدانياً أو تحذيراً رسمياً. لا تتوفر حالياً بيانات مؤكدة عن إغلاق الطرق أو الحوادث.</div></div>
-</section>
 <div class="grid">
 <section class="panel">
 <div class="panel-head"><h2>الخريطة التفاعلية</h2><span>المملكة العربية السعودية</span></div>
@@ -68,7 +65,7 @@
 <div class="metric"><small>سرعة الرياح</small><strong id="wind">—</strong><em>كم/ساعة</em></div>
 <div class="metric"><small>حالة الطقس</small><strong id="condition" style="font-size:17px">—</strong><em id="daylight">—</em></div>
 </div>
-<div class="panel-head"><h2>تفاصيل الغلاف الجوي والموقع</h2><span>قيم النموذج الحالي</span></div>
+<details class="more" id="moreMetrics"><summary>مؤشرات إضافية: الضغط، الندى، الرؤية، الرياح العليا، التربة، الإشعاع…</summary>
 <div class="metrics atmospheric-metrics">
 <div class="metric"><small>الارتفاع عن سطح البحر</small><strong id="elevation">—</strong><em>متر · تضاريس النموذج</em></div>
 <div class="metric"><small>الضغط عند مستوى سطح البحر</small><strong id="pressureMsl">—</strong><em>هكتوباسكال (hPa)</em></div>
@@ -90,10 +87,11 @@
 <div class="metric"><small>الإشعاع الشمسي الكلي</small><strong id="solarRadiation">—</strong><em>W/m²</em></div>
 <div class="metric"><small>الإشعاع المباشر / المنتشر</small><strong id="solarSplit">—</strong><em>W/m² · مباشر / منتشر</em></div>
 </div>
+</details>
 <div class="weather-context"><h3>ماذا يعني هذا لك؟</h3><div id="weatherInsight" class="insight">يظهر ملخص عملي بعد تحميل بيانات الطقس.</div></div>
-<div class="panel-head"><h2>الساعات القادمة</h2><span>توقعات النموذج</span></div><div id="hourlyForecast" class="weather-context hourly">بانتظار البيانات</div>
-<div class="panel-head"><h2>توقعات الأيام السبعة</h2><span>درجة الحرارة والمطر</span></div><div id="dailyForecast" class="daily">بانتظار البيانات</div>
-<div class="notice" id="quality">هذه القيم مستمدة من نموذج طقس، وليست قياسات مباشرة من محطة أرصاد. قد تختلف عن الرصد الأرضي.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · البيانات مرخصة وفق CC BY 4.0 مع الإسناد.</div>
+<div class="panel-head"><h2>الساعات القادمة</h2><button type="button" class="link-btn" id="hourlyMore" aria-expanded="false" aria-controls="hourlyForecast">عرض التفاصيل</button></div><div id="hourlyForecast" class="weather-context hourly">بانتظار البيانات</div>
+<div class="panel-head"><h2>توقعات الأيام السبعة</h2><button type="button" class="link-btn" id="dailyMore" aria-expanded="false" aria-controls="dailyForecast">عرض التفاصيل</button></div><div id="dailyForecast" class="daily">بانتظار البيانات</div>
+<details class="about"><summary>عن هذه البيانات ومصادرها</summary><div class="notice" id="quality">هذه القيم مستمدة من نموذج طقس، وليست قياسات مباشرة من محطة أرصاد. قد تختلف عن الرصد الأرضي.<br><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> · البيانات مرخصة وفق CC BY 4.0 مع الإسناد.</div></details>
 </section>
 <section class="panel">
 <div class="panel-head"><h2>الأمطار المتوقعة — الأيام السبعة القادمة (توقع نموذجي)</h2><span>ملم/يوم</span></div>
@@ -104,20 +102,32 @@
 <div class="panel-head"><h2>مقارنة الطقس بين المدن</h2><span>ناتج نموذج · نفس وقت الصلاحية</span></div>
 <div class="compare-tools"><label for="compareSort">ترتيب حسب</label><select id="compareSort"><option value="registry">ترتيب المدن</option><option value="temperature">الحرارة الآن</option><option value="max">العظمى اليوم</option><option value="precip">هطول اليوم المتوقع</option><option value="elevation">ارتفاع التضاريس</option></select></div>
 <div class="scroll-hint">الجدول أعرض من الشاشة: مرّره أفقياً لرؤية بقية الأعمدة.</div><div class="compare-wrap"><table class="compare"><thead><tr><th>المدينة</th><th>الحرارة °م</th><th>العظمى/الصغرى °م</th><th>الرطوبة %</th><th>هطول اليوم المتوقع ملم (احتمال)</th><th>الرياح/الهبات كم/س</th><th>ضغط مستوى البحر hPa</th><th>ارتفاع التضاريس م</th></tr></thead><tbody id="compareBody"><tr><td colspan="8">لم يتم جلب البيانات بعد.</td></tr></tbody></table></div>
-<div class="data-state" id="compareNote">القيم من طلب واحد لنموذج Open-Meteo لكل المدن؛ ليست رصد محطات. «—» تعني قيمة غير متاحة ولا تُعد صفراً. ارتفاع التضاريس من نموذج 90 م عند نقطة المدينة. الضغط مختزل إلى مستوى سطح البحر لتصح المقارنة بين المدن.</div>
+<details class="about"><summary>عن هذه المقارنة</summary><div class="data-state" id="compareNote">القيم من طلب واحد لنموذج Open-Meteo لكل المدن؛ ليست رصد محطات. «—» تعني قيمة غير متاحة ولا تُعد صفراً. ارتفاع التضاريس من نموذج 90 م عند نقطة المدينة. الضغط مختزل إلى مستوى سطح البحر لتصح المقارنة بين المدن.</div></details>
 </section>
 <section class="panel" id="chirps">
 <div class="panel-head"><h2>الأمطار التاريخية — CHIRPS v3</h2><span>ملم/يوم</span></div>
 <div class="chart-wrap"><svg id="chirpsChart" class="chart" viewBox="0 0 600 180" role="img" aria-label="مقارنة أمطار CHIRPS SAT وRNL اليومية عند إحداثيات المدينة"></svg><div class="chart-labels"><span>■ SAT — أزرق</span><span>■ RNL — أخضر</span><span>× قيمة مفقودة</span></div></div>
 <div id="chirpsChartCaption" class="data-meta" aria-live="polite">لم يتم جلبها بعد.</div>
-<div id="chirpsState" class="data-state">تعرض اللوحة عينة بحثية قصيرة محفوظة مع الموقع، وليست بيانات محدثة يومياً ولا تغطية وطنية.</div>
+<details class="about" id="chirpsDetails"><summary>تفاصيل العينة: الفترة، التحديث، المجاميع، مقارنة المدن</summary><div id="chirpsState" class="data-state">تعرض اللوحة عينة بحثية قصيرة محفوظة مع الموقع، وليست بيانات محدثة يومياً ولا تغطية وطنية.</div>
 <div id="chirpsAnalysis" class="data-meta" aria-live="polite"></div>
-<details class="chirps-regions"><summary>مقارنة المدن في نافذة العينة نفسها (SAT)</summary><div class="compare-wrap"><table class="compare"><thead><tr><th>المدينة</th><th>مجموع النافذة ملم</th><th>أيام ممطرة ≥1 ملم</th><th>أعلى يوم ملم</th><th>آخر تاريخ متاح</th></tr></thead><tbody id="chirpsRegions"><tr><td colspan="5">لم يتم جلبها بعد.</td></tr></tbody></table></div></details>
-<div id="chirpsMeta" class="data-meta">العينة: أقرب خلية شبكية إلى إحداثيات المدينة، وليست متوسط أمطار كامل النطاق البلدي.</div>
+<details class="chirps-regions" open><summary>مقارنة المدن في نافذة العينة نفسها (SAT)</summary><div class="compare-wrap"><table class="compare"><thead><tr><th>المدينة</th><th>مجموع النافذة ملم</th><th>أيام ممطرة ≥1 ملم</th><th>أعلى يوم ملم</th><th>آخر تاريخ متاح</th></tr></thead><tbody id="chirpsRegions"><tr><td colspan="5">لم يتم جلبها بعد.</td></tr></tbody></table></div></details>
+<div id="chirpsMeta" class="data-meta">العينة: أقرب خلية شبكية إلى إحداثيات المدينة، وليست متوسط أمطار كامل النطاق البلدي.</div></details>
 </section>
 </div>
 </div>
-<h2 class="section-title">كتالوج مصادر البيانات</h2>
+<section class="panel trip-panel" id="road-trips">
+<div class="panel-head"><h2>عين الطريق والرحلات</h2><span>تجربة أولية بين المدن</span></div>
+<div class="trip-controls">
+<label for="tripOrigin">مدينة الانطلاق<select id="tripOrigin" aria-label="مدينة الانطلاق"><option value="riyadh">الرياض</option><option value="abha">أبها</option><option value="jeddah">جدة</option><option value="dammam">الدمام</option><option value="tabuk">تبوك</option><option value="hail">حائل</option><option value="buraidah">بريدة</option><option value="madinah">المدينة المنورة</option><option value="makkah">مكة المكرمة</option><option value="jazan">جازان</option><option value="najran">نجران</option><option value="arar">عرعر</option><option value="sakaka">سكاكا</option></select></label>
+<label for="tripDestination">مدينة الوصول<select id="tripDestination" aria-label="مدينة الوصول"><option value="riyadh">الرياض</option><option value="abha">أبها</option><option value="jeddah">جدة</option><option value="dammam">الدمام</option><option value="tabuk">تبوك</option><option value="hail">حائل</option><option value="buraidah">بريدة</option><option value="madinah">المدينة المنورة</option><option value="makkah">مكة المكرمة</option><option value="jazan">جازان</option><option value="najran">نجران</option><option value="arar">عرعر</option><option value="sakaka">سكاكا</option></select></label>
+<label for="tripDeparture">وقت الانطلاق (اختياري)<input id="tripDeparture" type="datetime-local" step="900" aria-label="وقت الانطلاق بتوقيت السعودية"></label>
+<p class="trip-time-help">اتركه فارغاً للانطلاق الآن. التوقعات المتاحة تغطي 48 ساعة قادمة فقط، ويُفسّر الوقت بتوقيت السعودية.</p>
+<button class="btn primary" id="planTrip" type="button">احسب الطريق والطقس</button>
+</div>
+<div class="trip-results"><div id="tripStatus" class="data-state">اختر مدينتين لعرض مسار القيادة وملخص الطقس المتوقع على امتداده.</div><div id="tripOutput"></div>
+<div class="trip-note">المسار تقديري من خدمة OSRM التجريبية المبنية على بيانات OpenStreetMap، وزمنه لا يتضمن حركة المرور الحية. الطقس توقع نموذجي عند نقاط مختارة على الطريق، وليس رصداً ميدانياً أو تحذيراً رسمياً. لا تتوفر حالياً بيانات مؤكدة عن إغلاق الطرق أو الحوادث.</div></div>
+</section>
+<details class="sources-wrap"><summary class="section-title">مصادر البيانات وشروط استخدامها</summary>
 <section class="panel sources">
 <div class="source"><b>CHIRPS v3 DAILY SAT وDAILY RNL FINAL — الأمطار التاريخية</b><p>منتجان يوميان بدقة تقارب 0.05 درجة. SAT يوزع إجمالي الخماسية باستخدام IMERG Late V07، وRNL يستخدم ERA5. التواريخ تسميات يومية ناتجة عن التفكيك وليست نافذة رصد موحدة للمحطات. القيم المعروضة أقرب خلية شبكية إلى إحداثيات المدينة، وليست متوسط المدينة أو المحافظة ولا قياس محطة أرضية.</p><a href="https://www.chc.ucsb.edu/data/chirps3" target="_blank" rel="noopener">مستودع CHC الرسمي ووصف المنتجات ↗</a><div><span class="tag">عينة مصدر حقيقية — 3 أيام و13 نقطة مدينة لكل منتج؛ ليست تحققاً وطنياً شاملاً</span></div></div>
 <div class="source"><b>NASA GPM IMERG — الأمطار بالأقمار الصناعية</b><p>منتجات متعددة بزمن تأخر ودقة مختلفين. بيانات NASA مجانية مع وجوب الإسناد، ويجب توضيح نوع المنتج (Early أو Late أو Final) وتاريخ المعالجة.</p><a href="https://gpm.nasa.gov/data/imerg" target="_blank" rel="noopener">صفحة IMERG الرسمية ↗</a> · <a href="https://gpm.nasa.gov/data/policy" target="_blank" rel="noopener">سياسة الاستخدام والإسناد ↗</a><div><span class="tag">مصدر مفتوح — التكامل الآلي لم يُفعّل بعد</span></div></div>
@@ -125,7 +135,8 @@
 <div class="source"><b>الهيئة العامة للمساحة والمعلومات الجيومكانية — الحدود الإدارية الرسمية</b><p>الخريطة الوطنية الرسمية هي المرجع المعتمد لحدود المملكة ومناطقها الإدارية. لم تُحمّل حدود المناطق إلى هذه النسخة بعد؛ يلزم الحصول على الطبقة من المنصة الجيومكانية الوطنية والتحقق من شروط الاستخدام وصيغة التنزيل.</p><a href="https://geosa.gov.sa/en/About/Pages/OfficialSaudiMap.aspx" target="_blank" rel="noopener">الخريطة الوطنية الرسمية ↗</a> · <a href="https://geoportal.sa/" target="_blank" rel="noopener">المنصة الجيومكانية الوطنية ↗</a><div><span class="tag">مرجع رسمي — التكامل المكاني لم يُنفّذ بعد</span></div></div>
 <div class="source"><b>Open-Meteo — بيانات الطقس المعروضة حالياً</b><p>الخطة المجانية مخصصة للاستخدام غير التجاري حتى 10,000 طلب يومياً مع الإسناد وفق CC BY 4.0. القيم في هذه اللوحة من نموذج الطقس وليست رصداً رسمياً. يجب مراجعة الشروط قبل أي استخدام تجاري أو تحميل كثيف.</p><a href="https://open-meteo.com/en/docs" target="_blank" rel="noopener">التوثيق الرسمي ↗</a> · <a href="https://open-meteo.com/en/license" target="_blank" rel="noopener">الترخيص والإسناد ↗</a><div><span class="tag">مصدر مساعد للنموذج الأولي</span></div></div>
 </section>
-<div class="foot">مرصد السعودية مشروع مستقل غير تابع للمركز الوطني للأرصاد أو NASA أو UCSB. لا تستخدم هذه اللوحة لاتخاذ قرارات السلامة أو الإخلاء أو الملاحة. في الحالات الطارئة اتبع تنبيهات الجهات الرسمية. © مرصد السعودية.</div>
+</details>
+<div class="foot"><a href="admin/">مركز إدارة الخدمات والمصادر</a> · مرصد السعودية مشروع مستقل غير تابع للمركز الوطني للأرصاد أو NASA أو UCSB. لا تستخدم هذه اللوحة لاتخاذ قرارات السلامة أو الإخلاء أو الملاحة. في الحالات الطارئة اتبع تنبيهات الجهات الرسمية. © مرصد السعودية.</div>
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="src/platform/http/client.js"></script>
@@ -470,13 +481,15 @@ function renderWeatherData(data){
 }
 // Unified data state badge (fresh / cached / stale / partial / unavailable / source error / not loaded).
 function showDataState(result){var el=$("dataState");if(!el)return;el.textContent=SourceState.describe(result);el.setAttribute("data-state",result?result.state:"not_loaded")}
+function bindExpand(btnId,targetId){var b=$(btnId);if(!b)return;b.addEventListener("click",function(){var t=$(targetId),open=!t.classList.contains("expanded");t.classList.toggle("expanded",open);b.setAttribute("aria-expanded",String(open));b.textContent=open?"إخفاء التفاصيل":"عرض التفاصيل"})}
+bindExpand("hourlyMore","hourlyForecast");bindExpand("dailyMore","dailyForecast");
 function renderHourly(rows){
  var target=$("hourlyForecast"),now=new Date();
  var upcoming=(rows||[]).filter(function(row){var t=row.valid_time&&SaudiTime.parseSaudiLocal(row.valid_time);return t&&t.getTime()>=now.getTime()-60*60*1000}).slice(0,12);
  if(!upcoming.length){target.textContent="لا تتوفر توقعات ساعية في الاستجابة الحالية.";return}
  target.innerHTML=upcoming.map(function(row){
   var hour=row.valid_time.slice(11,16),rain=row.precipitation_probability===null?"—":Math.round(row.precipitation_probability)+"٪";
-  return '<div class="hour"><b>'+escapeHtml(hour)+'</b><small>'+escapeHtml(weatherDescription(row.weather_code))+'</small><strong>'+escapeHtml(number(row.temperature,0))+'°</strong><small>احتمال المطر '+escapeHtml(rain)+'</small><small>رياح '+escapeHtml(number(row.wind_speed,0))+' كم/س</small><small>هبات '+escapeHtml(number(row.wind_gusts,0))+' كم/س</small><small>رطوبة '+escapeHtml(number(row.relative_humidity,0))+'٪</small><small>ندى '+escapeHtml(number(row.dew_point,1))+'°</small><small>سحب '+escapeHtml(number(row.cloud_cover,0))+'٪</small><small>ضغط '+escapeHtml(number(row.pressure_msl,0))+' hPa</small><small>رؤية '+escapeHtml(row.visibility===null?'—':(row.visibility/1000).toFixed(1))+' كم</small><small>UV '+escapeHtml(number(row.uv_index,1))+'</small><small>بصيلة رطبة '+escapeHtml(number(row.wet_bulb_temperature,1))+'°</small><small>CAPE '+escapeHtml(number(row.cape,0))+' J/kg</small><small>تجمد '+escapeHtml(number(row.freezing_level_height,0))+' م</small><small>تبخر '+escapeHtml(number(row.evapotranspiration,2))+' ملم</small><small>رياح 80م '+escapeHtml(number(row.wind_speed_80m,0))+' كم/س</small></div>';
+  return '<div class="hour"><b>'+escapeHtml(hour)+'</b><small>'+escapeHtml(weatherDescription(row.weather_code))+'</small><strong>'+escapeHtml(number(row.temperature,0))+'°</strong><small>احتمال المطر '+escapeHtml(rain)+'</small><small>رياح '+escapeHtml(number(row.wind_speed,0))+' كم/س</small><span class="extra"><small>هبات '+escapeHtml(number(row.wind_gusts,0))+' كم/س</small><small>رطوبة '+escapeHtml(number(row.relative_humidity,0))+'٪</small><small>ندى '+escapeHtml(number(row.dew_point,1))+'°</small><small>سحب '+escapeHtml(number(row.cloud_cover,0))+'٪</small><small>ضغط '+escapeHtml(number(row.pressure_msl,0))+' hPa</small><small>رؤية '+escapeHtml(row.visibility===null?'—':(row.visibility/1000).toFixed(1))+' كم</small><small>UV '+escapeHtml(number(row.uv_index,1))+'</small><small>بصيلة رطبة '+escapeHtml(number(row.wet_bulb_temperature,1))+'°</small><small>CAPE '+escapeHtml(number(row.cape,0))+' J/kg</small><small>تجمد '+escapeHtml(number(row.freezing_level_height,0))+' م</small><small>تبخر '+escapeHtml(number(row.evapotranspiration,2))+' ملم</small><small>رياح 80م '+escapeHtml(number(row.wind_speed_80m,0))+' كم/س</small></span></div>';
  }).join("");
 }
 function renderDaily(rows){
@@ -487,7 +500,7 @@ function renderDaily(rows){
   var offset=SaudiTime.daysBetween(SaudiTime.saudiDate(new Date()),row.valid_date),weekday=SaudiTime.saudiWeekday(row.valid_date);
   var label=offset===0?"اليوم":offset===1?"غداً":(weekday===null?row.valid_date:dayNames[weekday]);
   var chance=row.precipitation_probability_max===null?"—":Math.round(row.precipitation_probability_max)+"٪";
-  return '<div class="day"><b>'+escapeHtml(label)+'</b><small>'+escapeHtml(row.valid_date)+'</small><strong>'+escapeHtml(weatherDescription(row.weather_code))+'</strong><span>'+escapeHtml(number(row.temperature_max,0))+'° / '+escapeHtml(number(row.temperature_min,0))+'°</span><small>احتمال المطر '+escapeHtml(chance)+'</small><small>كمية متوقعة '+escapeHtml(number(row.precipitation,1))+' ملم</small><small>مؤشر UV '+escapeHtml(number(row.uv_index_max,1))+'</small><small>التبخر المرجعي ET₀ '+escapeHtml(number(row.et0_fao_evapotranspiration,1))+' ملم/يوم</small></div>';
+  return '<div class="day"><b>'+escapeHtml(label)+'</b><small>'+escapeHtml(row.valid_date)+'</small><strong>'+escapeHtml(weatherDescription(row.weather_code))+'</strong><span>'+escapeHtml(number(row.temperature_max,0))+'° / '+escapeHtml(number(row.temperature_min,0))+'°</span><small>احتمال المطر '+escapeHtml(chance)+'</small><small>كمية متوقعة '+escapeHtml(number(row.precipitation,1))+' ملم</small><span class="extra"><small>مؤشر UV '+escapeHtml(number(row.uv_index_max,1))+'</small><small>التبخر المرجعي ET₀ '+escapeHtml(number(row.et0_fao_evapotranspiration,1))+' ملم/يوم</small></span></div>';
  }).join("");
 }
 function drawChart(labels,values){
