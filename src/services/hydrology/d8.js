@@ -63,7 +63,11 @@
     for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
       if (!Number.isFinite(dem[r][c])) continue;
       validCells++;
-      if (isEdge(r, c, rows, cols)) {
+      const touchesNoData = DIRS.some(d => {
+        const nr = r + d[0], nc = c + d[1];
+        return !inBounds(nr, nc, rows, cols) || !Number.isFinite(dem[nr][nc]);
+      });
+      if (isEdge(r, c, rows, cols) || touchesNoData) {
         visited[r][c] = true;
         heap.push({ r: r, c: c, z: dem[r][c] });
       }
