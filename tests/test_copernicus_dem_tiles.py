@@ -91,7 +91,7 @@ class DownloadIntegrityTests(unittest.TestCase):
 
     def test_download_accepts_tiff_and_returns_size_and_sha256(self):
         import hashlib
-        payload = b"II*\\x00" + b"dem-raster-payload"
+        payload = b"II*\x00" + b"dem-raster-payload"
         with tempfile.TemporaryDirectory() as folder:
             destination = Path(folder) / "tile.tif"
             with patch.object(MODULE, "_request", return_value=self.Response(payload, len(payload))):
@@ -111,7 +111,7 @@ class DownloadIntegrityTests(unittest.TestCase):
             self.assertFalse(destination.with_suffix(".tif.part").exists())
 
     def test_download_rejects_content_length_mismatch(self):
-        payload = b"II*\\x00" + b"payload"
+        payload = b"II*\x00" + b"payload"
         with tempfile.TemporaryDirectory() as folder:
             destination = Path(folder) / "tile.tif"
             with patch.object(MODULE, "_request", return_value=self.Response(payload, len(payload) + 10)):
