@@ -68,17 +68,27 @@ def download_object(key: str, destination: Path) -> tuple[int, str]:
     import hashlib
     digest = hashlib.sha256()
     size = 0
+    header = bytearray()
     try:
         with _request(f"{BASE_URL}/{urllib.parse.quote(key, safe='/')}") as response, temporary.open("wb") as output:
+            content_length = response.headers.get("Content-Length")
+            expected_size = int(content_length) if content_length and content_length.isdigit() else None
             while True:
                 chunk = response.read(1024 * 1024)
                 if not chunk:
                     break
+                if len(header) < 4:
+                    header.extend(chunk[:4 - len(header)])
                 output.write(chunk)
                 digest.update(chunk)
                 size += len(chunk)
         if size == 0:
             raise IOError("Downloaded object is empty")
+        # TIFF classic and BigTIFF signatures, little- and big-endian.
+        if bytes(header) not in (b"II*\\x00", b"MM\\x00*", b"II+\\x00", b"MM\\x00+"):
+            raise IOError("Downloaded object does not have a valid TIFF/BigTIFF signature")
+        if expected_size is not None and size != expected_size:
+            raise IOError(f"Downloaded size mismatch: expected {expected_size} bytes, received {size}")
         os.replace(temporary, destination)
     except Exception:
         temporary.unlink(missing_ok=True)
