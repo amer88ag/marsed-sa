@@ -85,7 +85,7 @@ def download_object(key: str, destination: Path) -> tuple[int, str]:
         if size == 0:
             raise IOError("Downloaded object is empty")
         # TIFF classic and BigTIFF signatures, little- and big-endian.
-        if bytes(header) not in (b"II*\\x00", b"MM\\x00*", b"II+\\x00", b"MM\\x00+"):
+        if bytes(header) not in (b"II*\x00", b"MM\x00*", b"II+\x00", b"MM\x00+"):
             raise IOError("Downloaded object does not have a valid TIFF/BigTIFF signature")
         if expected_size is not None and size != expected_size:
             raise IOError(f"Downloaded size mismatch: expected {expected_size} bytes, received {size}")
