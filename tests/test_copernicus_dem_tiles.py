@@ -3,6 +3,7 @@ import unittest
 from unittest.mock import patch
 from pathlib import Path
 import io
+import tempfile
 
 SPEC = importlib.util.spec_from_file_location(
     "copernicus_dem_tiles", "scripts/copernicus_dem_tiles.py"
@@ -75,6 +76,48 @@ class TileNamingTests(unittest.TestCase):
         with patch.object(MODULE, "_request", return_value=Response()):
             with self.assertRaises(FileNotFoundError):
                 MODULE.discover_tile("Copernicus_DSM_COG_30_N18_00_E042_00_DEM")
+
+
+class DownloadIntegrityTests(unittest.TestCase):
+    class Response:
+        def __init__(self, payload, content_length=None):
+            self.stream = io.BytesIO(payload)
+            self.headers = {}
+            if content_length is not None:
+                self.headers["Content-Length"] = str(content_length)
+        def __enter__(self): return self
+        def __exit__(self, *args): return False
+        def read(self, size=-1): return self.stream.read(size)
+
+    def test_download_accepts_tiff_and_returns_size_and_sha256(self):
+        import hashlib
+        payload = b"II*\\x00" + b"dem-raster-payload"
+        with tempfile.TemporaryDirectory() as folder:
+            destination = Path(folder) / "tile.tif"
+            with patch.object(MODULE, "_request", return_value=self.Response(payload, len(payload))):
+                size, digest = MODULE.download_object("tile/tile.tif", destination)
+            self.assertEqual(size, len(payload))
+            self.assertEqual(digest, hashlib.sha256(payload).hexdigest())
+            self.assertEqual(destination.read_bytes(), payload)
+            self.assertFalse(destination.with_suffix(".tif.part").exists())
+
+    def test_download_rejects_non_tiff_response_and_removes_partial_file(self):
+        with tempfile.TemporaryDirectory() as folder:
+            destination = Path(folder) / "tile.tif"
+            with patch.object(MODULE, "_request", return_value=self.Response(b"<Error>not a TIFF</Error>")):
+                with self.assertRaisesRegex(IOError, "TIFF/BigTIFF signature"):
+                    MODULE.download_object("tile/tile.tif", destination)
+            self.assertFalse(destination.exists())
+            self.assertFalse(destination.with_suffix(".tif.part").exists())
+
+    def test_download_rejects_content_length_mismatch(self):
+        payload = b"II*\\x00" + b"payload"
+        with tempfile.TemporaryDirectory() as folder:
+            destination = Path(folder) / "tile.tif"
+            with patch.object(MODULE, "_request", return_value=self.Response(payload, len(payload) + 10)):
+                with self.assertRaisesRegex(IOError, "size mismatch"):
+                    MODULE.download_object("tile/tile.tif", destination)
+            self.assertFalse(destination.exists())
 
 
 if __name__ == "__main__":
